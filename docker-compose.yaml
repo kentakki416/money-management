@@ -1,0 +1,89 @@
+## TODO: container_name と DB_NAME の "project-template" 部分をプロジェクト名に変更してください
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: project-template-mysql # TODO: プロジェクト名に変更
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: project_template_dev # TODO: プロジェクト名に変更（MySQL DB名はアンダースコア推奨）
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: password
+      TZ: Asia/Tokyo
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-ppassword']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: project-template-redis # TODO: プロジェクト名に変更
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: project-template-api # TODO: プロジェクト名に変更
+    restart: unless-stopped
+    environment:
+      NODE_ENV: local
+      PORT: 8080
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: project_template_dev # TODO: MYSQL_DATABASE と同じ値に変更（MySQL DB名はアンダースコア推奨）
+      DB_USER: mysql
+      DB_PASSWORD: password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CORS_ORIGIN: http://localhost:3000
+      JWT_SECRET: your-secret-key-change-in-production
+      JWT_EXPIRATION: 7d
+      GOOGLE_CLIENT_ID: google-client-id
+      GOOGLE_CLIENT_SECRET: google-client-secret
+      GOOGLE_CALLBACK_URL: http://localhost/google
+    ports:
+      - '8080:8080'
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
