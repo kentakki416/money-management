@@ -278,9 +278,12 @@ const parseCsvLine = (line: string): string[] => {
 }
 ```
 
-### 6. パーサーファクトリ
+### 6. パーサー Strategy
 
 `apps/api/src/service/csv-parser/index.ts` を作成:
+
+CSVの種類（SMBC / MUFG / PayPay）に応じて適切なパーサーを選択する Strategy パターンで実装する。
+各パーサーは同一インターフェース `CsvParserType` を満たし、`getCsvParser` で種別に応じた Strategy を返す。
 
 ```typescript
 import { PaymentSourceType } from "@repo/api-schema"
@@ -312,38 +315,49 @@ export { parseMufgCsv, parsePaypayCsv, parseSmbcCsv }
 
 ### ユニットテスト
 
+`data/` 配下に配置された実際のCSVファイルを読み込んでテストする。
+
 `apps/api/src/service/csv-parser/__tests__/smbc-parser.test.ts` を作成:
 
 ```typescript
+import fs from "fs"
+import path from "path"
+
 import { parseSmbcCsv } from "../smbc-parser"
 
-describe("parseSmbcCsv", () => {
-  it("should parse valid SMBC CSV content", () => {
-    const csv = `藤森　健太　様,4980-05**-****-****,三井住友カードＶＩＳＡ（ＮＬ）
-2026/02/03,モバイルＳｕｉｃａ（ＡｐｐｌｅＶ）●,5000,１,１,5000,
-2026/02/13,スターバックスコーヒージャパン,740,１,１,740,
-,,,,,114241,`
+const CSV_PATH = path.resolve(__dirname, "../../../../../../data/smbc-202603.csv")
 
+describe("parseSmbcCsv", () => {
+  const csv = fs.readFileSync(CSV_PATH, "utf-8")
+
+  it("実際のCSVから取引データをパースできる", () => {
     const result = parseSmbcCsv(csv)
-    expect(result).toHaveLength(2)
+
+    // ヘッダー行（2行）・合計行（1行）を除いた取引行がパースされる
+    expect(result.length).toBeGreaterThan(0)
+
+    // 全件が必要なフィールドを持つ
+    for (const tx of result) {
+      expect(tx.amount).toBeGreaterThan(0)
+      expect(tx.description).toBeTruthy()
+      expect(tx.transactionDate).toBeInstanceOf(Date)
+    }
+  })
+
+  it("先頭の取引が正しくパースされる", () => {
+    const result = parseSmbcCsv(csv)
     expect(result[0]).toEqual({
       amount: 5000,
       description: "モバイルSuica(AppleV)",
       transactionDate: new Date("2026-02-03"),
     })
-    expect(result[1]).toEqual({
-      amount: 740,
-      description: "スターバックスコーヒージャパン",
-      transactionDate: new Date("2026-02-13"),
-    })
   })
 
-  it("should skip header and total rows", () => {
-    const csv = `藤森　健太　様,4980-05**-****-****,三井住友カードＶＩＳＡ（ＮＬ）
-,,,,,0,`
-
+  it("ヘッダー行・合計行はスキップされる", () => {
     const result = parseSmbcCsv(csv)
-    expect(result).toHaveLength(0)
+    const descriptions = result.map((t) => t.description)
+    // 「様」を含む行がパースされていないこと
+    expect(descriptions.every((d) => !d.includes("様"))).toBe(true)
   })
 })
 ```
@@ -351,21 +365,41 @@ describe("parseSmbcCsv", () => {
 `apps/api/src/service/csv-parser/__tests__/mufg-parser.test.ts` を作成:
 
 ```typescript
+import fs from "fs"
+import path from "path"
+
 import { parseMufgCsv } from "../mufg-parser"
 
-describe("parseMufgCsv", () => {
-  it("should parse valid MUFG CSV content", () => {
-    const csv = `"確定情報","お支払日","ご利用店名","ご利用日","支払回数","何回目","ご利用金額（円）","現地通貨額"
-"","","【藤森　健太　様】","","","","",""
-"確定","2026年3月10日","ＺＯＺＯＴＯＷＮ","2026年1月19日","　１","","4,592",""`
+const CSV_PATH = path.resolve(__dirname, "../../../../../../data/mufg-202603.csv")
 
+describe("parseMufgCsv", () => {
+  const csv = fs.readFileSync(CSV_PATH, "utf-8")
+
+  it("実際のCSVから取引データをパースできる", () => {
     const result = parseMufgCsv(csv)
-    expect(result).toHaveLength(1)
+
+    expect(result.length).toBeGreaterThan(0)
+
+    for (const tx of result) {
+      expect(tx.amount).toBeGreaterThan(0)
+      expect(tx.description).toBeTruthy()
+      expect(tx.transactionDate).toBeInstanceOf(Date)
+    }
+  })
+
+  it("先頭の取引（ZOZOTOWN）が正しくパースされる", () => {
+    const result = parseMufgCsv(csv)
     expect(result[0]).toEqual({
       amount: 4592,
       description: "ZOZOTOWN",
       transactionDate: new Date("2026-01-19"),
     })
+  })
+
+  it("消費税行・分割払いヘッダー行はスキップされる", () => {
+    const result = parseMufgCsv(csv)
+    const descriptions = result.map((t) => t.description)
+    expect(descriptions.every((d) => !d.includes("消費税") && !d.includes("≪"))).toBe(true)
   })
 })
 ```
@@ -373,21 +407,39 @@ describe("parseMufgCsv", () => {
 `apps/api/src/service/csv-parser/__tests__/paypay-parser.test.ts` を作成:
 
 ```typescript
+import fs from "fs"
+import path from "path"
+
 import { parsePaypayCsv } from "../paypay-parser"
 
-describe("parsePaypayCsv", () => {
-  it("should parse valid PayPay CSV and filter out non-spending rows", () => {
-    const csv = `取引日,出金金額（円）,入金金額（円）,海外出金金額,通貨,変換レート（円）,利用国,取引内容,取引先,取引方法,支払い区分,利用者,取引番号
-2025/12/30 18:33:22,"2,000",-,-,-,-,-,送った金額,村田雅弥,PayPay残高,-,-,02167432925636018186
-2025/12/30 18:33:20,-,"3,000",-,-,-,-,チャージ,PayPay,ゆうちょ銀行,-,-,02167432908456304652
-2025/12/30 17:10:29,"3,850",-,-,-,-,-,支払い,HAKADORU　渋谷店 - HAKADORU　渋谷店,PayPay残高,-,-,04878538495828787202`
+const CSV_PATH = path.resolve(__dirname, "../../../../../../data/PayPay-Transactions_20250101-20251231.csv")
 
+describe("parsePaypayCsv", () => {
+  const csv = fs.readFileSync(CSV_PATH, "utf-8")
+
+  it("実際のCSVから取引データをパースできる", () => {
     const result = parsePaypayCsv(csv)
-    expect(result).toHaveLength(2) // チャージ行は除外
+
+    expect(result.length).toBeGreaterThan(0)
+
+    for (const tx of result) {
+      expect(tx.amount).toBeGreaterThan(0)
+      expect(tx.description).toBeTruthy()
+      expect(tx.transactionDate).toBeInstanceOf(Date)
+    }
+  })
+
+  it("チャージ行・ポイント獲得行はスキップされる", () => {
+    const result = parsePaypayCsv(csv)
+    const descriptions = result.map((t) => t.description)
+    expect(descriptions.every((d) => d !== "PayPay" && !d.includes("ポイント"))).toBe(true)
+  })
+
+  it("送金の取引先が正しくパースされる", () => {
+    const result = parsePaypayCsv(csv)
+    // CSVの先頭行は送金（村田雅弥）
     expect(result[0]!.description).toBe("村田雅弥")
     expect(result[0]!.amount).toBe(2000)
-    expect(result[1]!.description).toBe("HAKADORU　渋谷店 - HAKADORU　渋谷店")
-    expect(result[1]!.amount).toBe(3850)
   })
 })
 ```

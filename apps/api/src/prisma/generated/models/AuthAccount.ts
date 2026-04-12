@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model AuthAccount
- * 
+ * *
+ *  * 認証アカウント（複数プロバイダー対応）
  */
 export type AuthAccountModel = runtime.Types.Result.DefaultSelection<Prisma.$AuthAccountPayload>
 
@@ -579,18 +580,6 @@ export type AuthAccountUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.AuthAccountScalarWhereInput | Prisma.AuthAccountScalarWhereInput[]
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AuthAccountCreateWithoutUserInput = {
   provider: string
   providerAccountId: string
@@ -765,7 +754,13 @@ export type $AuthAccountPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     userId: number
+    /**
+     * * "google", "github", "credentials" など
+     */
     provider: string
+    /**
+     * * プロバイダー側のユーザーID
+     */
     providerAccountId: string
     accessToken: string | null
     refreshToken: string | null

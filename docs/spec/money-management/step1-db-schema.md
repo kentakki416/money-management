@@ -9,7 +9,9 @@ Prismaスキーマに新規テーブルを追加し、マイグレーション�
 `apps/api/src/prisma/schema.prisma` に以下のモデルを追加する。
 
 ```prisma
-// 支払い元タイプ
+/**
+ * 支払いタイプ
+ */
 enum PaymentSourceType {
     SMBC
     MUFG
@@ -17,7 +19,9 @@ enum PaymentSourceType {
     MANUAL
 }
 
-// 支払い元（ユーザーごとの決済手段）
+/**
+ * 支払い元（ユーザーごとの決済手段）
+ */
 model PaymentSource {
     id        Int               @id @default(autoincrement())
     userId    Int               @map("user_id")
@@ -34,28 +38,36 @@ model PaymentSource {
     @@map("payment_sources")
 }
 
-// カテゴリマスター（グローバル共通）
+/**
+ * カテゴリマスター（グローバル共通）
+ */
 model Category {
     id        Int      @id @default(autoincrement())
     name      String   @db.VarChar(50)
-    color     String   @db.VarChar(7) // #RRGGBB
+    /** #RRGGBB */
+    color     String   @db.VarChar(7)
     sortOrder Int      @default(0) @map("sort_order")
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    transactions  Transaction[]
-    categoryRules CategoryRule[]
+    transactions      Transaction[]
+    categoryRules     CategoryRule[]
+    userCategoryRules UserCategoryRule[]
 
     @@map("categories")
 }
 
-// 自動分類ルールのマッチタイプ
+/**
+ * 自動分類ルールのマッチタイプ
+ */
 enum MatchType {
     PARTIAL
     EXACT
 }
 
-// 自動分類ルール
+/**
+ * 自動分類ルール（マスター：全ユーザー共通）
+ */
 model CategoryRule {
     id         Int       @id @default(autoincrement())
     categoryId Int       @map("category_id")
@@ -72,7 +84,35 @@ model CategoryRule {
     @@map("category_rules")
 }
 
-// CSVアップロード履歴
+/**
+ * ユーザー個別の自動分類ルール
+ * マスタールールとは別に、ユーザーが独自に設定するルール
+ * 分類時はユーザールールを先に照合し、マッチすればマスタールールは参照しない
+ * 取引のカテゴリを手動変更した際に自動作成される
+ */
+model UserCategoryRule {
+    id         Int       @id @default(autoincrement())
+    userId     Int       @map("user_id")
+    categoryId Int       @map("category_id")
+    keyword    String    @db.VarChar(200)
+    matchType  MatchType @default(PARTIAL) @map("match_type")
+    priority   Int       @default(0)
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, keyword])
+    @@index([userId])
+    @@index([categoryId])
+    @@index([priority])
+    @@map("user_category_rules")
+}
+
+/**
+ * CSVアップロード履歴
+ */
 model CsvUpload {
     id              Int      @id @default(autoincrement())
     userId          Int      @map("user_id")
@@ -91,7 +131,9 @@ model CsvUpload {
     @@map("csv_uploads")
 }
 
-// 取引データ
+/**
+ * 取引データ
+ */
 model Transaction {
     id              Int      @id @default(autoincrement())
     userId          Int      @map("user_id")
@@ -130,9 +172,10 @@ model User {
     userCharacters UserCharacter[]
 
     // 追加リレーション
-    paymentSources PaymentSource[]
-    transactions   Transaction[]
-    csvUploads     CsvUpload[]
+    paymentSources    PaymentSource[]
+    transactions      Transaction[]
+    csvUploads        CsvUpload[]
+    userCategoryRules UserCategoryRule[]
 
     @@map("users")
 }

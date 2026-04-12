@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model Character
- * 
+ * *
+ *  * キャラクターマスター
  */
 export type CharacterModel = runtime.Types.Result.DefaultSelection<Prisma.$CharacterPayload>
 

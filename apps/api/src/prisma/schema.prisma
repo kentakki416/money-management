@@ -1,25 +1,31 @@
-// Generator
-// Prisma v7 はデフォルトで ESM 形式のコードを生成する。
-// ESM 形式だと generated/client.ts 内で import.meta.url が使われるが、
-// Jest は CJS (CommonJS) 環境で動作するため import.meta が使えず
-// 「SyntaxError: Cannot use 'import.meta' outside a module」エラーになる。
-// (既知の問題: https://github.com/prisma/prisma/issues/27876)
-//
-// moduleFormat = "cjs" を指定することで、生成コードを CJS 互換にし、
-// import.meta.url の代わりに Node.js の __dirname を使用するようになる。
-// これにより Jest 環境でも Prisma Client を直接インポートできる。
+/**
+ * Generator
+ * Prisma v7 はデフォルトで ESM 形式のコードを生成する。
+ * ESM 形式だと generated/client.ts 内で import.meta.url が使われるが、
+ * Jest は CJS (CommonJS) 環境で動作するため import.meta が使えず
+ * 「SyntaxError: Cannot use 'import.meta' outside a module」エラーになる。
+ * (既知の問題: https://github.com/prisma/prisma/issues/27876)
+ *
+ * moduleFormat = "cjs" を指定することで、生成コードを CJS 互換にし、
+ * import.meta.url の代わりに Node.js の __dirname を使用するようになる。
+ * これにより Jest 環境でも Prisma Client を直接インポートできる。
+ */
 generator client {
     provider     = "prisma-client"
     output       = "./generated"
     moduleFormat = "cjs"
 }
 
-// Data source
+/**
+ * Data source
+ */
 datasource db {
     provider = "mysql"
 }
 
-// 支払いタイプ
+/**
+ * 支払いタイプ
+ */
 enum PaymentSourceType {
     SMBC
     MUFG
@@ -52,18 +58,22 @@ model PaymentSource {
 model Category {
     id Int @id @default(autoincrement())
     name String @db.VarChar(50)
-    color String @db.VarChar(7) // #RRGGBB
+    /** #RRGGBB */
+    color String @db.VarChar(7)
     sortOrder Int @default(0) @map("sort_order")
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    transactions Transaction[]
-    categoryRules CategoryRule[]
+    transactions      Transaction[]
+    categoryRules     CategoryRule[]
+    userCategoryRules UserCategoryRule[]
 
     @@map("categories")
 }
 
-// 自動分類ルールのマッチタイプ
+/**
+ * 自動分類ルールのマッチタイプ
+ */
 enum MatchType {
     PARTIAL
     EXACT
@@ -86,6 +96,32 @@ model CategoryRule {
     @@index([categoryId])
     @@index([priority])
     @@map("category_rules")
+}
+
+/**
+ * ユーザー個別の自動分類ルール
+ * マスタールール(category_rules)とは別に、ユーザーが独自に設定するルール
+ * 分類時はユーザールールを先に照合し、マッチすればマスタールールは参照しない
+ * 取引のカテゴリを手動変更した際に自動作成される
+ */
+model UserCategoryRule {
+    id         Int       @id @default(autoincrement())
+    userId     Int       @map("user_id")
+    categoryId Int       @map("category_id")
+    keyword    String    @db.VarChar(200)
+    matchType  MatchType @default(PARTIAL) @map("match_type")
+    priority   Int       @default(0)
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+
+    user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, keyword])
+    @@index([userId])
+    @@index([categoryId])
+    @@index([priority])
+    @@map("user_category_rules")
 }
 
 /**
@@ -147,9 +183,105 @@ model User {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    paymentSources PaymentSource[]
-    transactions Transaction[]
-    csvUploads CsvUpload[]
+    paymentSources    PaymentSource[]
+    transactions      Transaction[]
+    csvUploads        CsvUpload[]
+    userCategoryRules UserCategoryRule[]
+    accounts          AuthAccount[]
+    userCharacters    UserCharacter[]
 
     @@map("users")
+}
+
+/**
+ * 認証プロバイダー
+ */
+enum Provider {
+    GOOGLE
+    GITHUB
+    CREDENTIALS
+}
+
+/**
+ * 認証アカウント（複数プロバイダー対応）
+ */
+model AuthAccount {
+    id                Int      @id @default(autoincrement())
+    userId            Int      @map("user_id")
+    /** "google", "github", "credentials" など */
+    provider          String
+    /** プロバイダー側のユーザーID */
+    providerAccountId String   @map("provider_account_id")
+    accessToken       String?  @map("access_token") @db.Text
+    refreshToken      String?  @map("refresh_token") @db.Text
+    expiresAt         Int?     @map("expires_at")
+    tokenType         String?  @map("token_type")
+    scope             String?
+    idToken           String?  @map("id_token") @db.Text
+    createdAt         DateTime @default(now()) @map("created_at")
+    updatedAt         DateTime @updatedAt @map("updated_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+    @@index([userId])
+    @@map("auth_accounts")
+}
+
+/**
+ * キャラクターコード
+ */
+enum CharacterCode {
+    TRAECHAN
+    MASTER
+}
+
+/**
+ * キャラクターマスター
+ */
+model Character {
+    characterCode CharacterCode @id @map("character_code")
+    name String @db.VarChar(100)
+    description String @db.Text
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    userCharacters UserCharacter[]
+
+    @@map("characters")
+}
+
+/**
+ * ユーザーが保持するキャラクター
+ */
+model UserCharacter {
+    id Int @id @default(autoincrement())
+    userId Int @map("user_id")
+    characterCode CharacterCode @map("character_code")
+    nickName String @db.VarChar(100) @map("nick_name")
+    level Int @default(1) 
+    experience Int @default(0)
+    isActive Boolean @default(false) @map("is_active")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    character Character @relation(fields: [characterCode], references: [characterCode], onDelete: Restrict)
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId, isActive])
+    @@index([characterCode])
+    @@map("user_characters")
+}
+
+/**
+ * メモ
+ */
+model Memo {
+    id        Int      @id @default(autoincrement())
+    title     String   @db.VarChar(255)
+    body      String   @db.Text
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("memos")
 }

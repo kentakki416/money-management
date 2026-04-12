@@ -10,33 +10,58 @@
 
 ```typescript
 import { PrismaCategoryRuleRepository } from "../repository/mysql/prisma-category-rule-repository"
+import { PrismaUserCategoryRuleRepository } from "../repository/mysql/prisma-user-category-rule-repository"
 import { toHalfWidth } from "../lib/normalize"
 
 const UNCATEGORIZED_ID = 99
 
-export const createCategorizeService = (ruleRepo: PrismaCategoryRuleRepository) => ({
-  /**
-   * 支払先名(description)からカテゴリIDを判定する
-   * priority の高いルールから順にマッチを試み、最初にヒットしたカテゴリを返す
-   */
-  categorize: async (description: string): Promise<number> => {
-    const rules = await ruleRepo.findAll() // priority DESC でソート済み
-    const normalizedDesc = toHalfWidth(description)
+type RuleLike = {
+  categoryId: number
+  keyword: string
+  matchType: "PARTIAL" | "EXACT"
+}
 
-    for (const rule of rules) {
-      const normalizedKeyword = toHalfWidth(rule.keyword)
-
-      if (rule.matchType === "EXACT") {
-        if (normalizedDesc === normalizedKeyword) {
-          return rule.categoryId
-        }
-      } else {
-        // PARTIAL
-        if (normalizedDesc.includes(normalizedKeyword)) {
-          return rule.categoryId
-        }
+/**
+ * ルール配列に対して description をマッチングする共通関数
+ */
+const matchRules = (normalizedDesc: string, rules: RuleLike[]): number | null => {
+  for (const rule of rules) {
+    const normalizedKeyword = toHalfWidth(rule.keyword)
+    if (rule.matchType === "EXACT") {
+      if (normalizedDesc === normalizedKeyword) {
+        return rule.categoryId
+      }
+    } else {
+      if (normalizedDesc.includes(normalizedKeyword)) {
+        return rule.categoryId
       }
     }
+  }
+  return null
+}
+
+export const createCategorizeService = (
+  masterRuleRepo: PrismaCategoryRuleRepository,
+  userRuleRepo: PrismaUserCategoryRuleRepository,
+) => ({
+  /**
+   * 支払先名(description)からカテゴリIDを判定する
+   * 1. ユーザールール（user_category_rules）を先に照合
+   * 2. マッチしなければマスタールール（category_rules）を照合
+   * 3. どちらにもマッチしなければ「未分類」
+   */
+  categorize: async (description: string, userId: number): Promise<number> => {
+    const normalizedDesc = toHalfWidth(description)
+
+    // ユーザールールを先にチェック
+    const userRules = await userRuleRepo.findByUserId(userId)
+    const userMatch = matchRules(normalizedDesc, userRules)
+    if (userMatch !== null) return userMatch
+
+    // マスタールールをチェック
+    const masterRules = await masterRuleRepo.findAll()
+    const masterMatch = matchRules(normalizedDesc, masterRules)
+    if (masterMatch !== null) return masterMatch
 
     return UNCATEGORIZED_ID
   },
@@ -44,30 +69,24 @@ export const createCategorizeService = (ruleRepo: PrismaCategoryRuleRepository) 
   /**
    * 複数の取引に対してカテゴリを一括判定する
    */
-  categorizeMany: async (descriptions: string[]): Promise<Map<string, number>> => {
-    const rules = await ruleRepo.findAll()
+  categorizeMany: async (descriptions: string[], userId: number): Promise<Map<string, number>> => {
+    const userRules = await userRuleRepo.findByUserId(userId)
+    const masterRules = await masterRuleRepo.findAll()
     const result = new Map<string, number>()
 
     for (const desc of descriptions) {
       const normalizedDesc = toHalfWidth(desc)
-      let categoryId = UNCATEGORIZED_ID
 
-      for (const rule of rules) {
-        const normalizedKeyword = toHalfWidth(rule.keyword)
-        if (rule.matchType === "EXACT") {
-          if (normalizedDesc === normalizedKeyword) {
-            categoryId = rule.categoryId
-            break
-          }
-        } else {
-          if (normalizedDesc.includes(normalizedKeyword)) {
-            categoryId = rule.categoryId
-            break
-          }
-        }
+      // ユーザールール優先
+      const userMatch = matchRules(normalizedDesc, userRules)
+      if (userMatch !== null) {
+        result.set(desc, userMatch)
+        continue
       }
 
-      result.set(desc, categoryId)
+      // マスタールール
+      const masterMatch = matchRules(normalizedDesc, masterRules)
+      result.set(desc, masterMatch ?? UNCATEGORIZED_ID)
     }
 
     return result
@@ -344,11 +363,13 @@ export type PrismaCsvUploadRepository = ReturnType<typeof createPrismaCsvUploadR
 
 ```typescript
 import { PrismaTransactionRepository, TransactionFilter } from "../repository/mysql/prisma-transaction-repository"
+import { PrismaUserCategoryRuleRepository } from "../repository/mysql/prisma-user-category-rule-repository"
 import { CategorizeService } from "./categorize-service"
 
 export const createTransactionService = (
   txRepo: PrismaTransactionRepository,
   categorizeService: CategorizeService,
+  userRuleRepo: PrismaUserCategoryRuleRepository,
 ) => ({
   createManualTransaction: async (input: {
     amount: number
@@ -358,8 +379,8 @@ export const createTransactionService = (
     transactionDate: string
     userId: number
   }) => {
-    // カテゴリ未指定の場合は自動分類
-    const categoryId = input.categoryId ?? await categorizeService.categorize(input.description)
+    // カテゴリ未指定の場合は自動分類（ユーザールール優先）
+    const categoryId = input.categoryId ?? await categorizeService.categorize(input.description, input.userId)
 
     return txRepo.create({
       amount: input.amount,
@@ -386,12 +407,24 @@ export const createTransactionService = (
     description?: string
     transactionDate?: string
   }) => {
-    return txRepo.update(id, userId, {
+    const transaction = await txRepo.update(id, userId, {
       amount: input.amount,
       categoryId: input.categoryId,
       description: input.description,
       transactionDate: input.transactionDate ? new Date(input.transactionDate) : undefined,
     })
+
+    // カテゴリが変更された場合、ユーザー個別ルールを自動作成・更新
+    // 以降同じ店名の取引が自動で同じカテゴリに分類されるようになる
+    if (input.categoryId !== undefined && input.categoryId !== null) {
+      await userRuleRepo.upsert({
+        categoryId: input.categoryId,
+        keyword: transaction.description,
+        userId,
+      })
+    }
+
+    return transaction
   },
 })
 
@@ -448,9 +481,9 @@ export const createCsvUploadService = (
       throw new CsvParseError("取引データが見つかりませんでした")
     }
 
-    // 自動カテゴリ分類
+    // 自動カテゴリ分類（ユーザールール優先）
     const descriptions = parsed.map((t) => t.description)
-    const categoryMap = await categorizeService.categorizeMany(descriptions)
+    const categoryMap = await categorizeService.categorizeMany(descriptions, input.userId)
 
     // CSVアップロードレコード作成
     const csvUpload = await csvUploadRepo.create({
@@ -814,6 +847,7 @@ import { createPrismaPaymentSourceRepository } from "./repository/mysql/prisma-p
 import { createTransactionService } from "./service/transaction-service"
 import { createCsvUploadService } from "./service/csv-upload-service"
 import { createCategorizeService } from "./service/categorize-service"
+import { createPrismaUserCategoryRuleRepository } from "./repository/mysql/prisma-user-category-rule-repository"
 
 // リポジトリ
 const txRepo = createPrismaTransactionRepository(prisma)
@@ -821,8 +855,9 @@ const csvUploadRepo = createPrismaCsvUploadRepository(prisma)
 const paymentSourceRepo = createPrismaPaymentSourceRepository(prisma)
 
 // サービス
-const categorizeService = createCategorizeService(categoryRuleRepo)
-const transactionService = createTransactionService(txRepo, categorizeService)
+const userCategoryRuleRepo = createPrismaUserCategoryRuleRepository(prisma)
+const categorizeService = createCategorizeService(categoryRuleRepo, userCategoryRuleRepo)
+const transactionService = createTransactionService(txRepo, categorizeService, userCategoryRuleRepo)
 const csvUploadService = createCsvUploadService(csvUploadRepo, txRepo, categorizeService)
 
 // ルート登録

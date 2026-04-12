@@ -9,6 +9,24 @@
 * 🟢 You can import this file directly.
 */
 
+export const PaymentSourceType = {
+  SMBC: 'SMBC',
+  MUFG: 'MUFG',
+  PAYPAY: 'PAYPAY',
+  MANUAL: 'MANUAL'
+} as const
+
+export type PaymentSourceType = (typeof PaymentSourceType)[keyof typeof PaymentSourceType]
+
+
+export const MatchType = {
+  PARTIAL: 'PARTIAL',
+  EXACT: 'EXACT'
+} as const
+
+export type MatchType = (typeof MatchType)[keyof typeof MatchType]
+
+
 export const Provider = {
   GOOGLE: 'GOOGLE',
   GITHUB: 'GITHUB',

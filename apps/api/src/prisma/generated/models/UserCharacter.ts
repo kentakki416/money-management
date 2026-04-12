@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model UserCharacter
- * 
+ * *
+ *  * ユーザーが保持するキャラクター
  */
 export type UserCharacterModel = runtime.Types.Result.DefaultSelection<Prisma.$UserCharacterPayload>
 
@@ -555,10 +556,6 @@ export type UserCharacterUncheckedUpdateManyWithoutCharacterNestedInput = {
   update?: Prisma.UserCharacterUpdateWithWhereUniqueWithoutCharacterInput | Prisma.UserCharacterUpdateWithWhereUniqueWithoutCharacterInput[]
   updateMany?: Prisma.UserCharacterUpdateManyWithWhereWithoutCharacterInput | Prisma.UserCharacterUpdateManyWithWhereWithoutCharacterInput[]
   deleteMany?: Prisma.UserCharacterScalarWhereInput | Prisma.UserCharacterScalarWhereInput[]
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
 }
 
 export type UserCharacterCreateWithoutUserInput = {

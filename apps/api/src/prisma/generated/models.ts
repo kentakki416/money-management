@@ -8,6 +8,12 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/PaymentSource.js'
+export type * from './models/Category.js'
+export type * from './models/CategoryRule.js'
+export type * from './models/UserCategoryRule.js'
+export type * from './models/CsvUpload.js'
+export type * from './models/Transaction.js'
 export type * from './models/User.js'
 export type * from './models/AuthAccount.js'
 export type * from './models/Character.js'

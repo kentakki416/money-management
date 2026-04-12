@@ -51,6 +51,12 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  PaymentSource: 'PaymentSource',
+  Category: 'Category',
+  CategoryRule: 'CategoryRule',
+  UserCategoryRule: 'UserCategoryRule',
+  CsvUpload: 'CsvUpload',
+  Transaction: 'Transaction',
   User: 'User',
   AuthAccount: 'AuthAccount',
   Character: 'Character',
@@ -72,6 +78,86 @@ export const TransactionIsolationLevel = {
 } as const
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const PaymentSourceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentSourceScalarFieldEnum = (typeof PaymentSourceScalarFieldEnum)[keyof typeof PaymentSourceScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const CategoryRuleScalarFieldEnum = {
+  id: 'id',
+  categoryId: 'categoryId',
+  keyword: 'keyword',
+  matchType: 'matchType',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CategoryRuleScalarFieldEnum = (typeof CategoryRuleScalarFieldEnum)[keyof typeof CategoryRuleScalarFieldEnum]
+
+
+export const UserCategoryRuleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  categoryId: 'categoryId',
+  keyword: 'keyword',
+  matchType: 'matchType',
+  priority: 'priority',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserCategoryRuleScalarFieldEnum = (typeof UserCategoryRuleScalarFieldEnum)[keyof typeof UserCategoryRuleScalarFieldEnum]
+
+
+export const CsvUploadScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  paymentSourceId: 'paymentSourceId',
+  fileName: 'fileName',
+  fileHash: 'fileHash',
+  rowCount: 'rowCount'
+} as const
+
+export type CsvUploadScalarFieldEnum = (typeof CsvUploadScalarFieldEnum)[keyof typeof CsvUploadScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  paymentSourceId: 'paymentSourceId',
+  categoryId: 'categoryId',
+  csvUploadId: 'csvUploadId',
+  transactionDate: 'transactionDate',
+  description: 'description',
+  amount: 'amount',
+  isManual: 'isManual',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -149,12 +235,56 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const PaymentSourceOrderByRelevanceFieldEnum = {
+  name: 'name'
+} as const
+
+export type PaymentSourceOrderByRelevanceFieldEnum = (typeof PaymentSourceOrderByRelevanceFieldEnum)[keyof typeof PaymentSourceOrderByRelevanceFieldEnum]
+
+
+export const CategoryOrderByRelevanceFieldEnum = {
+  name: 'name',
+  color: 'color'
+} as const
+
+export type CategoryOrderByRelevanceFieldEnum = (typeof CategoryOrderByRelevanceFieldEnum)[keyof typeof CategoryOrderByRelevanceFieldEnum]
+
+
+export const CategoryRuleOrderByRelevanceFieldEnum = {
+  keyword: 'keyword'
+} as const
+
+export type CategoryRuleOrderByRelevanceFieldEnum = (typeof CategoryRuleOrderByRelevanceFieldEnum)[keyof typeof CategoryRuleOrderByRelevanceFieldEnum]
+
+
+export const UserCategoryRuleOrderByRelevanceFieldEnum = {
+  keyword: 'keyword'
+} as const
+
+export type UserCategoryRuleOrderByRelevanceFieldEnum = (typeof UserCategoryRuleOrderByRelevanceFieldEnum)[keyof typeof UserCategoryRuleOrderByRelevanceFieldEnum]
+
+
+export const CsvUploadOrderByRelevanceFieldEnum = {
+  fileName: 'fileName',
+  fileHash: 'fileHash'
+} as const
+
+export type CsvUploadOrderByRelevanceFieldEnum = (typeof CsvUploadOrderByRelevanceFieldEnum)[keyof typeof CsvUploadOrderByRelevanceFieldEnum]
+
+
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const TransactionOrderByRelevanceFieldEnum = {
+  description: 'description'
+} as const
+
+export type TransactionOrderByRelevanceFieldEnum = (typeof TransactionOrderByRelevanceFieldEnum)[keyof typeof TransactionOrderByRelevanceFieldEnum]
 
 
 export const UserOrderByRelevanceFieldEnum = {

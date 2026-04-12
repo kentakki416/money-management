@@ -26,9 +26,12 @@
 ### 自動カテゴリ分類
 - 支払先名からカテゴリを自動判定するルールベースの仕組み
 - ルールは部分一致で照合（例: 「クリニック」を含む → 美容/医療）
-- マスターデータ（CategoryRule）にルールが登録されている場合はそれを優先適用
+- ルールには **マスタールール**（`category_rules` テーブル、全ユーザー共通）と **ユーザールール**（`user_category_rules` テーブル、ユーザー個別）の2種類がある
+- 分類の優先順位: **ユーザールール > マスタールール** （ユーザールールにマッチすればマスタールールは参照しない）
 - ルールに該当しない場合は「未分類」とする
 - ユーザーは取引のカテゴリを手動で変更可能
+- **取引のカテゴリを手動変更した場合、その支払先名（description）で自動的にユーザー固有の分類ルールが作成される**（同じ支払先名のルールが既にある場合は更新）
+- これにより、以降のCSVインポートや手動登録時に同じ店名が自動で変更後のカテゴリに分類される
 
 ### カレンダー表示
 - 月単位のカレンダーに日別の支出合計を表示
@@ -39,9 +42,14 @@
 - 全カテゴリの月別推移を折れ線グラフで表示（過去12ヶ月）
 - 月間の合計支出額を表示
 
+### ユーザー側グルーピング管理（Web）
+- カテゴリマスターの追加・編集・削除
+- ユーザー固有の自動分類ルールの追加・編集・削除
+- 取引のカテゴリ変更時に自動的にユーザールールが作成・更新される
+
 ### 管理画面（Admin）
 - カテゴリマスターの追加・編集・削除
-- 自動分類ルール（CategoryRule）の追加・編集・削除
+- マスター自動分類ルール（CategoryRule）の追加・編集・削除
 - ルールのプレビュー（適用対象の取引を確認）
 
 ---
@@ -54,7 +62,8 @@
 |---|---|---|
 | `payment_sources` | 支払い元マスター | id, user_id, name, type(SMBC/MUFG/PAYPAY/MANUAL), created_at |
 | `categories` | カテゴリマスター | id, name, color, sort_order, created_at |
-| `category_rules` | 自動分類ルール | id, category_id, keyword, match_type(PARTIAL/EXACT), priority, created_at |
+| `category_rules` | 自動分類ルール（マスター） | id, category_id, keyword, match_type(PARTIAL/EXACT), priority, created_at |
+| `user_category_rules` | ユーザー個別分類ルール | id, user_id, category_id, keyword, match_type(PARTIAL/EXACT), priority, created_at |
 | `csv_uploads` | CSVアップロード履歴 | id, user_id, payment_source_id, file_name, file_hash, row_count, uploaded_at |
 | `transactions` | 取引データ | id, user_id, payment_source_id, category_id, transaction_date, description, amount, is_manual, csv_upload_id, created_at |
 
@@ -69,6 +78,8 @@ erDiagram
     payment_sources ||--o{ csv_uploads : "source"
     categories ||--o{ transactions : "categorized"
     categories ||--o{ category_rules : "has rules"
+    categories ||--o{ user_category_rules : "has user rules"
+    users ||--o{ user_category_rules : "has"
     csv_uploads ||--o{ transactions : "imported"
 
     users {
@@ -99,6 +110,17 @@ erDiagram
 
     category_rules {
         int id PK
+        int category_id FK
+        string keyword
+        enum match_type "PARTIAL | EXACT"
+        int priority
+        datetime created_at
+        datetime updated_at
+    }
+
+    user_category_rules {
+        int id PK
+        int user_id FK
         int category_id FK
         string keyword
         enum match_type "PARTIAL | EXACT"
@@ -207,14 +229,23 @@ erDiagram
 | PUT | `/api/categories/:id` | カテゴリ更新 |
 | DELETE | `/api/categories/:id` | カテゴリ削除 |
 
-### 自動分類ルール
+### 自動分類ルール（マスター）
 
 | メソッド | パス | 説明 |
 |---|---|---|
-| GET | `/api/category-rules` | ルール一覧取得 |
-| POST | `/api/category-rules` | ルール作成 |
-| PUT | `/api/category-rules/:id` | ルール更新 |
-| DELETE | `/api/category-rules/:id` | ルール削除 |
+| GET | `/api/category-rules` | マスタールール一覧取得 |
+| POST | `/api/category-rules` | マスタールール作成 |
+| PUT | `/api/category-rules/:id` | マスタールール更新 |
+| DELETE | `/api/category-rules/:id` | マスタールール削除 |
+
+### ユーザー個別分類ルール
+
+| メソッド | パス | 説明 |
+|---|---|---|
+| GET | `/api/user-category-rules` | ユーザールール一覧取得 |
+| POST | `/api/user-category-rules` | ユーザールール作成 |
+| PUT | `/api/user-category-rules/:id` | ユーザールール更新 |
+| DELETE | `/api/user-category-rules/:id` | ユーザールール削除 |
 
 ### 支払い元
 
@@ -257,20 +288,25 @@ erDiagram
 | 画面 | パス | 説明 |
 |---|---|---|
 | ログイン | `/signin` | Googleログインボタン |
+| OAuthコールバック | `/callback` | Google認証後のトークン保存・リダイレクト |
 | ダッシュボード | `/` | 月間合計・カテゴリ別棒グラフ・最近の取引 |
 | カレンダー | `/calendar` | 月カレンダー + 日別支出額 + 日付クリックで取引一覧モーダル |
+| グルーピング | `/grouping` | カテゴリ追加・編集・削除 + 自動分類ルール管理 |
 | グラフ | `/charts` | カテゴリ別月次推移（折れ線グラフ） |
-| 取引一覧 | `/transactions` | 取引一覧テーブル + フィルタ + 手動登録フォーム |
 | CSVアップロード | `/upload` | CSV選択 + 支払い元選択 + プレビュー + アップロード |
+| 取引一覧 | `/transactions` | 取引一覧テーブル + フィルタ + 手動登録フォーム |
+| 支払い元管理 | `/payment-sources` | 支払い元の追加・削除 |
 
 #### サイドバーメニュー構成
 
 ```
 📊 ダッシュボード     /
 📅 カレンダー        /calendar
+📁 グルーピング      /grouping
 📈 グラフ           /charts
-💳 取引一覧         /transactions
 📤 CSVアップロード    /upload
+💳 取引一覧         /transactions
+💳 支払い元管理      /payment-sources
 ```
 
 ### Admin（apps/admin）
@@ -321,16 +357,44 @@ sequenceDiagram
     participant API as API Server
     participant DB as MySQL
 
-    API->>DB: SELECT * FROM category_rules ORDER BY priority DESC
-    API->>API: 取引の description に対してルールを順に照合
-    alt EXACT マッチ
-        API->>API: description === keyword → カテゴリ確定
-    else PARTIAL マッチ
-        API->>API: description.includes(keyword) → カテゴリ確定
+    API->>DB: SELECT * FROM user_category_rules WHERE user_id = ? ORDER BY priority DESC
+    API->>API: 取引の description に対してユーザールールを順に照合
+    alt ユーザールールでマッチ
+        API->>API: カテゴリ確定（マスタールールは参照しない）
+    else ユーザールールでマッチなし
+        API->>DB: SELECT * FROM category_rules ORDER BY priority DESC
+        API->>API: マスタールールを順に照合
+        alt EXACT マッチ
+            API->>API: description === keyword → カテゴリ確定
+        else PARTIAL マッチ
+            API->>API: description.includes(keyword) → カテゴリ確定
+        end
     end
     alt マッチなし
         API->>API: category_id = 99 (未分類)
     end
+```
+
+### 取引カテゴリ変更 → ユーザールール自動作成フロー
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as Web (Next.js)
+    participant API as API (Express)
+    participant DB as MySQL
+
+    User->>Web: 取引のカテゴリを変更
+    Web->>API: PUT /api/transactions/:id { category_id: 5 }
+    API->>DB: UPDATE transactions SET category_id = 5
+    API->>DB: SELECT * FROM user_category_rules WHERE user_id = ? AND keyword = description
+    alt ユーザールールが既に存在
+        API->>DB: UPDATE user_category_rules SET category_id = 5 WHERE ...
+    else ユーザールールが未存在
+        API->>DB: INSERT INTO user_category_rules (user_id, category_id, keyword, match_type) VALUES (?, 5, description, 'PARTIAL')
+    end
+    API-->>Web: 200 OK (更新された取引)
+    Note over Web: 以降、同じ店名は自動的にカテゴリ5に分類される
 ```
 
 ### 月間集計フロー

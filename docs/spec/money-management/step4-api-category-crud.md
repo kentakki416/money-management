@@ -535,6 +535,331 @@ const categoryRuleService = createCategoryRuleService(categoryRuleRepo)
 // ルート登録
 app.use("/api/categories", createCategoryRouter(categoryService))
 app.use("/api/category-rules", createCategoryRuleRouter(categoryRuleService))
+app.use("/api/user-category-rules", createUserCategoryRuleRouter(userCategoryRuleService))
+```
+
+### 9. ユーザー個別分類ルール Repository
+
+`apps/api/src/repository/mysql/prisma-user-category-rule-repository.ts` を作成:
+
+```typescript
+import { PrismaClient } from "../../prisma/generated"
+
+export type UserCategoryRuleData = {
+  categoryId: number
+  categoryName?: string
+  id: number
+  keyword: string
+  matchType: "PARTIAL" | "EXACT"
+  priority: number
+  userId: number
+}
+
+export const createPrismaUserCategoryRuleRepository = (prisma: PrismaClient) => ({
+  create: async (input: {
+    categoryId: number
+    keyword: string
+    matchType?: "PARTIAL" | "EXACT"
+    priority?: number
+    userId: number
+  }): Promise<UserCategoryRuleData> => {
+    const rule = await prisma.userCategoryRule.create({
+      data: {
+        categoryId: input.categoryId,
+        keyword: input.keyword,
+        matchType: input.matchType ?? "PARTIAL",
+        priority: input.priority ?? 0,
+        userId: input.userId,
+      },
+      include: { category: true },
+    })
+    return {
+      categoryId: rule.categoryId,
+      categoryName: rule.category.name,
+      id: rule.id,
+      keyword: rule.keyword,
+      matchType: rule.matchType as "PARTIAL" | "EXACT",
+      priority: rule.priority,
+      userId: rule.userId,
+    }
+  },
+
+  delete: async (id: number, userId: number): Promise<void> => {
+    await prisma.userCategoryRule.deleteMany({ where: { id, userId } })
+  },
+
+  findByUserId: async (userId: number): Promise<UserCategoryRuleData[]> => {
+    const rules = await prisma.userCategoryRule.findMany({
+      include: { category: true },
+      orderBy: { priority: "desc" },
+      where: { userId },
+    })
+    return rules.map((r) => ({
+      categoryId: r.categoryId,
+      categoryName: r.category.name,
+      id: r.id,
+      keyword: r.keyword,
+      matchType: r.matchType as "PARTIAL" | "EXACT",
+      priority: r.priority,
+      userId: r.userId,
+    }))
+  },
+
+  update: async (id: number, userId: number, input: {
+    categoryId?: number
+    keyword?: string
+    matchType?: "PARTIAL" | "EXACT"
+    priority?: number
+  }): Promise<UserCategoryRuleData> => {
+    const rule = await prisma.userCategoryRule.update({
+      data: {
+        categoryId: input.categoryId,
+        keyword: input.keyword,
+        matchType: input.matchType,
+        priority: input.priority,
+      },
+      include: { category: true },
+      where: { id, userId },
+    })
+    return {
+      categoryId: rule.categoryId,
+      categoryName: rule.category.name,
+      id: rule.id,
+      keyword: rule.keyword,
+      matchType: rule.matchType as "PARTIAL" | "EXACT",
+      priority: rule.priority,
+      userId: rule.userId,
+    }
+  },
+
+  /**
+   * 同じユーザー・同じキーワードのルールがあれば更新、なければ作成
+   * 取引のカテゴリ手動変更時に自動呼び出しされる
+   */
+  upsert: async (input: {
+    categoryId: number
+    keyword: string
+    userId: number
+  }): Promise<UserCategoryRuleData> => {
+    const rule = await prisma.userCategoryRule.upsert({
+      create: {
+        categoryId: input.categoryId,
+        keyword: input.keyword,
+        matchType: "PARTIAL",
+        priority: 0,
+        userId: input.userId,
+      },
+      include: { category: true },
+      update: {
+        categoryId: input.categoryId,
+      },
+      where: {
+        userId_keyword: {
+          keyword: input.keyword,
+          userId: input.userId,
+        },
+      },
+    })
+    return {
+      categoryId: rule.categoryId,
+      categoryName: rule.category.name,
+      id: rule.id,
+      keyword: rule.keyword,
+      matchType: rule.matchType as "PARTIAL" | "EXACT",
+      priority: rule.priority,
+      userId: rule.userId,
+    }
+  },
+})
+
+export type PrismaUserCategoryRuleRepository = ReturnType<typeof createPrismaUserCategoryRuleRepository>
+```
+
+### 10. ユーザー個別分類ルール Service
+
+`apps/api/src/service/user-category-rule-service.ts` を作成:
+
+```typescript
+import { PrismaUserCategoryRuleRepository } from "../repository/mysql/prisma-user-category-rule-repository"
+
+export const createUserCategoryRuleService = (repo: PrismaUserCategoryRuleRepository) => ({
+  createRule: async (userId: number, input: {
+    categoryId: number
+    keyword: string
+    matchType?: "PARTIAL" | "EXACT"
+    priority?: number
+  }) => {
+    return repo.create({ ...input, userId })
+  },
+
+  deleteRule: async (id: number, userId: number) => {
+    return repo.delete(id, userId)
+  },
+
+  getUserRules: async (userId: number) => {
+    return repo.findByUserId(userId)
+  },
+
+  updateRule: async (id: number, userId: number, input: {
+    categoryId?: number
+    keyword?: string
+    matchType?: "PARTIAL" | "EXACT"
+    priority?: number
+  }) => {
+    return repo.update(id, userId, input)
+  },
+
+  /**
+   * ユーザールールの upsert（取引カテゴリ変更時に自動呼び出し）
+   */
+  upsertRule: async (userId: number, input: {
+    categoryId: number
+    keyword: string
+  }) => {
+    return repo.upsert({ ...input, userId })
+  },
+})
+
+export type UserCategoryRuleService = ReturnType<typeof createUserCategoryRuleService>
+```
+
+### 11. ユーザー個別分類ルール Controller
+
+`apps/api/src/controller/user-category-rule/list.ts`:
+
+```typescript
+import { Request, Response } from "express"
+import { getUserCategoryRuleListResponseSchema } from "@repo/api-schema"
+import { UserCategoryRuleService } from "../../service/user-category-rule-service"
+
+export const createListUserCategoryRulesController = (service: UserCategoryRuleService) =>
+  async (req: Request, res: Response) => {
+    const userId = req.user!.id
+    const rules = await service.getUserRules(userId)
+    const response = getUserCategoryRuleListResponseSchema.parse({
+      rules: rules.map((r) => ({
+        category_id: r.categoryId,
+        category_name: r.categoryName,
+        created_at: new Date().toISOString(),
+        id: r.id,
+        keyword: r.keyword,
+        match_type: r.matchType,
+        priority: r.priority,
+        updated_at: new Date().toISOString(),
+        user_id: r.userId,
+      })),
+    })
+    res.json(response)
+  }
+```
+
+`apps/api/src/controller/user-category-rule/create.ts`:
+
+```typescript
+import { Request, Response } from "express"
+import { createUserCategoryRuleRequestSchema, createUserCategoryRuleResponseSchema } from "@repo/api-schema"
+import { UserCategoryRuleService } from "../../service/user-category-rule-service"
+
+export const createCreateUserCategoryRuleController = (service: UserCategoryRuleService) =>
+  async (req: Request, res: Response) => {
+    const userId = req.user!.id
+    const input = createUserCategoryRuleRequestSchema.parse(req.body)
+    const rule = await service.createRule(userId, {
+      categoryId: input.category_id,
+      keyword: input.keyword,
+      matchType: input.match_type,
+      priority: input.priority,
+    })
+    const response = createUserCategoryRuleResponseSchema.parse({
+      rule: {
+        category_id: rule.categoryId,
+        category_name: rule.categoryName,
+        created_at: new Date().toISOString(),
+        id: rule.id,
+        keyword: rule.keyword,
+        match_type: rule.matchType,
+        priority: rule.priority,
+        updated_at: new Date().toISOString(),
+        user_id: rule.userId,
+      },
+    })
+    res.status(201).json(response)
+  }
+```
+
+`apps/api/src/controller/user-category-rule/update.ts`:
+
+```typescript
+import { Request, Response } from "express"
+import { updateUserCategoryRuleRequestSchema, updateUserCategoryRuleResponseSchema } from "@repo/api-schema"
+import { UserCategoryRuleService } from "../../service/user-category-rule-service"
+
+export const createUpdateUserCategoryRuleController = (service: UserCategoryRuleService) =>
+  async (req: Request, res: Response) => {
+    const userId = req.user!.id
+    const id = parseInt(req.params.id, 10)
+    const input = updateUserCategoryRuleRequestSchema.parse(req.body)
+    const rule = await service.updateRule(id, userId, {
+      categoryId: input.category_id,
+      keyword: input.keyword,
+      matchType: input.match_type,
+      priority: input.priority,
+    })
+    const response = updateUserCategoryRuleResponseSchema.parse({
+      rule: {
+        category_id: rule.categoryId,
+        category_name: rule.categoryName,
+        created_at: new Date().toISOString(),
+        id: rule.id,
+        keyword: rule.keyword,
+        match_type: rule.matchType,
+        priority: rule.priority,
+        updated_at: new Date().toISOString(),
+        user_id: rule.userId,
+      },
+    })
+    res.json(response)
+  }
+```
+
+`apps/api/src/controller/user-category-rule/delete.ts`:
+
+```typescript
+import { Request, Response } from "express"
+import { UserCategoryRuleService } from "../../service/user-category-rule-service"
+
+export const createDeleteUserCategoryRuleController = (service: UserCategoryRuleService) =>
+  async (req: Request, res: Response) => {
+    const userId = req.user!.id
+    const id = parseInt(req.params.id, 10)
+    await service.deleteRule(id, userId)
+    res.json({ success: true })
+  }
+```
+
+### 12. ユーザー個別分類ルール Router
+
+`apps/api/src/routes/user-category-rule-router.ts`:
+
+```typescript
+import { Router } from "express"
+
+import { createCreateUserCategoryRuleController } from "../controller/user-category-rule/create"
+import { createDeleteUserCategoryRuleController } from "../controller/user-category-rule/delete"
+import { createListUserCategoryRulesController } from "../controller/user-category-rule/list"
+import { createUpdateUserCategoryRuleController } from "../controller/user-category-rule/update"
+import { UserCategoryRuleService } from "../service/user-category-rule-service"
+
+export const createUserCategoryRuleRouter = (service: UserCategoryRuleService): Router => {
+  const router = Router()
+
+  router.get("/", createListUserCategoryRulesController(service))
+  router.post("/", createCreateUserCategoryRuleController(service))
+  router.put("/:id", createUpdateUserCategoryRuleController(service))
+  router.delete("/:id", createDeleteUserCategoryRuleController(service))
+
+  return router
+}
 ```
 
 ## 動作確認
@@ -565,6 +890,30 @@ curl http://localhost:8080/api/category-rules
 curl -X POST http://localhost:8080/api/category-rules \
   -H "Content-Type: application/json" \
   -d '{"category_id":1,"keyword":"テスト店","match_type":"PARTIAL","priority":10}'
+```
+
+### ユーザー個別ルールAPI確認
+
+```bash
+# ユーザールール一覧取得
+curl http://localhost:8080/api/user-category-rules \
+  -H "Authorization: Bearer <token>"
+
+# ユーザールール作成
+curl -X POST http://localhost:8080/api/user-category-rules \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"category_id":1,"keyword":"マイ店舗","match_type":"PARTIAL","priority":10}'
+
+# ユーザールール更新
+curl -X PUT http://localhost:8080/api/user-category-rules/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"category_id":5}'
+
+# ユーザールール削除
+curl -X DELETE http://localhost:8080/api/user-category-rules/1 \
+  -H "Authorization: Bearer <token>"
 ```
 
 各APIが正常にレスポンスを返すことを確認する。

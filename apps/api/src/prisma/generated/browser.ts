@@ -18,27 +18,71 @@ export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
+ * Model PaymentSource
+ * *
+ *  * 支払い元（ユーザーごとの決済手段）
+ */
+export type PaymentSource = Prisma.PaymentSourceModel
+/**
+ * Model Category
+ * *
+ *  * カテゴリマスター（グローバル共通）
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model CategoryRule
+ * *
+ *  * 自動分類ルール
+ */
+export type CategoryRule = Prisma.CategoryRuleModel
+/**
+ * Model UserCategoryRule
+ * *
+ *  * ユーザー個別の自動分類ルール
+ *  * マスタールール(category_rules)とは別に、ユーザーが独自に設定するルール
+ *  * 分類時はユーザールールを先に照合し、マッチすればマスタールールは参照しない
+ *  * 取引のカテゴリを手動変更した際に自動作成される
+ */
+export type UserCategoryRule = Prisma.UserCategoryRuleModel
+/**
+ * Model CsvUpload
+ * *
+ *  * CSVアップロード履歴
+ */
+export type CsvUpload = Prisma.CsvUploadModel
+/**
+ * Model Transaction
+ * *
+ *  * 取引データ
+ */
+export type Transaction = Prisma.TransactionModel
+/**
  * Model User
- * 
+ * *
+ *  * ユーザーデータ
  */
 export type User = Prisma.UserModel
 /**
  * Model AuthAccount
- * 
+ * *
+ *  * 認証アカウント（複数プロバイダー対応）
  */
 export type AuthAccount = Prisma.AuthAccountModel
 /**
  * Model Character
- * 
+ * *
+ *  * キャラクターマスター
  */
 export type Character = Prisma.CharacterModel
 /**
  * Model UserCharacter
- * 
+ * *
+ *  * ユーザーが保持するキャラクター
  */
 export type UserCharacter = Prisma.UserCharacterModel
 /**
  * Model Memo
- * 
+ * *
+ *  * メモ
  */
 export type Memo = Prisma.MemoModel

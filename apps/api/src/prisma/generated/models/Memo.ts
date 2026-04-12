@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model Memo
- * 
+ * *
+ *  * メモ
  */
 export type MemoModel = runtime.Types.Result.DefaultSelection<Prisma.$MemoPayload>
 
