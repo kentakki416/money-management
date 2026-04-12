@@ -11,6 +11,13 @@ export const errorResponseSchema = z.object({
 export type ErrorResponse = z.infer<typeof errorResponseSchema>
 
 export * from "./auth"
+export * from "./category"
+export * from "./category-rule"
+export * from "./csv-upload"
 export * from "./health"
 export * from "./memo"
+export * from "./payment-source"
+export * from "./summary"
+export * from "./transaction"
 export * from "./user"
+export * from "./user-category-rule"
