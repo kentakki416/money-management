@@ -8,9 +8,9 @@
 # 2. テスト用ポート(:9000)で新バージョンの動作確認を行う
 #    curl http://<ALB_DNS>:9000/health
 # 3. 承認して本番トラフィックを切り替える:
-#    aws ssm put-parameter --name "/project-template-dev-service/deploy/approval" --value "approved" --overwrite
+#    aws ssm put-parameter --name "/money-management-dev-service/deploy/approval" --value "approved" --overwrite
 # 4. ロールバックする場合:
-#    aws ssm put-parameter --name "/project-template-dev-service/deploy/approval" --value "rejected" --overwrite
+#    aws ssm put-parameter --name "/money-management-dev-service/deploy/approval" --value "rejected" --overwrite
 #
 # ※ 承認しない限り、本番(:80)には反映されません
 # =============================================================================
@@ -40,11 +40,11 @@ env:
   AWS_REGION: ap-northeast-1
   ## TODO: 以下の値をプロジェクトに合わせて変更してください
   ## 命名規則: Terraform の ${project_name}-${environment}-xxx に合わせる
-  ECS_CLUSTER: project-template-dev-cluster       # TODO: ECS クラスター名に変更
-  ECS_SERVICE: project-template-dev-service        # TODO: ECS サービス名に変更
-  TASK_DEFINITION_FAMILY: project-template-dev-task # TODO: ECS タスク定義のファミリー名に変更
-  ECR_REPOSITORY: project-template-server            # ECR リポジトリ名
-  CONTAINER_NAME: project-template-dev-api
+  ECS_CLUSTER: money-management-dev-cluster       # TODO: ECS クラスター名に変更
+  ECS_SERVICE: money-management-dev-service        # TODO: ECS サービス名に変更
+  TASK_DEFINITION_FAMILY: money-management-dev-task # TODO: ECS タスク定義のファミリー名に変更
+  ECR_REPOSITORY: money-management-server            # ECR リポジトリ名
+  CONTAINER_NAME: money-management-dev-api
 
 jobs:
   build:

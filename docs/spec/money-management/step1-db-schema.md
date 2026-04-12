@@ -142,7 +142,7 @@ model User {
 
 ```bash
 cd apps/api
-npx prisma migrate dev --name add_money_management_tables
+npx prisma migrate dev --name add_money-management_tables
 ```
 
 ### 4. シードデータ作成

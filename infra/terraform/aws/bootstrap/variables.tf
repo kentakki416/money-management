@@ -5,7 +5,7 @@
 variable "project_name" {
   description = "プロジェクト名（S3バケット名とDynamoDBテーブル名のプレフィックスに使用）"
   type        = string
-  default     = "project-template" # TODO: プロジェクト名に変更してください
+  default     = "money-management" # TODO: プロジェクト名に変更してください
 }
 
 variable "aws_region" {
@@ -17,13 +17,13 @@ variable "aws_region" {
 variable "s3_bucket_name" {
   description = "Terraform State保存用のS3バケット名（AWS全体でグローバルに一意である必要があります。他のAWSアカウントで既に使用されている名前は使用できません）"
   type        = string
-  default     = "project-template-terraform-state-20250101" # TODO: プロジェクト名、日付、UUIDなどを含めて一意のバケット名に変更してください
+  default     = "money-management-terraform-state-20250101" # TODO: プロジェクト名、日付、UUIDなどを含めて一意のバケット名に変更してください
 }
 
 variable "dynamodb_table_name" {
   description = "Terraform State Lock用のDynamoDBテーブル名"
   type        = string
-  default     = "project-template-terraform-state-lock" # TODO: 一意のテーブル名に変更してください
+  default     = "money-management-terraform-state-lock" # TODO: 一意のテーブル名に変更してください
 }
 
 # =============================================================================
@@ -33,5 +33,5 @@ variable "dynamodb_table_name" {
 variable "github_repository" {
   description = "GitHubリポジトリ（例: owner/repo-name）"
   type        = string
-  default     = "kentakki416/project-template" # TODO: 実際のリポジトリに変更してください
+  default     = "kentakki416/money-management" # TODO: 実際のリポジトリに変更してください
 }

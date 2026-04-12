@@ -19,7 +19,126 @@ datasource db {
     provider = "mysql"
 }
 
-// ユーザー（認証プロバイダー非依存）
+// 支払いタイプ
+enum PaymentSourceType {
+    SMBC
+    MUFG
+    PAYPAY
+    MANUAL
+}
+
+/**
+ * 支払い元（ユーザーごとの決済手段）
+ */
+model PaymentSource {
+    id Int @id @default(autoincrement())
+    userId Int @map("user_id")
+    name String @db.VarChar(100)
+    type PaymentSourceType 
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    transactions Transaction[]
+    csvUploads CsvUpload[]
+
+    @@index([userId])
+    @@map("payment_sources")
+}
+
+/**
+ * カテゴリマスター（グローバル共通）
+ */
+model Category {
+    id Int @id @default(autoincrement())
+    name String @db.VarChar(50)
+    color String @db.VarChar(7) // #RRGGBB
+    sortOrder Int @default(0) @map("sort_order")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    transactions Transaction[]
+    categoryRules CategoryRule[]
+
+    @@map("categories")
+}
+
+// 自動分類ルールのマッチタイプ
+enum MatchType {
+    PARTIAL
+    EXACT
+}
+
+/**
+ * 自動分類ルール
+ */
+model CategoryRule {
+    id Int @id @default(autoincrement())
+    categoryId Int @map("category_id")
+    keyword String @db.VarChar(200)
+    matchType MatchType @default(PARTIAL) @map("match_type")
+    priority Int @default(0)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    @@index([categoryId])
+    @@index([priority])
+    @@map("category_rules")
+}
+
+/**
+ * CSVアップロード履歴
+ */
+model CsvUpload {
+    id Int @id @default(autoincrement())
+    userId Int @map("user_id")
+    paymentSourceId Int @map("payment_source_id")
+    fileName String @db.VarChar(255) @map("file_name")
+    fileHash String @unique @db.VarChar(64) @map("file_hash")
+    rowCount Int @map("row_count")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    paymentSource PaymentSource @relation(fields: [paymentSourceId], references: [id], onDelete: Cascade)
+    transactions Transaction[]
+
+    @@index([userId])
+    @@index([fileHash])
+    @@map("csv_uploads")
+}
+
+/**
+ * 取引データ
+ */
+model Transaction {
+    id Int @id @default(autoincrement())
+    userId Int @map("user_id")
+    paymentSourceId Int @map("payment_source_id")
+    categoryId Int? @map("category_id")
+    csvUploadId Int? @map("csv_upload_id")
+    transactionDate DateTime @map("transaction_date") @db.Date
+    description String @db.VarChar(500)
+    amount Int
+    isManual Boolean @default(false) @map("is_manual")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    paymentSource PaymentSource @relation(fields: [paymentSourceId], references: [id], onDelete: Cascade)
+    category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+    csvUpload CsvUpload? @relation(fields: [csvUploadId], references: [id], onDelete: SetNull)
+
+    @@index([userId, transactionDate])
+    @@index([userId, categoryId, transactionDate])
+    @@index([csvUploadId])
+    @@map("transactions")
+
+}
+
+/**
+ * ユーザーデータ
+ */
 model User {
     id        Int      @id @default(autoincrement())
     email     String?  @unique
@@ -28,87 +147,9 @@ model User {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    accounts       AuthAccount[]
-    userCharacters UserCharacter[]
+    paymentSources PaymentSource[]
+    transactions Transaction[]
+    csvUploads CsvUpload[]
 
     @@map("users")
-}
-
-// 認証プロバイダー
-enum Provider {
-    GOOGLE
-    GITHUB
-    CREDENTIALS
-}
-
-// 認証アカウント（複数プロバイダー対応）
-model AuthAccount {
-    id                Int      @id @default(autoincrement())
-    userId            Int      @map("user_id")
-    provider          String   // "google", "github", "credentials" など
-    providerAccountId String   @map("provider_account_id") // プロバイダー側のユーザーID
-    accessToken       String?  @map("access_token") @db.Text
-    refreshToken      String?  @map("refresh_token") @db.Text
-    expiresAt         Int?     @map("expires_at")
-    tokenType         String?  @map("token_type")
-    scope             String?
-    idToken           String?  @map("id_token") @db.Text
-    createdAt         DateTime @default(now()) @map("created_at")
-    updatedAt         DateTime @updatedAt @map("updated_at")
-
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@unique([provider, providerAccountId])
-    @@index([userId])
-    @@map("auth_accounts")
-}
-
-// キャラクターコード
-enum CharacterCode {
-    TRAECHAN
-    MASTER
-}
-
-// キャラクターマスター
-model Character {
-    characterCode CharacterCode @id @map("character_code")
-    name String @db.VarChar(100)
-    description String @db.Text
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    userCharacters UserCharacter[]
-
-    @@map("characters")
-}
-
-// ユーザーが保持するキャラクター
-model UserCharacter {
-    id Int @id @default(autoincrement())
-    userId Int @map("user_id")
-    characterCode CharacterCode @map("character_code")
-    nickName String @db.VarChar(100) @map("nick_name")
-    level Int @default(1) 
-    experience Int @default(0)
-    isActive Boolean @default(false) @map("is_active")
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    character Character @relation(fields: [characterCode], references: [characterCode], onDelete: Restrict)
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@index([userId, isActive])
-    @@index([characterCode])
-    @@map("user_characters")
-}
-
-// メモ
-model Memo {
-    id        Int      @id @default(autoincrement())
-    title     String   @db.VarChar(255)
-    body      String   @db.Text
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@map("memos")
 }

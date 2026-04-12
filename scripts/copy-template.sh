@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ============================================
 # copy-template.sh
-# project-template を新しいプロジェクトにコピーする
+# money-management を新しいプロジェクトにコピーする
 #
 # 注意:
 #   新規プロジェクト作成用のスクリプトです。
