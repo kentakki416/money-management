@@ -6,7 +6,7 @@
 
 ### 1. 共通型定義
 
-`apps/api/src/types/domain/parsed-transaction.ts` を作成:
+`apps/api/src/types/domain/transaction.ts` に追加:
 
 ```typescript
 export type ParsedTransaction = {
@@ -16,15 +16,15 @@ export type ParsedTransaction = {
 }
 ```
 
-### 2. 全角→半角変換ユーティリティ
+### 2. 文字列変換ユーティリティ
 
-`apps/api/src/lib/normalize.ts` を作成:
+`apps/api/src/utils/normalize.ts` を作成:
 
 ```typescript
 /**
  * 全角英数字・記号を半角に変換する
  */
-export const toHalfWidth = (str: string): string => {
+export const convertFullWidthToHalfWidth = (str: string): string => {
   return str
     .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
       String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
@@ -41,7 +41,7 @@ export const toHalfWidth = (str: string): string => {
  * カンマ区切りの数値文字列を数値に変換する
  * 例: "4,592" → 4592, "5000" → 5000
  */
-export const parseAmount = (str: string): number => {
+export const convertFormattedAmountToNumber = (str: string): number => {
   const cleaned = str.replace(/[,，円\s]/g, "").trim()
   const num = parseInt(cleaned, 10)
   if (isNaN(num)) {
@@ -67,14 +67,16 @@ CSVフォーマット:
 - 日付フォーマット: `YYYY/MM/DD`
 
 ```typescript
-import { ParsedTransaction } from "../../types/domain/parsed-transaction"
-import { parseAmount, toHalfWidth } from "../../lib/normalize"
+import { logger } from "../../log"
+import { ParsedTransaction } from "../../types/domain/transaction"
+import { convertFormattedAmountToNumber, convertFullWidthToHalfWidth } from "../../utils/normalize"
 
 export const parseSmbcCsv = (content: string): ParsedTransaction[] => {
   const lines = content.split("\n").filter((line) => line.trim() !== "")
   const transactions: ParsedTransaction[] = []
 
-  for (const line of lines) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex]!
     const cols = line.split(",")
 
     // ヘッダー行・合計行をスキップ
@@ -88,23 +90,27 @@ export const parseSmbcCsv = (content: string): ParsedTransaction[] => {
     const dateStr = cols[0]?.trim()
     const dateMatch = dateStr?.match(/^(\d{4})\/(\d{2})\/(\d{2})$/)
     if (!dateMatch) {
+      logger.info("SMBC CSV: skipped line (invalid date format)", { line: lineIndex + 1, content: line })
       continue
     }
 
-    const description = toHalfWidth(cols[1]?.trim() ?? "")
+    const description = convertFullWidthToHalfWidth(cols[1]?.trim() ?? "")
     const amountStr = cols[2]?.trim() ?? "0"
 
     try {
-      const amount = parseAmount(toHalfWidth(amountStr))
-      if (amount <= 0) continue
+      const amount = convertFormattedAmountToNumber(convertFullWidthToHalfWidth(amountStr))
+      if (amount <= 0) {
+        logger.info("SMBC CSV: skipped line (amount <= 0)", { line: lineIndex + 1, amount })
+        continue
+      }
 
       transactions.push({
         amount,
         description,
         transactionDate: new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`),
       })
-    } catch {
-      // パース失敗行はスキップ
+    } catch (error) {
+      logger.info("SMBC CSV: skipped line (parse error)", { line: lineIndex + 1, content: line, error })
       continue
     }
   }
@@ -132,11 +138,12 @@ CSVフォーマット:
 - 日付フォーマット: `YYYY年M月D日`
 
 ```typescript
-import { ParsedTransaction } from "../../types/domain/parsed-transaction"
-import { parseAmount, toHalfWidth } from "../../lib/normalize"
+import { logger } from "../../log"
+import { ParsedTransaction } from "../../types/domain/transaction"
+import { convertFormattedAmountToNumber, convertFullWidthToHalfWidth } from "../../utils/normalize"
 
 const parseJapaneseDate = (dateStr: string): Date | null => {
-  const normalized = toHalfWidth(dateStr)
+  const normalized = convertFullWidthToHalfWidth(dateStr)
   const match = normalized.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
   if (!match) return null
   const [, year, month, day] = match
@@ -147,7 +154,8 @@ export const parseMufgCsv = (content: string): ParsedTransaction[] => {
   const lines = content.split("\n").filter((line) => line.trim() !== "")
   const transactions: ParsedTransaction[] = []
 
-  for (const line of lines) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex]!
     // CSVのクォートを除去してパース
     const cols = line.split(",").map((col) => col.replace(/^"|"$/g, "").trim())
 
@@ -162,25 +170,32 @@ export const parseMufgCsv = (content: string): ParsedTransaction[] => {
     if (rawDescription.includes("≪") || rawDescription.includes("消費税")) {
       continue
     }
-    const description = toHalfWidth(rawDescription)
+    const description = convertFullWidthToHalfWidth(rawDescription)
 
     // ご利用日（4列目）をパース
     const dateStr = cols[3] ?? ""
     const transactionDate = parseJapaneseDate(dateStr)
-    if (!transactionDate) continue
+    if (!transactionDate) {
+      logger.info("MUFG CSV: skipped line (invalid date format)", { line: lineIndex + 1, content: line })
+      continue
+    }
 
     // ご利用金額（7列目）
     const amountStr = cols[6] ?? "0"
     try {
-      const amount = parseAmount(toHalfWidth(amountStr))
-      if (amount <= 0) continue
+      const amount = convertFormattedAmountToNumber(convertFullWidthToHalfWidth(amountStr))
+      if (amount <= 0) {
+        logger.info("MUFG CSV: skipped line (amount <= 0)", { line: lineIndex + 1, amount })
+        continue
+      }
 
       transactions.push({
         amount,
         description,
         transactionDate,
       })
-    } catch {
+    } catch (error) {
+      logger.info("MUFG CSV: skipped line (parse error)", { line: lineIndex + 1, content: line, error })
       continue
     }
   }
@@ -206,8 +221,9 @@ CSVフォーマット:
 - 日付フォーマット: `YYYY/MM/DD HH:MM:SS`
 
 ```typescript
-import { ParsedTransaction } from "../../types/domain/parsed-transaction"
-import { parseAmount } from "../../lib/normalize"
+import { logger } from "../../log"
+import { ParsedTransaction } from "../../types/domain/transaction"
+import { convertFormattedAmountToNumber } from "../../utils/normalize"
 
 export const parsePaypayCsv = (content: string): ParsedTransaction[] => {
   const lines = content.split("\n").filter((line) => line.trim() !== "")
@@ -224,29 +240,36 @@ export const parsePaypayCsv = (content: string): ParsedTransaction[] => {
     if (outAmount === "-" || outAmount === "") continue
 
     // 取引内容（8列目）
-    const content = cols[7]?.trim() ?? ""
+    const txContent = cols[7]?.trim() ?? ""
     // ポイント獲得・チャージはスキップ
-    if (content.includes("ポイント") || content === "チャージ") continue
+    if (txContent.includes("ポイント") || txContent === "チャージ") continue
 
     // 取引先（9列目）を description に使用。なければ取引内容を使用
     const merchant = cols[8]?.trim() ?? ""
-    const description = merchant || content
+    const description = merchant || txContent
 
     // 日付パース（YYYY/MM/DD HH:MM:SS）
     const dateStr = cols[0]?.trim() ?? ""
     const dateMatch = dateStr.match(/^(\d{4})\/(\d{2})\/(\d{2})/)
-    if (!dateMatch) continue
+    if (!dateMatch) {
+      logger.info("PayPay CSV: skipped line (invalid date format)", { line: i + 1, content: line })
+      continue
+    }
 
     try {
-      const amount = parseAmount(outAmount)
-      if (amount <= 0) continue
+      const amount = convertFormattedAmountToNumber(outAmount)
+      if (amount <= 0) {
+        logger.info("PayPay CSV: skipped line (amount <= 0)", { line: i + 1, amount })
+        continue
+      }
 
       transactions.push({
         amount,
         description,
         transactionDate: new Date(`${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`),
       })
-    } catch {
+    } catch (error) {
+      logger.info("PayPay CSV: skipped line (parse error)", { line: i + 1, content: line, error })
       continue
     }
   }
@@ -288,7 +311,7 @@ CSVの種類（SMBC / MUFG / PayPay）に応じて適切なパーサーを選択
 ```typescript
 import { PaymentSourceType } from "@repo/api-schema"
 
-import { ParsedTransaction } from "../../types/domain/parsed-transaction"
+import { ParsedTransaction } from "../../types/domain/transaction"
 import { parseMufgCsv } from "./mufg-parser"
 import { parsePaypayCsv } from "./paypay-parser"
 import { parseSmbcCsv } from "./smbc-parser"

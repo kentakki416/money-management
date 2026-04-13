@@ -144,10 +144,24 @@ All apps use ESLint v9 with flat config format (`eslint.config.{js,mjs}`).
   - Functions: camelCase or PascalCase
   - Types: PascalCase
 - **Prefer**: const over let/var, template literals over string concatenation, arrow callbacks
+- **関数名は処理内容が明確にわかる名前にする**:
+  - 何を・どう変換/処理するかが関数名だけで伝わること
+  - 悪い例: `parseCsvLine`, `toHalfWidth`, `parseAmount`
+  - 良い例: `splitCsvLineWithQuotes`, `convertFullWidthToHalfWidth`, `convertCommaAmountToNumber`
 
 ### Function style:
 - **API (`apps/api`)**: `function` 宣言は使わず、`const` + アロー関数で統一する（例: `export const foo = async () => {}`）
 - **Web / Mobile / Admin**: コンポーネントは `function` ベースでもOK
+
+### Comment style:
+- コメントの書き方は既存のファイルを参考にして統一する
+- ブロックコメントは `/** */` 形式で統一する（`//` は使わない）
+- 1行でも複数行形式で書く:
+  ```
+  /**
+   * コメント内容
+   */
+  ```
 
 ### When editing files:
 - Run `pnpm lint:fix` after making changes to auto-fix formatting

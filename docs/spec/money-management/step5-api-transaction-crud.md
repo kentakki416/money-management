@@ -11,7 +11,7 @@
 ```typescript
 import { PrismaCategoryRuleRepository } from "../repository/mysql/prisma-category-rule-repository"
 import { PrismaUserCategoryRuleRepository } from "../repository/mysql/prisma-user-category-rule-repository"
-import { toHalfWidth } from "../lib/normalize"
+import { convertFullWidthToHalfWidth } from "../utils/normalize"
 
 const UNCATEGORIZED_ID = 99
 
@@ -26,7 +26,7 @@ type RuleLike = {
  */
 const matchRules = (normalizedDesc: string, rules: RuleLike[]): number | null => {
   for (const rule of rules) {
-    const normalizedKeyword = toHalfWidth(rule.keyword)
+    const normalizedKeyword = convertFullWidthToHalfWidth(rule.keyword)
     if (rule.matchType === "EXACT") {
       if (normalizedDesc === normalizedKeyword) {
         return rule.categoryId
@@ -51,7 +51,7 @@ export const createCategorizeService = (
    * 3. どちらにもマッチしなければ「未分類」
    */
   categorize: async (description: string, userId: number): Promise<number> => {
-    const normalizedDesc = toHalfWidth(description)
+    const normalizedDesc = convertFullWidthToHalfWidth(description)
 
     // ユーザールールを先にチェック
     const userRules = await userRuleRepo.findByUserId(userId)
@@ -75,7 +75,7 @@ export const createCategorizeService = (
     const result = new Map<string, number>()
 
     for (const desc of descriptions) {
-      const normalizedDesc = toHalfWidth(desc)
+      const normalizedDesc = convertFullWidthToHalfWidth(desc)
 
       // ユーザールール優先
       const userMatch = matchRules(normalizedDesc, userRules)
