@@ -1,6 +1,7 @@
 // テスト実行時に必要な環境変数のデフォルト値を設定
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret"
 process.env.JWT_EXPIRATION = process.env.JWT_EXPIRATION || "1h"
+process.env.LOGGER_TYPE = process.env.LOGGER_TYPE || "silent"
 
 module.exports = {
   // ts-jest プリセットを使用。TypeScript ファイルを Jest が直接実行できるよう、
