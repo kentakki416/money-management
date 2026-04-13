@@ -22,7 +22,13 @@ export type UpdateCateogryInput = {
 /**
  * カテゴリーリポジトリのインタフェース
  */
-export interface CategoryRepository {}
+export interface CategoryRepository {
+  create(data: CreateCateogryInput): Promise<Category>
+  deleteById(id: number): Promise<void>
+  findAll(): Promise<Category[]>
+  findById(id: number): Promise<Category | null>
+  update(id: number, data: UpdateCateogryInput): Promise<Category>
+}
 
 /**
  * Prismaの実装カテゴリーリポジトリ
