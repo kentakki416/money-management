@@ -29,7 +29,7 @@ describe("parsePaypayCsv", () => {
   it("送金の取引先が正しくパースされる", () => {
     const result = parsePaypayCsv(csv)
     // CSVの先頭行は送金（村田雅弥）
-    expect(result[0]!.description).toBe("村田雅弥")
-    expect(result[0]!.amount).toBe(2000)
+    expect(result[0].description).toBe("村田雅弥")
+    expect(result[0].amount).toBe(2000)
   })
 })
