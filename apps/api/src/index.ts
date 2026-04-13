@@ -6,6 +6,16 @@ import { redis } from "./client/redis"
 import { AuthGoogleController } from "./controller/auth/google"
 import { AuthGoogleCallbackController } from "./controller/auth/google-callback"
 import { AuthMeController } from "./controller/auth/me"
+import { CategoryCreateController } from "./controller/category/create"
+import { CategoryDeleteController } from "./controller/category/delete"
+import { CategoryListController } from "./controller/category/list"
+import { CategoryUpdateController } from "./controller/category/update"
+import { CategoryRuleCreateController } from "./controller/category-rule/create"
+import { CategoryRuleDeleteController } from "./controller/category-rule/delete"
+import { CategoryRuleListController } from "./controller/category-rule/list"
+import { CategoryRuleUpdateController } from "./controller/category-rule/update"
+import { CsvUploadListController } from "./controller/csv-upload/list"
+import { CsvUploadController } from "./controller/csv-upload/upload"
 import { HealthLivenessController } from "./controller/health/liveness"
 import { HealthReadinessController } from "./controller/health/readiness"
 import { MemoCreateController } from "./controller/memo/create"
@@ -13,22 +23,49 @@ import { MemoDeleteController } from "./controller/memo/delete"
 import { MemoDetailController } from "./controller/memo/detail"
 import { MemoListController } from "./controller/memo/list"
 import { MemoUpdateController } from "./controller/memo/update"
+import { PaymentSourceCreateController } from "./controller/payment-source/create"
+import { PaymentSourceDeleteController } from "./controller/payment-source/delete"
+import { PaymentSourceListController } from "./controller/payment-source/list"
+import { SummaryCalendarController } from "./controller/summary/calendar"
+import { SummaryMonthlyController } from "./controller/summary/monthly"
+import { SummaryTrendController } from "./controller/summary/trend"
+import { TransactionCreateController } from "./controller/transaction/create"
+import { TransactionDeleteController } from "./controller/transaction/delete"
+import { TransactionListController } from "./controller/transaction/list"
+import { TransactionUpdateController } from "./controller/transaction/update"
+import { UserCategoryRuleCreateController } from "./controller/user-category-rule/create"
+import { UserCategoryRuleDeleteController } from "./controller/user-category-rule/delete"
+import { UserCategoryRuleListController } from "./controller/user-category-rule/list"
+import { UserCategoryRuleUpdateController } from "./controller/user-category-rule/update"
 import { logger } from "./log"
 import { authMiddleware } from "./middleware/auth"
 import { requestLogger } from "./middleware/request-logger"
 import { prisma } from "./prisma/prisma.client"
 import {
   PrismaAuthAccountRepository,
+  PrismaCategoryRepository,
+  PrismaCategoryRuleRepository,
+  PrismaCsvUploadRepository,
   PrismaDatabaseHealthRepository,
   PrismaMemoRepository,
+  PrismaPaymentSourceRepository,
+  PrismaSummaryRepository,
+  PrismaTransactionRepository,
+  PrismaUserCategoryRuleRepository,
   PrismaUserRepository,
-  // PrismaUserCharacterRepository,
-  PrismaUserRegistrationRepository
+  PrismaUserRegistrationRepository,
 } from "./repository/mysql"
 import { IoRedisHealthRepository } from "./repository/redis"
 import { authRouter } from "./routes/auth-router"
+import { categoryRouter } from "./routes/category-router"
+import { categoryRuleRouter } from "./routes/category-rule-router"
+import { csvUploadRouter } from "./routes/csv-upload-router"
 import { healthRouter } from "./routes/health-router"
 import { memoRouter } from "./routes/memo-router"
+import { paymentSourceRouter } from "./routes/payment-source-router"
+import { summaryRouter } from "./routes/summary-router"
+import { transactionRouter } from "./routes/transaction-router"
+import { userCategoryRuleRouter } from "./routes/user-category-rule-router"
 
 const app = express()
 const PORT = process.env.PORT || 8080
@@ -40,11 +77,18 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "dummy"
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || "http://localhost:8080/api/auth/google/callback"
 
 // Repository のインスタンス化
-const userRepository = new PrismaUserRepository(prisma)
 const authAccountRepository = new PrismaAuthAccountRepository(prisma)
-const userRegistrationRepository = new PrismaUserRegistrationRepository(prisma)
-const memoRepository = new PrismaMemoRepository(prisma)
+const categoryRepository = new PrismaCategoryRepository(prisma)
+const categoryRuleRepository = new PrismaCategoryRuleRepository(prisma)
+const csvUploadRepository = new PrismaCsvUploadRepository(prisma)
 const databaseHealthRepository = new PrismaDatabaseHealthRepository(prisma)
+const memoRepository = new PrismaMemoRepository(prisma)
+const paymentSourceRepository = new PrismaPaymentSourceRepository(prisma)
+const summaryRepository = new PrismaSummaryRepository(prisma)
+const transactionRepository = new PrismaTransactionRepository(prisma)
+const userCategoryRuleRepository = new PrismaUserCategoryRuleRepository(prisma)
+const userRepository = new PrismaUserRepository(prisma)
+const userRegistrationRepository = new PrismaUserRegistrationRepository(prisma)
 const redisHealthRepository = new IoRedisHealthRepository(redis)
 
 // Client のインスタンス化
@@ -67,12 +111,63 @@ const authGoogleCallbackController = new AuthGoogleCallbackController(
 )
 const authMeController = new AuthMeController(userRepository)
 
+// Category Controller のインスタンス化
+const categoryListController = new CategoryListController(categoryRepository)
+const categoryCreateController = new CategoryCreateController(categoryRepository)
+const categoryUpdateController = new CategoryUpdateController(categoryRepository)
+const categoryDeleteController = new CategoryDeleteController(categoryRepository)
+
+// CategoryRule Controller のインスタンス化
+const categoryRuleListController = new CategoryRuleListController(categoryRuleRepository)
+const categoryRuleCreateController = new CategoryRuleCreateController(categoryRuleRepository)
+const categoryRuleUpdateController = new CategoryRuleUpdateController(categoryRuleRepository)
+const categoryRuleDeleteController = new CategoryRuleDeleteController(categoryRuleRepository)
+
+// CsvUpload Controller のインスタンス化
+const csvUploadController = new CsvUploadController(
+  transactionRepository,
+  csvUploadRepository,
+  paymentSourceRepository,
+  categoryRuleRepository,
+  userCategoryRuleRepository,
+)
+const csvUploadListController = new CsvUploadListController(csvUploadRepository)
+
 // Memo Controller のインスタンス化
 const memoListController = new MemoListController(memoRepository)
 const memoDetailController = new MemoDetailController(memoRepository)
 const memoCreateController = new MemoCreateController(memoRepository)
 const memoUpdateController = new MemoUpdateController(memoRepository)
 const memoDeleteController = new MemoDeleteController(memoRepository)
+
+// PaymentSource Controller のインスタンス化
+const paymentSourceListController = new PaymentSourceListController(paymentSourceRepository)
+const paymentSourceCreateController = new PaymentSourceCreateController(paymentSourceRepository)
+const paymentSourceDeleteController = new PaymentSourceDeleteController(paymentSourceRepository)
+
+// Summary Controller のインスタンス化
+const summaryMonthlyController = new SummaryMonthlyController(summaryRepository)
+const summaryCalendarController = new SummaryCalendarController(summaryRepository)
+const summaryTrendController = new SummaryTrendController(summaryRepository)
+
+// Transaction Controller のインスタンス化
+const transactionListController = new TransactionListController(transactionRepository)
+const transactionCreateController = new TransactionCreateController(
+  transactionRepository,
+  categoryRuleRepository,
+  userCategoryRuleRepository,
+)
+const transactionUpdateController = new TransactionUpdateController(
+  transactionRepository,
+  userCategoryRuleRepository,
+)
+const transactionDeleteController = new TransactionDeleteController(transactionRepository)
+
+// UserCategoryRule Controller のインスタンス化
+const userCategoryRuleListController = new UserCategoryRuleListController(userCategoryRuleRepository)
+const userCategoryRuleCreateController = new UserCategoryRuleCreateController(userCategoryRuleRepository)
+const userCategoryRuleUpdateController = new UserCategoryRuleUpdateController(userCategoryRuleRepository)
+const userCategoryRuleDeleteController = new UserCategoryRuleDeleteController(userCategoryRuleRepository)
 
 // cors設定のミドルウェア
 app.use(
@@ -108,6 +203,31 @@ app.use(
   })
 )
 app.use(
+  "/api/categories",
+  categoryRouter({
+    create: categoryCreateController,
+    delete: categoryDeleteController,
+    list: categoryListController,
+    update: categoryUpdateController,
+  })
+)
+app.use(
+  "/api/category-rules",
+  categoryRuleRouter({
+    create: categoryRuleCreateController,
+    delete: categoryRuleDeleteController,
+    list: categoryRuleListController,
+    update: categoryRuleUpdateController,
+  })
+)
+app.use(
+  "/api/csv-upload",
+  csvUploadRouter({
+    list: csvUploadListController,
+    upload: csvUploadController,
+  })
+)
+app.use(
   "/api/memo",
   memoRouter({
     create: memoCreateController,
@@ -115,6 +235,40 @@ app.use(
     detail: memoDetailController,
     list: memoListController,
     update: memoUpdateController,
+  })
+)
+app.use(
+  "/api/payment-sources",
+  paymentSourceRouter({
+    create: paymentSourceCreateController,
+    delete: paymentSourceDeleteController,
+    list: paymentSourceListController,
+  })
+)
+app.use(
+  "/api/summary",
+  summaryRouter({
+    calendar: summaryCalendarController,
+    monthly: summaryMonthlyController,
+    trend: summaryTrendController,
+  })
+)
+app.use(
+  "/api/transactions",
+  transactionRouter({
+    create: transactionCreateController,
+    delete: transactionDeleteController,
+    list: transactionListController,
+    update: transactionUpdateController,
+  })
+)
+app.use(
+  "/api/user-category-rules",
+  userCategoryRuleRouter({
+    create: userCategoryRuleCreateController,
+    delete: userCategoryRuleDeleteController,
+    list: userCategoryRuleListController,
+    update: userCategoryRuleUpdateController,
   })
 )
 

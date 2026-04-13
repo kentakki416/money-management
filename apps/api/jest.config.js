@@ -52,7 +52,8 @@ module.exports = {
   },
 
   // 各テストケースのタイムアウト時間（ミリ秒）。
-  testTimeout: 3000,
+  // Prisma adapter-mariadb の非同期クリーンアップ問題に対応するため30秒に設定する。
+  testTimeout: 30000,
 
   // コントローラーテストが実DBに接続するため、
   // 複数テストファイルが並列実行されると同じテーブルの INSERT/DELETE が競合してテストが不安定になる。
