@@ -1,26 +1,32 @@
 import type { Metadata } from "next"
 import React from "react"
 
-import DemographicCard from "@/components/features/ecommerce/DemographicCard"
-import { EcommerceMetrics } from "@/components/features/ecommerce/EcommerceMetrics"
-import MonthlySalesChart from "@/components/features/ecommerce/MonthlySalesChart"
-import MonthlyTarget from "@/components/features/ecommerce/MonthlyTarget"
-import RecentOrders from "@/components/features/ecommerce/RecentOrders"
-import StatisticsChart from "@/components/features/ecommerce/StatisticsChart"
+import type { AdminStatsResponse } from "@repo/api-schema"
+
+import { DashboardMetrics } from "@/components/features/dashboard/DashboardMetrics"
+import DemographicCard from "@/components/features/dashboard/DemographicCard"
+import MonthlyTarget from "@/components/features/dashboard/MonthlyTarget"
+import RecentOrders from "@/components/features/dashboard/RecentOrders"
+import StatisticsChart from "@/components/features/dashboard/StatisticsChart"
+import UserRegistrationChart from "@/components/features/dashboard/UserRegistrationChart"
+import { apiClient } from "@/libs/api-client"
 
 export const metadata: Metadata = {
-  title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+  description: "管理画面ダッシュボード",
+  title: "ダッシュボード | Admin",
 }
 
-export default function Ecommerce() {
+export const dynamic = "force-dynamic"
+
+export default async function DashboardPage() {
+  const stats = await apiClient.get<AdminStatsResponse>("/api/admin/stats")
+
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
       <div className="col-span-12 space-y-6 xl:col-span-7">
-        <EcommerceMetrics />
+        <DashboardMetrics csvUploads={stats.total_csv_uploads} users={stats.total_users} />
 
-        <MonthlySalesChart />
+        <UserRegistrationChart />
       </div>
 
       <div className="col-span-12 xl:col-span-5">

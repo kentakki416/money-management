@@ -9,16 +9,31 @@
 **ページ:** `apps/admin/src/app/(dashboard)/users/page.tsx`（Server Component）
 - `apiClient.get` でユーザー一覧を取得し、Client Component に props で渡す
 
-**Server Action:** `apps/admin/src/app/(dashboard)/users/actions.ts`
-- `"use server"` で定義
-- `getUserDetail` を実装（詳細モーダル表示用）
+**Route Handler:** `apps/admin/src/app/api/admin/users/[id]/route.ts`
+- Client Component から詳細モーダル表示時にデータ取得するための Route Handler
+- データ取得（GET）のため Server Action ではなく Route Handler を使用
+
+```typescript
+import { NextRequest, NextResponse } from "next/server"
+
+import { apiClient } from "@/libs/api-client"
+
+export const GET = async (
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  const { id } = await params
+  const user = await apiClient.get(`/api/admin/users/${id}`)
+  return NextResponse.json(user)
+}
+```
 
 **API パス:**
 
 | 操作 | 方式 | API パス |
 |------|------|---------|
 | ユーザー一覧取得 | Server Component | `GET /api/admin/users` |
-| ユーザー詳細取得 | Server Action | `GET /api/admin/users/:id` |
+| ユーザー詳細取得 | Route Handler | `GET /api/admin/users/:id` |
 
 ### 2. ツールバー（TailAdmin DataTables 準拠）
 
