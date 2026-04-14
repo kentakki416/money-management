@@ -9,7 +9,7 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
-import React, { useState, useRef } from "react"
+import { useState, useRef } from "react"
 
 import { Modal } from "@/components/ui/modal"
 import { useModal } from "@/hooks/useModal"
@@ -20,7 +20,7 @@ interface CalendarEvent extends EventInput {
   };
 }
 
-const Calendar: React.FC = () => {
+export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null
   )
@@ -265,5 +265,3 @@ const renderEventContent = (eventInfo: EventContentArg) => {
     </div>
   )
 }
-
-export default Calendar

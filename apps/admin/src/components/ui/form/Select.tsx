@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import type React from "react"
+import { useState } from "react"
 
 interface Option {
   value: string;
@@ -13,13 +14,13 @@ interface SelectProps {
   defaultValue?: string;
 }
 
-const Select: React.FC<SelectProps> = ({
+export default function Select({
   options,
   placeholder = "Select an option",
   onChange,
   className = "",
   defaultValue = "",
-}) => {
+}: SelectProps) {
   // Manage the selected value
   const [selectedValue, setSelectedValue] = useState<string>(defaultValue)
 
@@ -60,5 +61,3 @@ const Select: React.FC<SelectProps> = ({
     </select>
   )
 }
-
-export default Select

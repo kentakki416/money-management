@@ -1,10 +1,9 @@
 "use client"
-import React from "react"
 import { useDropzone } from "react-dropzone"
 
 import ComponentCard from "@/components/layout/ComponentCard"
 
-const DropzoneComponent: React.FC = () => {
+export default function DropzoneComponent() {
   const onDrop = (acceptedFiles: File[]) => {
     console.log("Files dropped:", acceptedFiles)
     // Handle file uploads here
@@ -74,5 +73,3 @@ const DropzoneComponent: React.FC = () => {
     </ComponentCard>
   )
 }
-
-export default DropzoneComponent

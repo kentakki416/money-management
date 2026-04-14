@@ -1,11 +1,10 @@
 import Link from "next/link"
-import React from "react"
 
 interface BreadcrumbProps {
   pageTitle: string;
 }
 
-const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
+export default function PageBreadcrumb({ pageTitle }: BreadcrumbProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
       <h2
@@ -48,5 +47,3 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
     </div>
   )
 }
-
-export default PageBreadcrumb

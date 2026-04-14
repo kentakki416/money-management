@@ -1,7 +1,6 @@
 // import { VectorMap } from "@react-jvectormap/core";
 import { worldMill } from "@react-jvectormap/world"
 import dynamic from "next/dynamic"
-import React from "react"
 
 const VectorMap = dynamic(
   async () => {
@@ -41,7 +40,7 @@ type Marker = {
   };
 };
 
-const CountryMap: React.FC<CountryMapProps> = ({ mapColor }) => {
+export default function CountryMap({ mapColor }: CountryMapProps) {
   return (
     <VectorMap
       map={worldMill}
@@ -128,5 +127,3 @@ const CountryMap: React.FC<CountryMapProps> = ({ mapColor }) => {
     />
   )
 }
-
-export default CountryMap

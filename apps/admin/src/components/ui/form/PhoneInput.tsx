@@ -1,5 +1,6 @@
 "use client"
-import React, { useState } from "react"
+import type React from "react"
+import { useState } from "react"
 
 interface CountryCode {
   code: string;
@@ -13,12 +14,12 @@ interface PhoneInputProps {
   selectPosition?: "start" | "end"; // New prop for dropdown position
 }
 
-const PhoneInput: React.FC<PhoneInputProps> = ({
+export default function PhoneInput({
   countries,
   placeholder = "+1 (555) 000-0000",
   onChange,
   selectPosition = "start", // Default position is 'start'
-}) => {
+}: PhoneInputProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>("US")
   const [phoneNumber, setPhoneNumber] = useState<string>("+1")
 
@@ -137,5 +138,3 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     </div>
   )
 }
-
-export default PhoneInput
