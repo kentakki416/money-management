@@ -68,21 +68,21 @@ const TABS: { label: string; value: RegistrationPeriod }[] = [
 
 `apps/admin/src/app/(dashboard)/page.tsx` を修正:
 
-- `"use client"` でクライアントコンポーネントにする
-- `useEffect` で `GET /api/admin/stats` を呼び出し（`EcommerceMetrics` 用）
+- Server Component として `apiClient.get` で `GET /api/admin/stats` を呼び出し（サーバー間通信）
 - テンプレート元と同じ grid レイアウトで全コンポーネントを配置
-- `MonthlySalesChart` は自前でデータ取得するため props 不要
+- `EcommerceMetrics` に取得データを props で渡す
+- `MonthlySalesChart` はタブ切替があるため Client Component として自前でデータ取得（Server Action 経由）
 
 ```tsx
-export default function DashboardPage() {
-  const [stats, setStats] = useState<AdminStatsResponse | null>(null)
+import { apiClient } from "@/lib/api-client"
 
-  useEffect(() => { /* fetchStats */ }, [])
+export default async function DashboardPage() {
+  const stats = await apiClient.get<AdminStatsResponse>("/api/admin/stats")
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
       <div className="col-span-12 space-y-6 xl:col-span-7">
-        <EcommerceMetrics csvUploads={stats?.total_csv_uploads} users={stats?.total_users} />
+        <EcommerceMetrics csvUploads={stats.total_csv_uploads} users={stats.total_users} />
         <MonthlySalesChart />
       </div>
       <div className="col-span-12 xl:col-span-5">

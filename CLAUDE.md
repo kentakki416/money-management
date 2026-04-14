@@ -147,6 +147,10 @@ trivy config aws/env/dev -c .trivy.yml
   - Uses Tailwind CSS v4 with PostCSS
   - App Router structure in `src/app/` directory
   - Both apps import types/schemas from `@repo/api-schema`
+  - **API 通信はブラウザから直接 Express API を fetch しない**。Server Components / Server Actions を経由してサーバー間通信する
+  - 初期データ表示: Server Component で `apiClient.get()` → Express API
+  - データ変更（CRUD）: Client Component → Server Action → Express API
+  - 外部公開 API が必要な場合のみ Route Handler を使用
 - **Mobile**: Expo with file-based routing (expo-router)
   - Uses React Navigation with bottom tabs
   - File-based routing in `app/` directory

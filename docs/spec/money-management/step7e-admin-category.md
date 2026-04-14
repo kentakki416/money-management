@@ -4,18 +4,25 @@
 
 ## 対応内容
 
-### 1. ページ作成
+### 1. ページ・Server Action 作成
 
-`apps/admin/src/app/(dashboard)/categories/page.tsx` を新規作成。
+**ページ:** `apps/admin/src/app/(dashboard)/categories/page.tsx`（Server Component）
+- `apiClient.get` でカテゴリ一覧を取得し、Client Component に props で渡す
+
+**Server Action:** `apps/admin/src/app/(dashboard)/categories/actions.ts`
+- `"use server"` で定義
+- `createCategory`, `updateCategory`, `deleteCategory` を実装
+- `apiClient` を使って Express API にサーバー間通信
+- 処理後に `revalidatePath("/categories")` でページを再検証
 
 **API パス:** すべて `/api/admin/categories` 配下を使用。
 
-| 操作 | メソッド | パス |
-|------|---------|------|
-| 一覧取得 | GET | `/api/admin/categories` |
-| 作成 | POST | `/api/admin/categories` |
-| 更新 | PUT | `/api/admin/categories/:id` |
-| 削除 | DELETE | `/api/admin/categories/:id` |
+| 操作 | 方式 | API パス |
+|------|------|---------|
+| 一覧取得 | Server Component | `GET /api/admin/categories` |
+| 作成 | Server Action | `POST /api/admin/categories` |
+| 更新 | Server Action | `PUT /api/admin/categories/:id` |
+| 削除 | Server Action | `DELETE /api/admin/categories/:id` |
 
 ### 2. テーブル
 

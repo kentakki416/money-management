@@ -4,19 +4,25 @@
 
 ## 対応内容
 
-### 1. ページ作成
+### 1. ページ・Server Action 作成
 
-`apps/admin/src/app/(dashboard)/category-rules/page.tsx` を新規作成。
+**ページ:** `apps/admin/src/app/(dashboard)/category-rules/page.tsx`（Server Component）
+- `apiClient.get` でルール一覧とカテゴリ一覧を `Promise.all` で並列取得し、Client Component に props で渡す
+
+**Server Action:** `apps/admin/src/app/(dashboard)/category-rules/actions.ts`
+- `"use server"` で定義
+- `createCategoryRule`, `updateCategoryRule`, `deleteCategoryRule` を実装
+- 処理後に `revalidatePath("/category-rules")` でページを再検証
 
 **API パス:** すべて `/api/admin/` 配下を使用。
 
-| 操作 | メソッド | パス |
-|------|---------|------|
-| ルール一覧取得 | GET | `/api/admin/category-rules` |
-| カテゴリ一覧取得 | GET | `/api/admin/categories` |
-| 作成 | POST | `/api/admin/category-rules` |
-| 更新 | PUT | `/api/admin/category-rules/:id` |
-| 削除 | DELETE | `/api/admin/category-rules/:id` |
+| 操作 | 方式 | API パス |
+|------|------|---------|
+| ルール一覧取得 | Server Component | `GET /api/admin/category-rules` |
+| カテゴリ一覧取得 | Server Component | `GET /api/admin/categories` |
+| 作成 | Server Action | `POST /api/admin/category-rules` |
+| 更新 | Server Action | `PUT /api/admin/category-rules/:id` |
+| 削除 | Server Action | `DELETE /api/admin/category-rules/:id` |
 
 初期表示時にルール一覧とカテゴリ一覧を `Promise.all` で並列取得する。
 

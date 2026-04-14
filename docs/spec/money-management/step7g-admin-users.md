@@ -4,16 +4,21 @@
 
 ## 対応内容
 
-### 1. ページ作成
+### 1. ページ・Server Action 作成
 
-`apps/admin/src/app/(dashboard)/users/page.tsx` を新規作成。
+**ページ:** `apps/admin/src/app/(dashboard)/users/page.tsx`（Server Component）
+- `apiClient.get` でユーザー一覧を取得し、Client Component に props で渡す
+
+**Server Action:** `apps/admin/src/app/(dashboard)/users/actions.ts`
+- `"use server"` で定義
+- `getUserDetail` を実装（詳細モーダル表示用）
 
 **API パス:**
 
-| 操作 | メソッド | パス |
-|------|---------|------|
-| ユーザー一覧取得 | GET | `/api/admin/users` |
-| ユーザー詳細取得 | GET | `/api/admin/users/:id` |
+| 操作 | 方式 | API パス |
+|------|------|---------|
+| ユーザー一覧取得 | Server Component | `GET /api/admin/users` |
+| ユーザー詳細取得 | Server Action | `GET /api/admin/users/:id` |
 
 ### 2. ツールバー（TailAdmin DataTables 準拠）
 

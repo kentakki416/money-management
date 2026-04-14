@@ -1,20 +1,28 @@
-# Step7c: Admin - 共通部品（APIクライアント・サイドバー・共有コンポーネント）
+# Step7c: Admin - 共通部品（API通信基盤・サイドバー・共有コンポーネント）
 
 Admin画面の共通基盤を実装する。
 
 ## 対応内容
 
-### 1. APIクライアント
+### 1. API 通信基盤
 
-`apps/admin/src/lib/api-client.ts` を新規作成:
+ブラウザから Express API を直接 fetch しない。Server Components / Server Actions を経由してサーバー間通信する。
+
+```
+[初期表示] Server Component → Express API（サーバー間通信、CORS不要）
+[CRUD操作] Client Component → Server Action → Express API（サーバー間通信）
+```
+
+**`apps/admin/src/lib/api-client.ts`（サーバーサイド専用）を新規作成:**
+
+Server Components と Server Actions から使うサーバーサイド用の fetch ラッパー。`"use server"` の Server Action や Server Component 内でのみ使用する。`NEXT_PUBLIC_` プレフィックスは不要（ブラウザに公開しない）。
 
 ```typescript
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+const API_BASE_URL = process.env.API_URL || "http://localhost:8080"
 
 export const apiClient = {
   delete: async <T = unknown>(path: string): Promise<T> => {
     const res = await fetch(`${API_BASE_URL}${path}`, {
-      credentials: "include",
       method: "DELETE",
     })
     if (!res.ok) throw new Error(`API error: ${res.status}`)
@@ -22,9 +30,7 @@ export const apiClient = {
   },
 
   get: async <T>(path: string): Promise<T> => {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      credentials: "include",
-    })
+    const res = await fetch(`${API_BASE_URL}${path}`)
     if (!res.ok) throw new Error(`API error: ${res.status}`)
     return res.json() as Promise<T>
   },
@@ -32,7 +38,6 @@ export const apiClient = {
   post: async <T>(path: string, body: unknown): Promise<T> => {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       body: JSON.stringify(body),
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       method: "POST",
     })
@@ -43,7 +48,6 @@ export const apiClient = {
   put: async <T>(path: string, body: unknown): Promise<T> => {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       body: JSON.stringify(body),
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       method: "PUT",
     })
@@ -52,6 +56,9 @@ export const apiClient = {
   },
 }
 ```
+
+- `credentials: "include"` は不要（サーバー間通信のため Cookie は送らない）
+- 認証が必要になった場合はサーバー側でトークンをヘッダーに付与する
 
 ### 2. サイドバー修正
 
