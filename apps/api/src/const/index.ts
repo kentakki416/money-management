@@ -29,8 +29,10 @@ export const NODE_ENV = {
 /**
  * 認証をスキップする公開パス
  * これらのパスではauthMiddlewareが認証チェックをスキップします
+ * TODO: 本来は認証をスキップしてはいけないAPIも含まれているので時間がある時にちゃんとする
  */
 export const PUBLIC_PATHS = [
+  "/api/admin",
   "/api/auth/google",
   "/api/auth/google/callback",
   "/api/health",

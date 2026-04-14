@@ -16,6 +16,7 @@ export type CreateCsvUploadInput = {
  * CSVアップロードリポジトリのインターフェース
  */
 export interface CsvUploadRepository {
+  count(): Promise<number>
   create(data: CreateCsvUploadInput): Promise<CsvUpload>
   existsByHash(fileHash: string): Promise<boolean>
   findByUserId(userId: number): Promise<CsvUpload[]>
@@ -33,6 +34,10 @@ export class PrismaCsvUploadRepository implements CsvUploadRepository {
 
   constructor(prisma: PrismaClient) {
     this._prisma = prisma
+  }
+
+  async count(): Promise<number> {
+    return this._prisma.csvUpload.count()
   }
 
   async create(data: CreateCsvUploadInput): Promise<CsvUpload> {

@@ -70,6 +70,7 @@ import { userCategoryRuleRouter } from "./routes/user-category-rule-router"
 const app = express()
 const PORT = process.env.PORT || 8080
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000"
+const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3030"
 
 // 環境変数（未設定の場合はダミー値で起動する。認証機能は動作しないがヘルスチェック等は応答可能）
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "dummy"
@@ -173,7 +174,7 @@ const userCategoryRuleDeleteController = new UserCategoryRuleDeleteController(us
 app.use(
   cors({
     credentials: true,
-    origin: FRONTEND_URL,
+    origin: [FRONTEND_URL, ADMIN_URL],
   })
 )
 

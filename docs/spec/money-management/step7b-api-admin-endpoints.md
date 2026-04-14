@@ -11,16 +11,19 @@ Admin画面が使用するAPIエンドポイントを実装する。すべての
 **stats.ts** - `AdminStatsController`
 - `GET /api/admin/stats?period=yearly|monthly|weekly|daily`
 - クエリパラメータ `period` を `registrationPeriodSchema` でバリデーション（デフォルト: `yearly`）
-- `service.admin.getStats(period, repository)` を呼び出し
+- constructor で `UserRepository` と `CsvUploadRepository` を受け取る
+- `service.admin.getStats(period, userRepository, csvUploadRepository)` を呼び出し
 - `adminStatsResponseSchema.parse()` でレスポンスを検証
 
 **user-list.ts** - `AdminUserListController`
 - `GET /api/admin/users`
-- `service.admin.getAllUsers(repository)` を呼び出し
+- constructor で `UserSummaryRepository` を受け取る
+- `service.admin.getAllUsers(userSummaryRepository)` を呼び出し
 - `getAdminUserListResponseSchema.parse()` でレスポンスを検証
 
 **user-detail.ts** - `AdminUserDetailController`
 - `GET /api/admin/users/:id`
+- constructor で `UserSummaryRepository` を受け取る
 - パスパラメータ `id` を Number 変換、NaN チェック
 - 404 ハンドリング
 

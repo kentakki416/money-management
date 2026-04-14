@@ -86,9 +86,21 @@ trivy config aws/env/dev -c .trivy.yml
 - **Critical**: All API schemas are defined in `packages/schema/src/api-schema/` using Zod
 - The API server (`apps/api`) and frontend apps import these schemas for validation
 - This ensures request/response contracts are shared and type-safe across the stack
-- Schema structure: `packages/schema/src/api-schema/{domain}.ts` (e.g., `user.ts`)
 - Each API endpoint has: request schema, response schema, and inferred TypeScript types
 - When adding new API endpoints, **always** define schemas in `packages/schema` first, then import them in the API and frontend
+- **ファイル構成**: API ごとに1ファイル。アプリ固有のスキーマはサブディレクトリに分割する
+  - 例: `api-schema/category.ts`, `api-schema/admin/stats.ts`, `api-schema/admin/user.ts`
+- **コメントルール**: `// ===...` でエンドポイントのセクション区切り + `/** */` でスキーマ説明
+  ```typescript
+  // ========================================================
+  // GET /api/categories - カテゴリー一覧取得
+  // ========================================================
+
+  /**
+   * カテゴリー一覧取得のレスポンススキーマ
+   */
+  export const getCategoryListResponseSchema = z.object({ ... })
+  ```
 
 ### API server architecture
 - Express.js with TypeScript
@@ -112,7 +124,7 @@ trivy config aws/env/dev -c .trivy.yml
   - `service/index.ts` で `export * as {feature} from "./{feature}-service"` としてバレルエクスポート
   - 呼び出し側は `service.{feature}.{method}(data, repository)` の形式
   - `logger.debug()` で処理の開始・完了をログ出力
-- **Controller**（`src/controller/{feature}/`）: Class + `execute(req, res)` パターン
+- **Controller**（`src/controller/{feature}/`）: Class + `execute(req, res)` パターン。API ごとに1ファイル
   - `class {Feature}{Action}Controller` で定義（例: `CategoryListController`）
   - constructor で Repository を受け取る
   - `async execute(req: Request, res: Response)` メソッドで処理
@@ -123,6 +135,9 @@ trivy config aws/env/dev -c .trivy.yml
   - `export const {feature}Router = (controllers: {Feature}RouterControllers): Router => { ... }`
   - 各コントローラーが存在する場合のみルートを登録
 - **Domain 型**（`src/types/domain/`）: 各機能ごとにファイルを作成し、`index.ts` でバレルエクスポート
+  - ビジネス上の区分・列挙型もここに定義する（例: `RegistrationPeriod`）
+  - Repository / Service は `types/domain` から型をインポートする（`@repo/api-schema` に依存しない）
+  - `@repo/api-schema` の Zod スキーマは同じ値で独立定義し、API バリデーション用として使う
 - **DI（依存性注入）**: `index.ts` で Repository → Controller → Router の順にインスタンス化して組み立て
 
 ### Frontend architecture
@@ -139,11 +154,11 @@ trivy config aws/env/dev -c .trivy.yml
   - ローカルに同等の型を定義すると、API側の変更に追従できず型の不整合バグが発生するため禁止
 
 ### Admin API 設計方針
-- Admin が利用する API はすべて `/api/admin/` 配下に配置する
-- ユーザー向けアプリ（Web / Mobile）の API（`/api/transactions` 等）とは分離し、Admin 専用のエンドポイントとして管理する
-- Controller / Service は共通のものを使い、Router（`admin-router.ts`）でパスを `/api/admin/` にマッピングする
-- `/api/admin/` 配下は `PUBLIC_PATHS` に含まれており、JWT 認証なしでアクセス可能（将来的に Admin 専用認証を追加予定）
-- 環境変数 `ADMIN_USE_DUMMY=true`（API 側の `.env.local`）でダミーデータを返す
+- Admin API はすべて `/api/admin/` 配下に配置し、ユーザー向け API と分離する
+- Controller / Service は共通のものを使い、Router（`admin-router.ts`）で `/api/admin/` にマッピング
+- スキーマは `api-schema/admin/` に集約。既存と同一なら re-export、Admin 固有のレスポンスが必要になった時点で新規定義
+- 認証: 現時点は `PUBLIC_PATHS` で認証なし（将来 Admin 専用認証を追加予定）
+- ダミーデータ: `ADMIN_USE_DUMMY=true`（API の `.env.local`）で DB 不要のダミーモード
 
 ### Infrastructure (Terraform)
 - Structure: `packages/terraform/aws/{bootstrap,env,modules}`

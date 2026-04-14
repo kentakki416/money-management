@@ -1,3 +1,4 @@
+export * as admin from "./admin-service"
 export * as auth from "./auth-service"
 export * as categorize from "./categorize-service"
 export * as category from "./category-service"

@@ -10,6 +10,7 @@ export const errorResponseSchema = z.object({
 
 export type ErrorResponse = z.infer<typeof errorResponseSchema>
 
+export * from "./admin"
 export * from "./auth"
 export * from "./category"
 export * from "./category-rule"

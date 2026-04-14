@@ -1,4 +1,5 @@
 export * from "./aggregate/user-registration-repository"
+export * from "./aggregate/user-summary-repository"
 export * from "./auth-account-repository"
 export * from "./category-repository"
 export * from "./category-rule-repository"
