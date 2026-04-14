@@ -10,7 +10,10 @@ import {
   getDummyUserDetail,
 } from "./__fixtures__/admin-fixtures"
 
-const USE_DUMMY = process.env.ADMIN_USE_DUMMY === "true"
+/**
+ * ダミーモード判定（環境変数を毎回読み取る）
+ */
+const isUsingDummy = () => process.env.ADMIN_USE_DUMMY === "true"
 
 /**
  * 管理画面用の統計情報を取得する
@@ -21,7 +24,7 @@ export const getStats = async (
   csvUploadRepository: CsvUploadRepository
 ) => {
   logger.debug("admin.getStats: start", { period })
-  if (USE_DUMMY) {
+  if (isUsingDummy()) {
     logger.debug("admin.getStats: returning dummy data")
     return {
       registrations: DUMMY_REGISTRATIONS[period],
@@ -43,7 +46,7 @@ export const getStats = async (
  */
 export const getAllUsers = async (userSummaryRepository: UserSummaryRepository) => {
   logger.debug("admin.getAllUsers: start")
-  if (USE_DUMMY) {
+  if (isUsingDummy()) {
     logger.debug("admin.getAllUsers: returning dummy data")
     return DUMMY_USERS
   }
@@ -57,7 +60,7 @@ export const getAllUsers = async (userSummaryRepository: UserSummaryRepository) 
  */
 export const getUserDetail = async (id: number, userSummaryRepository: UserSummaryRepository) => {
   logger.debug("admin.getUserDetail: start", { id })
-  if (USE_DUMMY) {
+  if (isUsingDummy()) {
     logger.debug("admin.getUserDetail: returning dummy data", { id })
     return getDummyUserDetail(id)
   }
