@@ -13,7 +13,7 @@ Admin画面の共通基盤を実装する。
 [CRUD操作] Client Component → Server Action → Express API（サーバー間通信）
 ```
 
-**`apps/admin/src/lib/api-client.ts`（サーバーサイド専用）を新規作成:**
+**`apps/admin/src/libs/api-client.ts`（サーバーサイド専用）を新規作成:**
 
 Server Components と Server Actions から使うサーバーサイド用の fetch ラッパー。`"use server"` の Server Action や Server Component 内でのみ使用する。`NEXT_PUBLIC_` プレフィックスは不要（ブラウザに公開しない）。
 
