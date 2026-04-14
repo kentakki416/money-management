@@ -82,7 +82,7 @@ export default function CategoryRuleTable({
     setForm({
       category_id: rule.category_id,
       keyword: rule.keyword,
-      match_type: rule.match_type as "EXACT" | "PARTIAL",
+      match_type: rule.match_type,
       priority: rule.priority,
     })
     setError(null)
