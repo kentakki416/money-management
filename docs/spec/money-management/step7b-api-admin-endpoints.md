@@ -9,23 +9,67 @@ Admin画面が使用するAPIエンドポイントを実装する。すべての
 `apps/api/src/controller/admin/` ディレクトリに以下を作成:
 
 **stats.ts** - `AdminStatsController`
-- `GET /api/admin/stats?period=yearly|monthly|weekly|daily`
-- クエリパラメータ `period` を `registrationPeriodSchema` でバリデーション（デフォルト: `yearly`）
-- constructor で `UserRepository` と `CsvUploadRepository` を受け取る
-- `service.admin.getStats(period, userRepository, csvUploadRepository)` を呼び出し
-- `adminStatsResponseSchema.parse()` でレスポンスを検証
+
+```typescript
+import { Request, Response } from "express"
+
+import { ErrorResponse, RegistrationPeriod, adminStatsResponseSchema, registrationPeriodSchema } from "@repo/api-schema"
+
+import { logger } from "../../log"
+import { CsvUploadRepository, UserRepository } from "../../repository/mysql"
+import * as service from "../../service"
+
+/**
+ * 管理画面ダッシュボード統計API
+ */
+export class AdminStatsController {
+  constructor(
+    private userRepository: UserRepository,
+    private csvUploadRepository: CsvUploadRepository
+  ) {}
+
+  async execute(req: Request, res: Response) {
+    try {
+      const periodParam = req.query.period as string | undefined
+      const parsed = registrationPeriodSchema.safeParse(periodParam)
+      const period: RegistrationPeriod = parsed.success ? parsed.data : "yearly"
+
+      const stats = await service.admin.getStats(period, this.userRepository, this.csvUploadRepository)
+
+      const response = adminStatsResponseSchema.parse({
+        registrations: stats.registrations,
+        total_csv_uploads: stats.totalCsvUploads,
+        total_users: stats.totalUsers,
+      })
+
+      res.status(200).json(response)
+    } catch (error) {
+      logger.error(
+        "AdminStatsController: Failed to get admin stats",
+        error instanceof Error ? error : new Error("Unknown error")
+      )
+      const errorResponse: ErrorResponse = {
+        error: error instanceof Error ? error.message : "Failed to get admin stats",
+        status_code: 500,
+      }
+      res.status(500).json(errorResponse)
+    }
+  }
+}
+```
 
 **user-list.ts** - `AdminUserListController`
 - `GET /api/admin/users`
 - constructor で `UserSummaryRepository` を受け取る
 - `service.admin.getAllUsers(userSummaryRepository)` を呼び出し
-- `getAdminUserListResponseSchema.parse()` でレスポンスを検証
+- camelCase → snake_case のマッピングを行い `getAdminUserListResponseSchema.parse()` でレスポンスを検証
 
 **user-detail.ts** - `AdminUserDetailController`
 - `GET /api/admin/users/:id`
 - constructor で `UserSummaryRepository` を受け取る
-- パスパラメータ `id` を Number 変換、NaN チェック
-- 404 ハンドリング
+- パスパラメータ `id` を Number 変換、NaN チェック → 400
+- ユーザー未存在 → 404
+- camelCase → snake_case のマッピングを行い `getAdminUserDetailResponseSchema.parse()` でレスポンスを検証
 
 ### 2. ルーター
 
@@ -33,19 +77,21 @@ Admin画面が使用するAPIエンドポイントを実装する。すべての
 
 ```typescript
 type AdminRouterControllers = {
-  categoryCreate?: CategoryCreateController
-  categoryDelete?: CategoryDeleteController
-  categoryList?: CategoryListController
-  categoryRuleCreate?: CategoryRuleCreateController
-  categoryRuleDelete?: CategoryRuleDeleteController
-  categoryRuleList?: CategoryRuleListController
-  categoryRuleUpdate?: CategoryRuleUpdateController
-  categoryUpdate?: CategoryUpdateController
+  categoryCreate?: AdminCategoryCreateController
+  categoryDelete?: AdminCategoryDeleteController
+  categoryList?: AdminCategoryListController
+  categoryRuleCreate?: AdminCategoryRuleCreateController
+  categoryRuleDelete?: AdminCategoryRuleDeleteController
+  categoryRuleList?: AdminCategoryRuleListController
+  categoryRuleUpdate?: AdminCategoryRuleUpdateController
+  categoryUpdate?: AdminCategoryUpdateController
   stats?: AdminStatsController
   userDetail?: AdminUserDetailController
   userList?: AdminUserListController
 }
 ```
+
+すべて `controller/admin/` 配下の Admin 専用コントローラーを使用する。
 
 ルート一覧:
 
@@ -69,11 +115,30 @@ type AdminRouterControllers = {
 - 旧 `categoryRouter` / `categoryRuleRouter` の個別 `app.use()` 登録を削除
 - 旧ルーターの import を削除
 
-### 4. 注意事項
+### 4. 設計方針
 
-- カテゴリ・分類ルールの Controller / Service は既存のものをそのまま使う（共通）
-- パスだけが `/api/categories` → `/api/admin/categories` に変わる
-- 旧 `category-router.ts` / `category-rule-router.ts` ファイルは残しても削除してもよい（Admin以外で使う場合に備え残す）
+- **Controller は API ごとに1ファイル新規作成する**（`controller/admin/` 配下）
+- api-schema と同様に、Admin とアプリケーション側ではリクエスト・レスポンスが今後異なるため、最初から分離しておく
+- Service は共通のものを使う（Controller がスキーマの import 先と camelCase/snake_case マッピングを担当）
+- 現時点では既存 Controller と同じ実装だが、Admin 固有のバリデーションやレスポンス変更が必要になった時点でこのファイルだけ修正すればよい
+- 旧 `category-router.ts` / `category-rule-router.ts` ファイルはアプリケーション向けに残す
+
+### 5. controller/admin/ のファイル構成
+
+```
+controller/admin/
+  stats.ts              # GET /api/admin/stats
+  user-list.ts          # GET /api/admin/users
+  user-detail.ts        # GET /api/admin/users/:id
+  category-list.ts      # GET /api/admin/categories
+  category-create.ts    # POST /api/admin/categories
+  category-update.ts    # PUT /api/admin/categories/:id
+  category-delete.ts    # DELETE /api/admin/categories/:id
+  category-rule-list.ts    # GET /api/admin/category-rules
+  category-rule-create.ts  # POST /api/admin/category-rules
+  category-rule-update.ts  # PUT /api/admin/category-rules/:id
+  category-rule-delete.ts  # DELETE /api/admin/category-rules/:id
+```
 
 ## 動作確認
 

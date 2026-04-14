@@ -3,6 +3,17 @@ import express from "express"
 
 import { GoogleOAuthClient } from "./client/google-oauth"
 import { redis } from "./client/redis"
+import { AdminCategoryCreateController } from "./controller/admin/category-create"
+import { AdminCategoryDeleteController } from "./controller/admin/category-delete"
+import { AdminCategoryListController } from "./controller/admin/category-list"
+import { AdminCategoryRuleCreateController } from "./controller/admin/category-rule-create"
+import { AdminCategoryRuleDeleteController } from "./controller/admin/category-rule-delete"
+import { AdminCategoryRuleListController } from "./controller/admin/category-rule-list"
+import { AdminCategoryRuleUpdateController } from "./controller/admin/category-rule-update"
+import { AdminCategoryUpdateController } from "./controller/admin/category-update"
+import { AdminStatsController } from "./controller/admin/stats"
+import { AdminUserDetailController } from "./controller/admin/user-detail"
+import { AdminUserListController } from "./controller/admin/user-list"
 import { AuthGoogleController } from "./controller/auth/google"
 import { AuthGoogleCallbackController } from "./controller/auth/google-callback"
 import { AuthMeController } from "./controller/auth/me"
@@ -54,11 +65,11 @@ import {
   PrismaUserCategoryRuleRepository,
   PrismaUserRepository,
   PrismaUserRegistrationRepository,
+  PrismaUserSummaryRepository,
 } from "./repository/mysql"
 import { IoRedisHealthRepository } from "./repository/redis"
+import { adminRouter } from "./routes/admin-router"
 import { authRouter } from "./routes/auth-router"
-import { categoryRouter } from "./routes/category-router"
-import { categoryRuleRouter } from "./routes/category-rule-router"
 import { csvUploadRouter } from "./routes/csv-upload-router"
 import { healthRouter } from "./routes/health-router"
 import { memoRouter } from "./routes/memo-router"
@@ -90,6 +101,7 @@ const transactionRepository = new PrismaTransactionRepository(prisma)
 const userCategoryRuleRepository = new PrismaUserCategoryRuleRepository(prisma)
 const userRepository = new PrismaUserRepository(prisma)
 const userRegistrationRepository = new PrismaUserRegistrationRepository(prisma)
+const userSummaryRepository = new PrismaUserSummaryRepository(prisma)
 const redisHealthRepository = new IoRedisHealthRepository(redis)
 
 // Client のインスタンス化
@@ -98,6 +110,19 @@ const googleOAuthClient = new GoogleOAuthClient(
   GOOGLE_CLIENT_SECRET,
   GOOGLE_CALLBACK_URL
 )
+
+// Admin Controller のインスタンス化
+const adminStatsController = new AdminStatsController(userRepository, csvUploadRepository)
+const adminUserListController = new AdminUserListController(userSummaryRepository)
+const adminUserDetailController = new AdminUserDetailController(userSummaryRepository)
+const adminCategoryListController = new AdminCategoryListController(categoryRepository)
+const adminCategoryCreateController = new AdminCategoryCreateController(categoryRepository)
+const adminCategoryUpdateController = new AdminCategoryUpdateController(categoryRepository)
+const adminCategoryDeleteController = new AdminCategoryDeleteController(categoryRepository)
+const adminCategoryRuleListController = new AdminCategoryRuleListController(categoryRuleRepository)
+const adminCategoryRuleCreateController = new AdminCategoryRuleCreateController(categoryRuleRepository)
+const adminCategoryRuleUpdateController = new AdminCategoryRuleUpdateController(categoryRuleRepository)
+const adminCategoryRuleDeleteController = new AdminCategoryRuleDeleteController(categoryRuleRepository)
 
 // Health Controller のインスタンス化
 const healthLivenessController = new HealthLivenessController()
@@ -189,6 +214,22 @@ app.use(requestLogger)
 
 // ルーティング
 app.use(
+  "/api/admin",
+  adminRouter({
+    categoryCreate: adminCategoryCreateController,
+    categoryDelete: adminCategoryDeleteController,
+    categoryList: adminCategoryListController,
+    categoryRuleCreate: adminCategoryRuleCreateController,
+    categoryRuleDelete: adminCategoryRuleDeleteController,
+    categoryRuleList: adminCategoryRuleListController,
+    categoryRuleUpdate: adminCategoryRuleUpdateController,
+    categoryUpdate: adminCategoryUpdateController,
+    stats: adminStatsController,
+    userDetail: adminUserDetailController,
+    userList: adminUserListController,
+  })
+)
+app.use(
   "/api/health",
   healthRouter({
     liveness: healthLivenessController,
@@ -201,24 +242,6 @@ app.use(
     callback: authGoogleCallbackController,
     google: authGoogleController,
     me: authMeController,
-  })
-)
-app.use(
-  "/api/categories",
-  categoryRouter({
-    create: categoryCreateController,
-    delete: categoryDeleteController,
-    list: categoryListController,
-    update: categoryUpdateController,
-  })
-)
-app.use(
-  "/api/category-rules",
-  categoryRuleRouter({
-    create: categoryRuleCreateController,
-    delete: categoryRuleDeleteController,
-    list: categoryRuleListController,
-    update: categoryRuleUpdateController,
   })
 )
 app.use(

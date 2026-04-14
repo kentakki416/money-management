@@ -88,8 +88,9 @@ trivy config aws/env/dev -c .trivy.yml
 - This ensures request/response contracts are shared and type-safe across the stack
 - Each API endpoint has: request schema, response schema, and inferred TypeScript types
 - When adding new API endpoints, **always** define schemas in `packages/schema` first, then import them in the API and frontend
-- **ファイル構成**: API ごとに1ファイル。アプリ固有のスキーマはサブディレクトリに分割する
+- **ファイル構成**: API（エンドポイント）と1対1でファイルを作成する。アプリ固有のスキーマはサブディレクトリに分割する
   - 例: `api-schema/category.ts`, `api-schema/admin/stats.ts`, `api-schema/admin/user.ts`
+  - Admin とアプリケーションでリクエスト・レスポンスが異なるため、同じドメインでもアプリごとにファイルを分ける
 - **コメントルール**: `// ===...` でエンドポイントのセクション区切り + `/** */` でスキーマ説明
   ```typescript
   // ========================================================
@@ -124,7 +125,8 @@ trivy config aws/env/dev -c .trivy.yml
   - `service/index.ts` で `export * as {feature} from "./{feature}-service"` としてバレルエクスポート
   - 呼び出し側は `service.{feature}.{method}(data, repository)` の形式
   - `logger.debug()` で処理の開始・完了をログ出力
-- **Controller**（`src/controller/{feature}/`）: Class + `execute(req, res)` パターン。API ごとに1ファイル
+- **Controller**（`src/controller/{feature}/`）: Class + `execute(req, res)` パターン。API（エンドポイント）と1対1でファイルを作成する
+  - Admin とアプリケーションでリクエスト・レスポンスが異なるため、同じドメインでもアプリごとにコントローラーを分ける（例: `controller/category/list.ts` と `controller/admin/category-list.ts`）
   - `class {Feature}{Action}Controller` で定義（例: `CategoryListController`）
   - constructor で Repository を受け取る
   - `async execute(req: Request, res: Response)` メソッドで処理
