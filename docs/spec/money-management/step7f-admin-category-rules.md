@@ -28,18 +28,33 @@
 
 ### 2. テーブル
 
-`BasicTableOne` パターンに準拠（step7c 参照）。
+`DataTable` コンポーネント（`components/ui/table`）を使用。
 
-カラム構成:
+カラム定義:
 
-| カラム | 内容 |
-|-------|------|
-| ID | `rule.id` |
-| キーワード | `<code>` タグで表示 |
-| マッチタイプ | `Badge` コンポーネント（EXACT: `info`, PARTIAL: `success`） |
-| カテゴリ | `rule.category_name` |
-| 優先度 | `rule.priority` |
-| Actions | 編集アイコン + 削除アイコン |
+```typescript
+const columns: Column<CategoryRule>[] = [
+  { header: "ID", key: "id" },
+  {
+    header: "キーワード",
+    render: (rule) => <code className="...">{rule.keyword}</code>,
+  },
+  {
+    header: "マッチタイプ",
+    render: (rule) => <Badge color={...}>{rule.match_type}</Badge>,
+  },
+  { header: "カテゴリ", key: "category_name" },
+  { header: "優先度", key: "priority" },
+  {
+    header: "Actions",
+    render: (rule) => (/* 編集・削除アイコン */),
+  },
+]
+```
+
+**Badge の色分け:**
+- EXACT: `info`
+- PARTIAL: `success`
 
 ### 3. モーダルフォーム
 
