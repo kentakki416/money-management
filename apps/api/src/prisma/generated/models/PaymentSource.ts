@@ -42,6 +42,7 @@ export type PaymentSourceMinAggregateOutputType = {
   userId: number | null
   name: string | null
   type: $Enums.PaymentSourceType | null
+  color: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -51,6 +52,7 @@ export type PaymentSourceMaxAggregateOutputType = {
   userId: number | null
   name: string | null
   type: $Enums.PaymentSourceType | null
+  color: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +62,7 @@ export type PaymentSourceCountAggregateOutputType = {
   userId: number
   name: number
   type: number
+  color: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -81,6 +84,7 @@ export type PaymentSourceMinAggregateInputType = {
   userId?: true
   name?: true
   type?: true
+  color?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -90,6 +94,7 @@ export type PaymentSourceMaxAggregateInputType = {
   userId?: true
   name?: true
   type?: true
+  color?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -99,6 +104,7 @@ export type PaymentSourceCountAggregateInputType = {
   userId?: true
   name?: true
   type?: true
+  color?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -195,6 +201,7 @@ export type PaymentSourceGroupByOutputType = {
   userId: number
   name: string
   type: $Enums.PaymentSourceType
+  color: string
   createdAt: Date
   updatedAt: Date
   _count: PaymentSourceCountAggregateOutputType | null
@@ -227,6 +234,7 @@ export type PaymentSourceWhereInput = {
   userId?: Prisma.IntFilter<"PaymentSource"> | number
   name?: Prisma.StringFilter<"PaymentSource"> | string
   type?: Prisma.EnumPaymentSourceTypeFilter<"PaymentSource"> | $Enums.PaymentSourceType
+  color?: Prisma.StringFilter<"PaymentSource"> | string
   createdAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -239,6 +247,7 @@ export type PaymentSourceOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  color?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -255,6 +264,7 @@ export type PaymentSourceWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.IntFilter<"PaymentSource"> | number
   name?: Prisma.StringFilter<"PaymentSource"> | string
   type?: Prisma.EnumPaymentSourceTypeFilter<"PaymentSource"> | $Enums.PaymentSourceType
+  color?: Prisma.StringFilter<"PaymentSource"> | string
   createdAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -267,6 +277,7 @@ export type PaymentSourceOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  color?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PaymentSourceCountOrderByAggregateInput
@@ -284,6 +295,7 @@ export type PaymentSourceScalarWhereWithAggregatesInput = {
   userId?: Prisma.IntWithAggregatesFilter<"PaymentSource"> | number
   name?: Prisma.StringWithAggregatesFilter<"PaymentSource"> | string
   type?: Prisma.EnumPaymentSourceTypeWithAggregatesFilter<"PaymentSource"> | $Enums.PaymentSourceType
+  color?: Prisma.StringWithAggregatesFilter<"PaymentSource"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentSource"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentSource"> | Date | string
 }
@@ -291,6 +303,7 @@ export type PaymentSourceScalarWhereWithAggregatesInput = {
 export type PaymentSourceCreateInput = {
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentSourcesInput
@@ -303,6 +316,7 @@ export type PaymentSourceUncheckedCreateInput = {
   userId: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPaymentSourceInput
@@ -312,6 +326,7 @@ export type PaymentSourceUncheckedCreateInput = {
 export type PaymentSourceUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentSourcesNestedInput
@@ -324,6 +339,7 @@ export type PaymentSourceUncheckedUpdateInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPaymentSourceNestedInput
@@ -335,6 +351,7 @@ export type PaymentSourceCreateManyInput = {
   userId: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -342,6 +359,7 @@ export type PaymentSourceCreateManyInput = {
 export type PaymentSourceUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -351,6 +369,7 @@ export type PaymentSourceUncheckedUpdateManyInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -366,6 +385,7 @@ export type PaymentSourceCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  color?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -380,6 +400,7 @@ export type PaymentSourceMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  color?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -389,6 +410,7 @@ export type PaymentSourceMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  color?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -506,6 +528,7 @@ export type PaymentSourceUncheckedUpdateManyWithoutUserNestedInput = {
 export type PaymentSourceCreateWithoutCsvUploadsInput = {
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentSourcesInput
@@ -517,6 +540,7 @@ export type PaymentSourceUncheckedCreateWithoutCsvUploadsInput = {
   userId: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPaymentSourceInput
@@ -541,6 +565,7 @@ export type PaymentSourceUpdateToOneWithWhereWithoutCsvUploadsInput = {
 export type PaymentSourceUpdateWithoutCsvUploadsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentSourcesNestedInput
@@ -552,6 +577,7 @@ export type PaymentSourceUncheckedUpdateWithoutCsvUploadsInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPaymentSourceNestedInput
@@ -560,6 +586,7 @@ export type PaymentSourceUncheckedUpdateWithoutCsvUploadsInput = {
 export type PaymentSourceCreateWithoutTransactionsInput = {
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPaymentSourcesInput
@@ -571,6 +598,7 @@ export type PaymentSourceUncheckedCreateWithoutTransactionsInput = {
   userId: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutPaymentSourceInput
@@ -595,6 +623,7 @@ export type PaymentSourceUpdateToOneWithWhereWithoutTransactionsInput = {
 export type PaymentSourceUpdateWithoutTransactionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPaymentSourcesNestedInput
@@ -606,6 +635,7 @@ export type PaymentSourceUncheckedUpdateWithoutTransactionsInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutPaymentSourceNestedInput
@@ -614,6 +644,7 @@ export type PaymentSourceUncheckedUpdateWithoutTransactionsInput = {
 export type PaymentSourceCreateWithoutUserInput = {
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionCreateNestedManyWithoutPaymentSourceInput
@@ -624,6 +655,7 @@ export type PaymentSourceUncheckedCreateWithoutUserInput = {
   id?: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPaymentSourceInput
@@ -664,6 +696,7 @@ export type PaymentSourceScalarWhereInput = {
   userId?: Prisma.IntFilter<"PaymentSource"> | number
   name?: Prisma.StringFilter<"PaymentSource"> | string
   type?: Prisma.EnumPaymentSourceTypeFilter<"PaymentSource"> | $Enums.PaymentSourceType
+  color?: Prisma.StringFilter<"PaymentSource"> | string
   createdAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PaymentSource"> | Date | string
 }
@@ -672,6 +705,7 @@ export type PaymentSourceCreateManyUserInput = {
   id?: number
   name: string
   type: $Enums.PaymentSourceType
+  color?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -679,6 +713,7 @@ export type PaymentSourceCreateManyUserInput = {
 export type PaymentSourceUpdateWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUpdateManyWithoutPaymentSourceNestedInput
@@ -689,6 +724,7 @@ export type PaymentSourceUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPaymentSourceNestedInput
@@ -699,6 +735,7 @@ export type PaymentSourceUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumPaymentSourceTypeFieldUpdateOperationsInput | $Enums.PaymentSourceType
+  color?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -748,6 +785,7 @@ export type PaymentSourceSelect<ExtArgs extends runtime.Types.Extensions.Interna
   userId?: boolean
   name?: boolean
   type?: boolean
+  color?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -763,11 +801,12 @@ export type PaymentSourceSelectScalar = {
   userId?: boolean
   name?: boolean
   type?: boolean
+  color?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PaymentSourceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "type" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentSource"]>
+export type PaymentSourceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "type" | "color" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentSource"]>
 export type PaymentSourceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   transactions?: boolean | Prisma.PaymentSource$transactionsArgs<ExtArgs>
@@ -787,6 +826,10 @@ export type $PaymentSourcePayload<ExtArgs extends runtime.Types.Extensions.Inter
     userId: number
     name: string
     type: $Enums.PaymentSourceType
+    /**
+     * * #RRGGBB
+     */
+    color: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["paymentSource"]>
@@ -1165,6 +1208,7 @@ export interface PaymentSourceFieldRefs {
   readonly userId: Prisma.FieldRef<"PaymentSource", 'Int'>
   readonly name: Prisma.FieldRef<"PaymentSource", 'String'>
   readonly type: Prisma.FieldRef<"PaymentSource", 'PaymentSourceType'>
+  readonly color: Prisma.FieldRef<"PaymentSource", 'String'>
   readonly createdAt: Prisma.FieldRef<"PaymentSource", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PaymentSource", 'DateTime'>
 }

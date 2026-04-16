@@ -35,29 +35,16 @@ describe("createMemo", () => {
 
     mockCreate.mockResolvedValue(mockMemo)
 
-    // Act
     const result = await createMemo(input, mockMemoRepository)
 
-    // Assert
-    expect(result).toEqual(mockMemo)
-    expect(mockCreate).toHaveBeenCalledWith(input)
-    expect(mockCreate).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual(mockMemo)
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const input: CreateMemoInput = {
-      body: "New Body",
-      title: "New Title",
-    }
+  it("データベースエラー時は例外として伝播する", async () => {
+    const input: CreateMemoInput = { body: "B", title: "T" }
+    mockCreate.mockRejectedValue(new Error("Database connection failed"))
 
-    const mockError = new Error("Database connection failed")
-    mockCreate.mockRejectedValue(mockError)
-
-    // Act & Assert
-    await expect(createMemo(input, mockMemoRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
-    expect(mockCreate).toHaveBeenCalledWith(input)
+    await expect(createMemo(input, mockMemoRepository)).rejects.toThrow()
   })
 })

@@ -1,4 +1,5 @@
 export type PaymentSource = {
+  color: string
   id: number
   name: string
   type: string

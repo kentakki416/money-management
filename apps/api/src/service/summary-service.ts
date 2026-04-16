@@ -1,6 +1,7 @@
 import { logger } from "../log"
 import { SummaryRepository } from "../repository/mysql"
 import { CategorySummary, DailySummary } from "../types/domain"
+import { ok, Result } from "../types/result"
 
 /**
  * 月間カテゴリ別集計を取得する（割合付き）
@@ -10,12 +11,12 @@ export const getMonthlySummary = async (
   year: number,
   month: number,
   summaryRepository: SummaryRepository
-): Promise<{
+): Promise<Result<{
   categories: (CategorySummary & { percentage: number })[]
   month: number
   totalAmount: number
   year: number
-}> => {
+}>> => {
   logger.debug("SummaryService: Fetching monthly summary", { month, userId, year })
 
   const categories = await summaryRepository.getMonthlyCategorySummary(userId, year, month)
@@ -31,7 +32,7 @@ export const getMonthlySummary = async (
     totalAmount,
   })
 
-  return { categories: categoriesWithPercentage, month, totalAmount, year }
+  return ok({ categories: categoriesWithPercentage, month, totalAmount, year })
 }
 
 /**
@@ -42,12 +43,12 @@ export const getCalendarSummary = async (
   year: number,
   month: number,
   summaryRepository: SummaryRepository
-): Promise<{
+): Promise<Result<{
   days: DailySummary[]
   month: number
   totalAmount: number
   year: number
-}> => {
+}>> => {
   logger.debug("SummaryService: Fetching calendar summary", { month, userId, year })
 
   const days = await summaryRepository.getDailySummary(userId, year, month)
@@ -55,7 +56,7 @@ export const getCalendarSummary = async (
 
   logger.debug("SummaryService: Calendar summary fetched", { dayCount: days.length, totalAmount })
 
-  return { days, month, totalAmount, year }
+  return ok({ days, month, totalAmount, year })
 }
 
 /**
@@ -66,7 +67,7 @@ export const getTrend = async (
   userId: number,
   months: number,
   summaryRepository: SummaryRepository
-): Promise<{
+): Promise<Result<{
   categories: {
     categoryColor: string
     categoryId: number
@@ -75,7 +76,7 @@ export const getTrend = async (
   }[]
   months: { month: number; year: number }[]
   total: { amount: number; month: number; year: number }[]
-}> => {
+}>> => {
   logger.debug("SummaryService: Fetching trend", { months, userId })
 
   const trendData = await summaryRepository.getMonthlyTrend(userId, months)
@@ -137,5 +138,5 @@ export const getTrend = async (
 
   logger.debug("SummaryService: Trend fetched", { categoryCount: categories.length })
 
-  return { categories, months: monthLabels, total }
+  return ok({ categories, months: monthLabels, total })
 }

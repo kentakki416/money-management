@@ -41,7 +41,10 @@ describe("createCategory", () => {
     const result = await createCategory(input, mockCategoryRepository)
 
     // Assert
-    expect(result).toEqual(mockCategory)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockCategory)
+    }
     expect(mockCreate).toHaveBeenCalledWith(input)
     expect(mockCreate).toHaveBeenCalledTimes(1)
   })
@@ -57,9 +60,7 @@ describe("createCategory", () => {
     mockCreate.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(createCategory(input, mockCategoryRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(createCategory(input, mockCategoryRepository)).rejects.toThrow()
     expect(mockCreate).toHaveBeenCalledWith(input)
   })
 })

@@ -48,6 +48,8 @@ export type CsvUploadMinAggregateOutputType = {
   fileName: string | null
   fileHash: string | null
   rowCount: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type CsvUploadMaxAggregateOutputType = {
@@ -57,6 +59,8 @@ export type CsvUploadMaxAggregateOutputType = {
   fileName: string | null
   fileHash: string | null
   rowCount: number | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type CsvUploadCountAggregateOutputType = {
@@ -66,6 +70,8 @@ export type CsvUploadCountAggregateOutputType = {
   fileName: number
   fileHash: number
   rowCount: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -91,6 +97,8 @@ export type CsvUploadMinAggregateInputType = {
   fileName?: true
   fileHash?: true
   rowCount?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type CsvUploadMaxAggregateInputType = {
@@ -100,6 +108,8 @@ export type CsvUploadMaxAggregateInputType = {
   fileName?: true
   fileHash?: true
   rowCount?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type CsvUploadCountAggregateInputType = {
@@ -109,6 +119,8 @@ export type CsvUploadCountAggregateInputType = {
   fileName?: true
   fileHash?: true
   rowCount?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -205,6 +217,8 @@ export type CsvUploadGroupByOutputType = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt: Date
+  updatedAt: Date
   _count: CsvUploadCountAggregateOutputType | null
   _avg: CsvUploadAvgAggregateOutputType | null
   _sum: CsvUploadSumAggregateOutputType | null
@@ -237,6 +251,8 @@ export type CsvUploadWhereInput = {
   fileName?: Prisma.StringFilter<"CsvUpload"> | string
   fileHash?: Prisma.StringFilter<"CsvUpload"> | string
   rowCount?: Prisma.IntFilter<"CsvUpload"> | number
+  createdAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   paymentSource?: Prisma.XOR<Prisma.PaymentSourceScalarRelationFilter, Prisma.PaymentSourceWhereInput>
   transactions?: Prisma.TransactionListRelationFilter
@@ -249,6 +265,8 @@ export type CsvUploadOrderByWithRelationInput = {
   fileName?: Prisma.SortOrder
   fileHash?: Prisma.SortOrder
   rowCount?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   paymentSource?: Prisma.PaymentSourceOrderByWithRelationInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
@@ -265,6 +283,8 @@ export type CsvUploadWhereUniqueInput = Prisma.AtLeast<{
   paymentSourceId?: Prisma.IntFilter<"CsvUpload"> | number
   fileName?: Prisma.StringFilter<"CsvUpload"> | string
   rowCount?: Prisma.IntFilter<"CsvUpload"> | number
+  createdAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   paymentSource?: Prisma.XOR<Prisma.PaymentSourceScalarRelationFilter, Prisma.PaymentSourceWhereInput>
   transactions?: Prisma.TransactionListRelationFilter
@@ -277,6 +297,8 @@ export type CsvUploadOrderByWithAggregationInput = {
   fileName?: Prisma.SortOrder
   fileHash?: Prisma.SortOrder
   rowCount?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.CsvUploadCountOrderByAggregateInput
   _avg?: Prisma.CsvUploadAvgOrderByAggregateInput
   _max?: Prisma.CsvUploadMaxOrderByAggregateInput
@@ -294,12 +316,16 @@ export type CsvUploadScalarWhereWithAggregatesInput = {
   fileName?: Prisma.StringWithAggregatesFilter<"CsvUpload"> | string
   fileHash?: Prisma.StringWithAggregatesFilter<"CsvUpload"> | string
   rowCount?: Prisma.IntWithAggregatesFilter<"CsvUpload"> | number
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"CsvUpload"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CsvUpload"> | Date | string
 }
 
 export type CsvUploadCreateInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCsvUploadsInput
   paymentSource: Prisma.PaymentSourceCreateNestedOneWithoutCsvUploadsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCsvUploadInput
@@ -312,6 +338,8 @@ export type CsvUploadUncheckedCreateInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCsvUploadInput
 }
 
@@ -319,6 +347,8 @@ export type CsvUploadUpdateInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCsvUploadsNestedInput
   paymentSource?: Prisma.PaymentSourceUpdateOneRequiredWithoutCsvUploadsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCsvUploadNestedInput
@@ -331,6 +361,8 @@ export type CsvUploadUncheckedUpdateInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCsvUploadNestedInput
 }
 
@@ -341,12 +373,16 @@ export type CsvUploadCreateManyInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type CsvUploadUpdateManyMutationInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CsvUploadUncheckedUpdateManyInput = {
@@ -356,6 +392,8 @@ export type CsvUploadUncheckedUpdateManyInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CsvUploadListRelationFilter = {
@@ -381,6 +419,8 @@ export type CsvUploadCountOrderByAggregateInput = {
   fileName?: Prisma.SortOrder
   fileHash?: Prisma.SortOrder
   rowCount?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type CsvUploadAvgOrderByAggregateInput = {
@@ -397,6 +437,8 @@ export type CsvUploadMaxOrderByAggregateInput = {
   fileName?: Prisma.SortOrder
   fileHash?: Prisma.SortOrder
   rowCount?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type CsvUploadMinOrderByAggregateInput = {
@@ -406,6 +448,8 @@ export type CsvUploadMinOrderByAggregateInput = {
   fileName?: Prisma.SortOrder
   fileHash?: Prisma.SortOrder
   rowCount?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type CsvUploadSumOrderByAggregateInput = {
@@ -524,6 +568,8 @@ export type CsvUploadCreateWithoutPaymentSourceInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCsvUploadsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCsvUploadInput
 }
@@ -534,6 +580,8 @@ export type CsvUploadUncheckedCreateWithoutPaymentSourceInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCsvUploadInput
 }
 
@@ -573,12 +621,16 @@ export type CsvUploadScalarWhereInput = {
   fileName?: Prisma.StringFilter<"CsvUpload"> | string
   fileHash?: Prisma.StringFilter<"CsvUpload"> | string
   rowCount?: Prisma.IntFilter<"CsvUpload"> | number
+  createdAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"CsvUpload"> | Date | string
 }
 
 export type CsvUploadCreateWithoutTransactionsInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCsvUploadsInput
   paymentSource: Prisma.PaymentSourceCreateNestedOneWithoutCsvUploadsInput
 }
@@ -590,6 +642,8 @@ export type CsvUploadUncheckedCreateWithoutTransactionsInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type CsvUploadCreateOrConnectWithoutTransactionsInput = {
@@ -612,6 +666,8 @@ export type CsvUploadUpdateWithoutTransactionsInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCsvUploadsNestedInput
   paymentSource?: Prisma.PaymentSourceUpdateOneRequiredWithoutCsvUploadsNestedInput
 }
@@ -623,12 +679,16 @@ export type CsvUploadUncheckedUpdateWithoutTransactionsInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CsvUploadCreateWithoutUserInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   paymentSource: Prisma.PaymentSourceCreateNestedOneWithoutCsvUploadsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCsvUploadInput
 }
@@ -639,6 +699,8 @@ export type CsvUploadUncheckedCreateWithoutUserInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCsvUploadInput
 }
 
@@ -674,12 +736,16 @@ export type CsvUploadCreateManyPaymentSourceInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type CsvUploadUpdateWithoutPaymentSourceInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCsvUploadsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCsvUploadNestedInput
 }
@@ -690,6 +756,8 @@ export type CsvUploadUncheckedUpdateWithoutPaymentSourceInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCsvUploadNestedInput
 }
 
@@ -699,6 +767,8 @@ export type CsvUploadUncheckedUpdateManyWithoutPaymentSourceInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type CsvUploadCreateManyUserInput = {
@@ -707,12 +777,16 @@ export type CsvUploadCreateManyUserInput = {
   fileName: string
   fileHash: string
   rowCount: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type CsvUploadUpdateWithoutUserInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentSource?: Prisma.PaymentSourceUpdateOneRequiredWithoutCsvUploadsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCsvUploadNestedInput
 }
@@ -723,6 +797,8 @@ export type CsvUploadUncheckedUpdateWithoutUserInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCsvUploadNestedInput
 }
 
@@ -732,6 +808,8 @@ export type CsvUploadUncheckedUpdateManyWithoutUserInput = {
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   fileHash?: Prisma.StringFieldUpdateOperationsInput | string
   rowCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -772,6 +850,8 @@ export type CsvUploadSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   fileName?: boolean
   fileHash?: boolean
   rowCount?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   paymentSource?: boolean | Prisma.PaymentSourceDefaultArgs<ExtArgs>
   transactions?: boolean | Prisma.CsvUpload$transactionsArgs<ExtArgs>
@@ -787,9 +867,11 @@ export type CsvUploadSelectScalar = {
   fileName?: boolean
   fileHash?: boolean
   rowCount?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type CsvUploadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "paymentSourceId" | "fileName" | "fileHash" | "rowCount", ExtArgs["result"]["csvUpload"]>
+export type CsvUploadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "paymentSourceId" | "fileName" | "fileHash" | "rowCount" | "createdAt" | "updatedAt", ExtArgs["result"]["csvUpload"]>
 export type CsvUploadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   paymentSource?: boolean | Prisma.PaymentSourceDefaultArgs<ExtArgs>
@@ -811,6 +893,8 @@ export type $CsvUploadPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     fileName: string
     fileHash: string
     rowCount: number
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["csvUpload"]>
   composites: {}
 }
@@ -1189,6 +1273,8 @@ export interface CsvUploadFieldRefs {
   readonly fileName: Prisma.FieldRef<"CsvUpload", 'String'>
   readonly fileHash: Prisma.FieldRef<"CsvUpload", 'String'>
   readonly rowCount: Prisma.FieldRef<"CsvUpload", 'Int'>
+  readonly createdAt: Prisma.FieldRef<"CsvUpload", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"CsvUpload", 'DateTime'>
 }
     
 

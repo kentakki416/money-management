@@ -1,8 +1,7 @@
 import { Response } from "express"
 
-import { calendarSummaryRequestSchema, calendarSummaryResponseSchema, ErrorResponse } from "@repo/api-schema"
+import { ErrorResponse, calendarSummaryRequestSchema, calendarSummaryResponseSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { AuthRequest } from "../../middleware/auth"
 import { SummaryRepository } from "../../repository/mysql"
 import * as service from "../../service"
@@ -14,40 +13,34 @@ export class SummaryCalendarController {
   constructor(private summaryRepository: SummaryRepository) {}
 
   async execute(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.userId!
+    const userId = req.userId!
+    const query = calendarSummaryRequestSchema.parse(req.query)
 
-      const query = calendarSummaryRequestSchema.parse(req.query)
+    const result = await service.summary.getCalendarSummary(
+      userId,
+      query.year,
+      query.month,
+      this.summaryRepository
+    )
 
-      const { days, month, totalAmount, year } = await service.summary.getCalendarSummary(
-        userId,
-        query.year,
-        query.month,
-        this.summaryRepository
-      )
-
-      const response = calendarSummaryResponseSchema.parse({
-        days: days.map((d) => ({
-          amount: d.amount,
-          date: d.date,
-          transaction_count: d.transactionCount,
-        })),
-        month,
-        total_amount: totalAmount,
-        year,
-      })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "SummaryCalendarController: Failed to get calendar summary",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to get calendar summary",
-        status_code: 500,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(500).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = calendarSummaryResponseSchema.parse({
+      days: result.value.days.map((d) => ({
+        amount: d.amount,
+        date: d.date,
+        transaction_count: d.transactionCount,
+      })),
+      month: result.value.month,
+      total_amount: result.value.totalAmount,
+      year: result.value.year,
+    })
+    return res.status(200).json(response)
   }
 }

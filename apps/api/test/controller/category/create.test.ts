@@ -3,7 +3,7 @@ import request from "supertest"
 import { CategoryCreateController } from "../../../src/controller/category/create"
 import { PrismaCategoryRepository } from "../../../src/repository/mysql/category-repository"
 import { categoryRouter } from "../../../src/routes/category-router"
-import { createTestApp, createTestUser } from "../helper"
+import { attachErrorHandler, createTestApp, createTestUser } from "../helper"
 import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
 
 const categoryRepository = new PrismaCategoryRepository(testPrisma)
@@ -11,6 +11,7 @@ const categoryRepository = new PrismaCategoryRepository(testPrisma)
 const app = createTestApp()
 
 app.use("/api/categories", categoryRouter({ create: new CategoryCreateController(categoryRepository) }))
+attachErrorHandler(app)
 
 beforeEach(async () => {
   await cleanupTestData()

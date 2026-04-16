@@ -1,8 +1,7 @@
 import { Response } from "express"
 
-import { deletePaymentSourceResponseSchema, ErrorResponse } from "@repo/api-schema"
+import { deletePaymentSourcePathParamSchema, deletePaymentSourceResponseSchema, ErrorResponse } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { AuthRequest } from "../../middleware/auth"
 import { PaymentSourceRepository } from "../../repository/mysql"
 import * as service from "../../service"
@@ -14,28 +13,19 @@ export class PaymentSourceDeleteController {
   constructor(private paymentSourceRepository: PaymentSourceRepository) {}
 
   async execute(req: AuthRequest, res: Response) {
-    try {
-      const id = parseInt(req.params.id, 10)
+    const { id } = deletePaymentSourcePathParamSchema.parse(req.params)
 
-      if (isNaN(id)) {
-        const errorResponse: ErrorResponse = { error: "Invalid payment source ID", status_code: 400 }
-        return res.status(400).json(errorResponse)
-      }
+    const result = await service.paymentSource.deletePaymentSource(id, this.paymentSourceRepository)
 
-      await service.paymentSource.deletePaymentSource(id, this.paymentSourceRepository)
-
-      const response = deletePaymentSourceResponseSchema.parse({ success: true })
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "PaymentSourceDeleteController: Failed to delete payment source",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to delete payment source",
-        status_code: 400,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(400).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = deletePaymentSourceResponseSchema.parse({ success: true })
+    return res.status(200).json(response)
   }
 }

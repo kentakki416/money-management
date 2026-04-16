@@ -14,10 +14,12 @@ export const GET = async (request: NextRequest) => {
   const year = searchParams.get("year")
   const month = searchParams.get("month")
   const categoryId = searchParams.get("category_id")
+  const date = searchParams.get("date")
 
   if (year) params.set("year", year)
   if (month) params.set("month", month)
   if (categoryId) params.set("category_id", categoryId)
+  if (date) params.set("date", date)
 
   const data = await apiClient.get<GetTransactionListResponse>(
     `/api/transactions?${params.toString()}`

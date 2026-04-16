@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 
-import { ErrorResponse, updateCategoryRuleRequestSchema, updateCategoryRuleResponseSchema } from "@repo/api-schema"
+import { ErrorResponse, updateCategoryRulePathParamSchema, updateCategoryRuleRequestSchema, updateCategoryRuleResponseSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { CategoryRuleRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
@@ -13,54 +12,39 @@ export class CategoryRuleUpdateController {
   constructor(private categoryRuleRepository: CategoryRuleRepository) {}
 
   async execute(req: Request, res: Response) {
-    try {
-      const id = Number(req.params.id)
+    const { id } = updateCategoryRulePathParamSchema.parse(req.params)
+    const data = updateCategoryRuleRequestSchema.parse(req.body)
+    const result = await service.categoryRule.updateCategoryRule(
+      id,
+      {
+        categoryId: data.category_id,
+        keyword: data.keyword,
+        matchType: data.match_type,
+        priority: data.priority,
+      },
+      this.categoryRuleRepository
+    )
 
-      if (isNaN(id)) {
-        const errorResponse: ErrorResponse = {
-          error: "Invalid category rule ID",
-          status_code: 400,
-        }
-        return res.status(400).json(errorResponse)
-      }
-
-      const data = updateCategoryRuleRequestSchema.parse(req.body)
-
-      const rule = await service.categoryRule.updateCategoryRule(
-        id,
-        {
-          categoryId: data.category_id,
-          keyword: data.keyword,
-          matchType: data.match_type,
-          priority: data.priority,
-        },
-        this.categoryRuleRepository
-      )
-
-      const response = updateCategoryRuleResponseSchema.parse({
-        rule: {
-          category_id: rule.categoryId,
-          category_name: rule.categoryName,
-          created_at: rule.createdAt.toISOString(),
-          id: rule.id,
-          keyword: rule.keyword,
-          match_type: rule.matchType,
-          priority: rule.priority,
-          updated_at: rule.updatedAt.toISOString(),
-        },
-      })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "CategoryRuleUpdateController: Failed to update category rule",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to update category rule",
-        status_code: 400,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(400).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = updateCategoryRuleResponseSchema.parse({
+      rule: {
+        category_id: result.value.categoryId,
+        category_name: result.value.categoryName,
+        created_at: result.value.createdAt.toISOString(),
+        id: result.value.id,
+        keyword: result.value.keyword,
+        match_type: result.value.matchType,
+        priority: result.value.priority,
+        updated_at: result.value.updatedAt.toISOString(),
+      },
+    })
+    return res.status(200).json(response)
   }
 }

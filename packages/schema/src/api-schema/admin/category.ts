@@ -8,7 +8,9 @@ export {
   categorySchema,
   createCategoryRequestSchema,
   createCategoryResponse,
+  deleteCategoryPathParamSchema,
   getCategoryListResponseSchema,
+  updateCategoryPathParamSchema,
   updateCategoryRequestSchema,
   updateCategoryResponseSchema,
 } from "../category"
@@ -17,7 +19,9 @@ export type {
   Category,
   CreateCategoryReponse,
   CreateCategoryRequest,
+  DeleteCategoryPathParam,
   GetCategoryListResponse,
+  UpdateCategoryPathParam,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
 } from "../category"

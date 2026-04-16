@@ -1,6 +1,7 @@
 import { Router } from "express"
 import multer from "multer"
 
+import { CsvUploadDeleteController } from "../controller/csv-upload/delete"
 import { CsvUploadListController } from "../controller/csv-upload/list"
 import { CsvUploadController } from "../controller/csv-upload/upload"
 
@@ -10,6 +11,7 @@ const upload = multer({
 })
 
 type CsvUploadRouterControllers = {
+  delete?: CsvUploadDeleteController
   list?: CsvUploadListController
   upload?: CsvUploadController
 }
@@ -31,6 +33,12 @@ export const csvUploadRouter = (controllers: CsvUploadRouterControllers): Router
   if (controllers.upload) {
     const controller = controllers.upload
     router.post("/", upload.single("file"), async (req, res) => controller.execute(req, res))
+  }
+
+  // DELETE /api/csv-uploads/:id
+  if (controllers.delete) {
+    const controller = controllers.delete
+    router.delete("/:id", async (req, res) => controller.execute(req, res))
   }
 
   return router

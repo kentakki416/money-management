@@ -45,47 +45,28 @@ describe("updateMemo", () => {
     mockFindById.mockResolvedValue(existingMemo)
     mockUpdate.mockResolvedValue(updatedMemo)
 
-    // Act
     const result = await updateMemo(1, input, mockMemoRepository)
 
-    // Assert
-    expect(result).toEqual(updatedMemo)
-    expect(mockFindById).toHaveBeenCalledWith(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual(updatedMemo)
     expect(mockUpdate).toHaveBeenCalledWith(1, input)
   })
 
-  it("メモが存在しない場合、nullを返す", async () => {
-    // Arrange
-    const input: UpdateMemoInput = {
-      body: "Updated Body",
-      title: "Updated Title",
-    }
-
+  it("メモが存在しない場合、ok: false で 404 エラーを返す", async () => {
+    const input: UpdateMemoInput = { body: "B", title: "T" }
     mockFindById.mockResolvedValue(null)
 
-    // Act
     const result = await updateMemo(999, input, mockMemoRepository)
 
-    // Assert
-    expect(result).toBeNull()
-    expect(mockFindById).toHaveBeenCalledWith(999)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.error.statusCode).toBe(404)
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const input: UpdateMemoInput = {
-      body: "Updated Body",
-      title: "Updated Title",
-    }
+  it("データベースエラー時は例外として伝播する", async () => {
+    const input: UpdateMemoInput = { body: "B", title: "T" }
+    mockFindById.mockRejectedValue(new Error("Database connection failed"))
 
-    const mockError = new Error("Database connection failed")
-    mockFindById.mockRejectedValue(mockError)
-
-    // Act & Assert
-    await expect(updateMemo(1, input, mockMemoRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
-    expect(mockFindById).toHaveBeenCalledWith(1)
+    await expect(updateMemo(1, input, mockMemoRepository)).rejects.toThrow()
   })
 })

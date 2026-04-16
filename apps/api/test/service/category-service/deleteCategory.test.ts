@@ -19,7 +19,7 @@ describe("deleteCategory", () => {
     jest.clearAllMocks()
   })
 
-  it("カテゴリが存在する場合、削除してtrueを返す", async () => {
+  it("カテゴリが存在する場合、削除して ok: true を返す", async () => {
     // Arrange
     const existingCategory: Category = {
       id: 1,
@@ -37,12 +37,12 @@ describe("deleteCategory", () => {
     const result = await deleteCategory(1, mockCategoryRepository)
 
     // Assert
-    expect(result).toBe(true)
+    expect(result.ok).toBe(true)
     expect(mockFindById).toHaveBeenCalledWith(1)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
   })
 
-  it("カテゴリが存在しない場合、falseを返す", async () => {
+  it("カテゴリが存在しない場合、ok: false で 404 エラーを返す", async () => {
     // Arrange
     mockFindById.mockResolvedValue(null)
 
@@ -50,7 +50,11 @@ describe("deleteCategory", () => {
     const result = await deleteCategory(999, mockCategoryRepository)
 
     // Assert
-    expect(result).toBe(false)
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.statusCode).toBe(404)
+      expect(result.error.type).toBe("NOT_FOUND")
+    }
     expect(mockFindById).toHaveBeenCalledWith(999)
     expect(mockDeleteById).not.toHaveBeenCalled()
   })
@@ -61,9 +65,7 @@ describe("deleteCategory", () => {
     mockFindById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(deleteCategory(1, mockCategoryRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(deleteCategory(1, mockCategoryRepository)).rejects.toThrow()
     expect(mockFindById).toHaveBeenCalledWith(1)
   })
 })

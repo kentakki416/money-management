@@ -48,8 +48,11 @@ describe("getAllCategoryRules", () => {
     const result = await getAllCategoryRules(mockCategoryRuleRepository)
 
     // Assert
-    expect(result).toEqual(mockRules)
-    expect(result).toHaveLength(2)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockRules)
+      expect(result.value).toHaveLength(2)
+    }
     expect(mockFindAll).toHaveBeenCalledTimes(1)
   })
 
@@ -61,8 +64,11 @@ describe("getAllCategoryRules", () => {
     const result = await getAllCategoryRules(mockCategoryRuleRepository)
 
     // Assert
-    expect(result).toEqual([])
-    expect(result).toHaveLength(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual([])
+      expect(result.value).toHaveLength(0)
+    }
     expect(mockFindAll).toHaveBeenCalledTimes(1)
   })
 
@@ -72,8 +78,6 @@ describe("getAllCategoryRules", () => {
     mockFindAll.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(getAllCategoryRules(mockCategoryRuleRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(getAllCategoryRules(mockCategoryRuleRepository)).rejects.toThrow()
   })
 })

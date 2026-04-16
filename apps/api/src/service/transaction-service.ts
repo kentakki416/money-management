@@ -8,6 +8,7 @@ import {
   UserCategoryRuleRepository,
 } from "../repository/mysql"
 import { Transaction } from "../types/domain"
+import { ok, Result } from "../types/result"
 
 import { categorizeDescription } from "./categorize-service"
 
@@ -17,12 +18,12 @@ import { categorizeDescription } from "./categorize-service"
 export const getAllTransactions = async (
   filter: TransactionFilter,
   transactionRepository: TransactionRepository
-): Promise<{ totalAmount: number; transactions: Transaction[] }> => {
+): Promise<Result<{ totalAmount: number; transactions: Transaction[] }>> => {
   logger.debug("TransactionService: Fetching transactions", { filter })
   const transactions = await transactionRepository.findByFilter(filter)
   const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0)
   logger.debug("TransactionService: Transactions fetched", { count: transactions.length, totalAmount })
-  return { totalAmount, transactions }
+  return ok({ totalAmount, transactions })
 }
 
 /**
@@ -41,7 +42,7 @@ export const createManualTransaction = async (
   transactionRepository: TransactionRepository,
   categoryRuleRepository: CategoryRuleRepository,
   userCategoryRuleRepository: UserCategoryRuleRepository
-): Promise<Transaction> => {
+): Promise<Result<Transaction>> => {
   logger.debug("TransactionService: Creating manual transaction", { description: data.description })
 
   let categoryId = data.categoryId
@@ -67,7 +68,7 @@ export const createManualTransaction = async (
 
   const transaction = await transactionRepository.create(input)
   logger.debug("TransactionService: Transaction created", { id: transaction.id })
-  return transaction
+  return ok(transaction)
 }
 
 /**
@@ -82,7 +83,7 @@ export const updateTransaction = async (
   userId: number,
   transactionRepository: TransactionRepository,
   userCategoryRuleRepository: UserCategoryRuleRepository
-): Promise<Transaction> => {
+): Promise<Result<Transaction>> => {
   logger.debug("TransactionService: Updating transaction", { id })
 
   const transaction = await transactionRepository.update(id, data)
@@ -100,7 +101,7 @@ export const updateTransaction = async (
   }
 
   logger.debug("TransactionService: Transaction updated", { id: transaction.id })
-  return transaction
+  return ok(transaction)
 }
 
 /**
@@ -109,9 +110,9 @@ export const updateTransaction = async (
 export const deleteTransaction = async (
   id: number,
   transactionRepository: TransactionRepository
-): Promise<boolean> => {
+): Promise<Result<{ deleted: true }>> => {
   logger.debug("TransactionService: Deleting transaction", { id })
   await transactionRepository.deleteById(id)
   logger.debug("TransactionService: Transaction deleted", { id })
-  return true
+  return ok({ deleted: true })
 }

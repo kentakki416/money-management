@@ -8,8 +8,10 @@ export {
   categoryRuleSchema,
   createCategoryRuleRequestSchema,
   createCategoryRuleResponseSchema,
+  deleteCategoryRulePathParamSchema,
   deleteCategoryRuleResponseSchema,
   getCategoryRuleListResponseSchema,
+  updateCategoryRulePathParamSchema,
   updateCategoryRuleRequestSchema,
   updateCategoryRuleResponseSchema,
 } from "../category-rule"
@@ -18,8 +20,10 @@ export type {
   CategoryRule,
   CreateCategoryRuleRequest,
   CreateCategoryRuleResponse,
+  DeleteCategoryRulePathParam,
   DeleteCategoryRuleResponse,
   GetCategoryRuleListResponse,
+  UpdateCategoryRulePathParam,
   UpdateCategoryRuleRequest,
   UpdateCategoryRuleResponse,
 } from "../category-rule"

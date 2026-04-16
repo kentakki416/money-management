@@ -11,13 +11,25 @@ import {
   UserCategoryRuleRepository,
 } from "../repository/mysql"
 import { CsvUpload } from "../types/domain"
+import { conflictError, err, notFoundError, ok, Result } from "../types/result"
 
 import { categorizeManyDescriptions } from "./categorize-service"
 import { getCsvParser } from "./csv-parser"
 
 /**
+ * CSVアップロード成功時の返却データ
+ */
+export type UploadCsvSuccess = {
+  csvUpload: CsvUpload
+  importedCount: number
+}
+
+/**
  * CSVファイルをアップロードして取引を一括登録する
- * 重複ファイルは拒否する（SHA-256ハッシュで判定）
+ * 同一ユーザーで同名ファイルが既に存在する場合や、内容の重複がある場合は
+ * 例外ではなく Result.err（業務エラー）として返す
+ *
+ * DB 障害などの予期しないエラーは通常通り throw する
  */
 export const uploadCsv = async (
   data: {
@@ -31,15 +43,32 @@ export const uploadCsv = async (
   csvUploadRepository: CsvUploadRepository,
   categoryRuleRepository: CategoryRuleRepository,
   userCategoryRuleRepository: UserCategoryRuleRepository
-): Promise<{ csvUpload: CsvUpload; importedCount: number }> => {
+): Promise<Result<UploadCsvSuccess>> => {
   logger.debug("CsvUploadService: Starting CSV upload", { fileName: data.fileName })
+
+  /**
+   * ファイル名での重複チェック（同一ユーザー内）
+   */
+  const isDuplicateFileName = await csvUploadRepository.existsByFileName(
+    data.userId,
+    data.fileName
+  )
+  if (isDuplicateFileName) {
+    logger.warn("CsvUploadService: Duplicate file name detected", {
+      fileName: data.fileName,
+      userId: data.userId,
+    })
+    return err(
+      conflictError(`同名のファイル「${data.fileName}」はすでにアップロード済みです`)
+    )
+  }
 
   const fileHash = crypto.createHash("sha256").update(data.fileBuffer).digest("hex")
 
-  const isDuplicate = await csvUploadRepository.existsByHash(fileHash)
-  if (isDuplicate) {
+  const isDuplicateHash = await csvUploadRepository.existsByHash(fileHash)
+  if (isDuplicateHash) {
     logger.warn("CsvUploadService: Duplicate CSV detected", { fileHash })
-    throw new Error("このCSVファイルはすでにアップロード済みです")
+    return err(conflictError("このCSVファイルはすでにアップロード済みです"))
   }
 
   const content = data.fileBuffer.toString("utf-8")
@@ -82,7 +111,7 @@ export const uploadCsv = async (
     importedCount: parsed.length,
   })
 
-  return { csvUpload, importedCount: parsed.length }
+  return ok({ csvUpload, importedCount: parsed.length })
 }
 
 /**
@@ -91,9 +120,39 @@ export const uploadCsv = async (
 export const getUploadHistory = async (
   userId: number,
   csvUploadRepository: CsvUploadRepository
-): Promise<CsvUpload[]> => {
+): Promise<Result<CsvUpload[]>> => {
   logger.debug("CsvUploadService: Fetching upload history", { userId })
   const history = await csvUploadRepository.findByUserId(userId)
   logger.debug("CsvUploadService: Upload history fetched", { count: history.length })
-  return history
+  return ok(history)
+}
+
+/**
+ * CSVアップロード削除成功時の返却データ
+ */
+export type DeleteCsvUploadSuccess = {
+  deletedTransactionCount: number
+}
+
+/**
+ * CSVアップロードとそれに紐づく取引を削除する
+ * 所有権チェック（CSV が当該ユーザーのものか）→ 削除 の順に実行
+ */
+export const deleteCsvUpload = async (
+  id: number,
+  userId: number,
+  csvUploadRepository: CsvUploadRepository
+): Promise<Result<DeleteCsvUploadSuccess>> => {
+  logger.debug("CsvUploadService: Deleting CSV upload", { id, userId })
+
+  const existing = await csvUploadRepository.findByIdAndUser(id, userId)
+  if (!existing) {
+    logger.warn("CsvUploadService: CSV upload not found or not owned by user", { id, userId })
+    return err(notFoundError("CSV upload not found"))
+  }
+
+  const { deletedTransactionCount } = await csvUploadRepository.deleteByIdWithTransactions(id, userId)
+
+  logger.debug("CsvUploadService: CSV upload deleted", { deletedTransactionCount, id })
+  return ok({ deletedTransactionCount })
 }

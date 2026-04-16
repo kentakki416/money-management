@@ -1,11 +1,21 @@
 "use client"
 import React, { useState } from "react"
 
-import type { TrendResponse } from "@repo/api-schema"
+import type { CategoryTrend, TrendResponse } from "@repo/api-schema"
 
 type Props = {
   trendData: TrendResponse
 }
+
+/**
+ * 合計線を表す特別なID（カテゴリIDとは区別するため負値を使用）
+ */
+const TOTAL_LINE_ID = -1
+
+/**
+ * 合計線の色
+ */
+const TOTAL_LINE_COLOR = "#3B82F6"
 
 /**
  * 金額をフォーマットする
@@ -23,10 +33,22 @@ const formatShortAmount = (amount: number): string => {
 }
 
 /**
- * SVGベースの月次推移チャート
+ * カテゴリごとの月次データを年月キーでマップ化する
+ */
+const buildCategoryAmountMap = (category: CategoryTrend): Map<string, number> => {
+  const map = new Map<string, number>()
+  category.data.forEach((point) => {
+    map.set(`${point.year}-${point.month}`, point.amount)
+  })
+  return map
+}
+
+/**
+ * SVGベースの月次推移チャート（合計 + カテゴリ別）
  */
 export default function TrendChart({ trendData }: Props) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set())
 
   if (trendData.months.length === 0) {
     return (
@@ -36,14 +58,48 @@ export default function TrendChart({ trendData }: Props) {
     )
   }
 
+  const isTotalVisible = !hiddenIds.has(TOTAL_LINE_ID)
+  const visibleCategories = trendData.categories.filter(
+    (cat) => !hiddenIds.has(cat.category_id)
+  )
+
+  /**
+   * 凡例の表示/非表示を切り替える
+   */
+  const toggleLine = (id: number) => {
+    setHiddenIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
   const totalAmounts = trendData.total.map((t) => t.amount)
-  const maxAmount = Math.max(...totalAmounts, 1)
+
+  /**
+   * 表示中のラインから最大値を計算する
+   */
+  const visibleAmounts: number[] = []
+  if (isTotalVisible) {
+    visibleAmounts.push(...totalAmounts)
+  }
+  visibleCategories.forEach((cat) => {
+    const amountMap = buildCategoryAmountMap(cat)
+    trendData.months.forEach((m) => {
+      visibleAmounts.push(amountMap.get(`${m.year}-${m.month}`) ?? 0)
+    })
+  })
+  const maxAmount = Math.max(...visibleAmounts, 1)
 
   /**
    * チャートの寸法設定
    */
   const chartWidth = 800
-  const chartHeight = 300
+  const chartHeight = 320
   const paddingLeft = 60
   const paddingRight = 20
   const paddingTop = 20
@@ -71,14 +127,37 @@ export default function TrendChart({ trendData }: Props) {
   /**
    * 折れ線のパスを生成する
    */
-  const linePath = totalAmounts
-    .map((amount, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(amount)}`)
-    .join(" ")
+  const buildLinePath = (amounts: number[]): string =>
+    amounts
+      .map((amount, i) => `${i === 0 ? "M" : "L"} ${getX(i)} ${getY(amount)}`)
+      .join(" ")
 
   /**
-   * エリア塗りつぶしのパスを生成する
+   * カテゴリごとの月次データ配列を取得する
    */
-  const areaPath = `${linePath} L ${getX(totalAmounts.length - 1)} ${paddingTop + plotHeight} L ${getX(0)} ${paddingTop + plotHeight} Z`
+  const getCategoryAmounts = (category: CategoryTrend): number[] => {
+    const amountMap = buildCategoryAmountMap(category)
+    return trendData.months.map((m) => amountMap.get(`${m.year}-${m.month}`) ?? 0)
+  }
+
+  const totalLinePath = buildLinePath(totalAmounts)
+  const totalAreaPath = `${totalLinePath} L ${getX(totalAmounts.length - 1)} ${paddingTop + plotHeight} L ${getX(0)} ${paddingTop + plotHeight} Z`
+
+  /**
+   * ホバー時に表示する値のリストを作成する
+   */
+  const hoveredValues = hoveredIndex !== null
+    ? [
+      ...(isTotalVisible
+        ? [{ amount: totalAmounts[hoveredIndex], color: TOTAL_LINE_COLOR, name: "合計" }]
+        : []),
+      ...visibleCategories.map((cat) => ({
+        amount: getCategoryAmounts(cat)[hoveredIndex],
+        color: cat.category_color,
+        name: cat.category_name,
+      })),
+    ]
+    : []
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -89,8 +168,8 @@ export default function TrendChart({ trendData }: Props) {
       <div className="p-4">
         <svg
           className="w-full"
-          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           preserveAspectRatio="xMidYMid meet"
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         >
           {/* Y軸グリッド線 */}
           {yAxisValues.map((value, i) => (
@@ -115,23 +194,45 @@ export default function TrendChart({ trendData }: Props) {
             </g>
           ))}
 
-          {/* エリア塗りつぶし */}
-          <path
-            className="fill-brand-500/10 dark:fill-brand-400/10"
-            d={areaPath}
-          />
+          {/* 合計のエリア塗りつぶし */}
+          {isTotalVisible && (
+            <path
+              d={totalAreaPath}
+              fill={TOTAL_LINE_COLOR}
+              opacity={0.08}
+            />
+          )}
 
-          {/* 折れ線 */}
-          <path
-            className="stroke-brand-500 dark:stroke-brand-400"
-            d={linePath}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-          />
+          {/* カテゴリ別の折れ線 */}
+          {visibleCategories.map((cat) => {
+            const amounts = getCategoryAmounts(cat)
+            return (
+              <path
+                key={cat.category_id}
+                d={buildLinePath(amounts)}
+                fill="none"
+                opacity={0.85}
+                stroke={cat.category_color}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+              />
+            )
+          })}
 
-          {/* データポイントとラベル */}
+          {/* 合計の折れ線（太め・最前面） */}
+          {isTotalVisible && (
+            <path
+              d={totalLinePath}
+              fill="none"
+              stroke={TOTAL_LINE_COLOR}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.75}
+            />
+          )}
+
+          {/* ホバー領域とX軸ラベル */}
           {trendData.months.map((m, i) => (
             <g
               key={`${m.year}-${m.month}`}
@@ -159,25 +260,16 @@ export default function TrendChart({ trendData }: Props) {
                 y={paddingTop}
               />
 
-              {/* データポイント */}
-              <circle
-                className={`${hoveredIndex === i ? "fill-brand-500 dark:fill-brand-400" : "fill-white dark:fill-gray-800"} stroke-brand-500 dark:stroke-brand-400`}
-                cx={getX(i)}
-                cy={getY(totalAmounts[i])}
-                r={hoveredIndex === i ? 5 : 3.5}
-                strokeWidth={2}
-              />
-
-              {/* ホバー時の金額ラベル */}
-              {hoveredIndex === i && (
-                <text
-                  className="fill-gray-900 text-[11px] font-semibold dark:fill-white"
-                  textAnchor="middle"
-                  x={getX(i)}
-                  y={getY(totalAmounts[i]) - 12}
-                >
-                  {formatAmount(totalAmounts[i])}
-                </text>
+              {/* 合計データポイント */}
+              {isTotalVisible && (
+                <circle
+                  cx={getX(i)}
+                  cy={getY(totalAmounts[i])}
+                  fill={hoveredIndex === i ? TOTAL_LINE_COLOR : "white"}
+                  r={hoveredIndex === i ? 5 : 3.5}
+                  stroke={TOTAL_LINE_COLOR}
+                  strokeWidth={2}
+                />
               )}
 
               {/* X軸ラベル */}
@@ -193,26 +285,86 @@ export default function TrendChart({ trendData }: Props) {
             </g>
           ))}
         </svg>
+
+        {/* ホバー時の詳細 */}
+        {hoveredIndex !== null && hoveredValues.length > 0 && (
+          <div className="mt-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
+            <div className="mb-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
+              {trendData.months[hoveredIndex].year}年{trendData.months[hoveredIndex].month}月
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 md:grid-cols-3">
+              {hoveredValues.map((v) => (
+                <div key={v.name} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: v.color }}
+                    />
+                    <span className="truncate text-[11px] text-gray-600 dark:text-gray-400">
+                      {v.name}
+                    </span>
+                  </div>
+                  <span className="shrink-0 text-[11px] font-semibold text-gray-900 dark:text-white">
+                    {formatAmount(v.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* カテゴリ別凡例 */}
-      {trendData.categories.length > 0 && (
-        <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-          <div className="flex flex-wrap gap-4">
-            {trendData.categories.map((cat) => (
-              <div key={cat.category_id} className="flex items-center gap-1.5">
+      {/* インタラクティブな凡例（クリックで表示切替） */}
+      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+        <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+          クリックで表示を切り替え
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {/* 合計 */}
+          <button
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
+              isTotalVisible
+                ? "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                : "border-gray-100 bg-gray-50 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
+            }`}
+            onClick={() => toggleLine(TOTAL_LINE_ID)}
+          >
+            <div
+              className="h-2.5 w-2.5 rounded-full"
+              style={{
+                backgroundColor: isTotalVisible ? TOTAL_LINE_COLOR : "transparent",
+                border: `2px solid ${TOTAL_LINE_COLOR}`,
+              }}
+            />
+            <span>合計</span>
+          </button>
+
+          {/* カテゴリ別 */}
+          {trendData.categories.map((cat) => {
+            const isVisible = !hiddenIds.has(cat.category_id)
+            return (
+              <button
+                key={cat.category_id}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
+                  isVisible
+                    ? "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    : "border-gray-100 bg-gray-50 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
+                }`}
+                onClick={() => toggleLine(cat.category_id)}
+              >
                 <div
                   className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: cat.category_color }}
+                  style={{
+                    backgroundColor: isVisible ? cat.category_color : "transparent",
+                    border: `2px solid ${cat.category_color}`,
+                  }}
                 />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {cat.category_name}
-                </span>
-              </div>
-            ))}
-          </div>
+                <span>{cat.category_name}</span>
+              </button>
+            )
+          })}
         </div>
-      )}
+      </div>
     </div>
   )
 }

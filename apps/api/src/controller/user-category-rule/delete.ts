@@ -1,8 +1,7 @@
 import { Response } from "express"
 
-import { deleteUserCategoryRuleResponseSchema, ErrorResponse } from "@repo/api-schema"
+import { deleteUserCategoryRulePathParamSchema, deleteUserCategoryRuleResponseSchema, ErrorResponse } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { AuthRequest } from "../../middleware/auth"
 import { UserCategoryRuleRepository } from "../../repository/mysql"
 import * as service from "../../service"
@@ -14,33 +13,24 @@ export class UserCategoryRuleDeleteController {
   constructor(private userCategoryRuleRepository: UserCategoryRuleRepository) {}
 
   async execute(req: AuthRequest, res: Response) {
-    try {
-      const id = Number(req.params.id)
-      const userId = req.userId!
+    const { id } = deleteUserCategoryRulePathParamSchema.parse(req.params)
+    const userId = req.userId!
 
-      if (isNaN(id)) {
-        const errorResponse: ErrorResponse = {
-          error: "Invalid user category rule ID",
-          status_code: 400,
-        }
-        return res.status(400).json(errorResponse)
-      }
+    const result = await service.userCategoryRule.deleteUserCategoryRule(
+      id,
+      userId,
+      this.userCategoryRuleRepository
+    )
 
-      await service.userCategoryRule.deleteUserCategoryRule(id, userId, this.userCategoryRuleRepository)
-
-      const response = deleteUserCategoryRuleResponseSchema.parse({ success: true })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "UserCategoryRuleDeleteController: Failed to delete user category rule",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to delete user category rule",
-        status_code: 500,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(500).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = deleteUserCategoryRuleResponseSchema.parse({ success: true })
+    return res.status(200).json(response)
   }
 }

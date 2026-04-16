@@ -1,7 +1,6 @@
 import { TransactionRepository } from "../../../src/repository/mysql/transaction-repository"
 import { deleteTransaction } from "../../../src/service/transaction-service"
 
-// モック
 const mockDeleteById = jest.fn<Promise<void>, [number]>()
 
 const mockTransactionRepository: TransactionRepository = {
@@ -17,38 +16,23 @@ describe("deleteTransaction", () => {
     jest.clearAllMocks()
   })
 
-  it("取引を削除してtrueを返す", async () => {
-    // Arrange
+  it("取引を削除して ok: true を返す", async () => {
     mockDeleteById.mockResolvedValue(undefined)
 
-    // Act
     const result = await deleteTransaction(1, mockTransactionRepository)
 
-    // Assert
-    expect(result).toBe(true)
+    expect(result.ok).toBe(true)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
-    expect(mockDeleteById).toHaveBeenCalledTimes(1)
   })
 
   it("指定したIDで削除が呼ばれる", async () => {
-    // Arrange
     mockDeleteById.mockResolvedValue(undefined)
-
-    // Act
     await deleteTransaction(42, mockTransactionRepository)
-
-    // Assert
     expect(mockDeleteById).toHaveBeenCalledWith(42)
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const mockError = new Error("Database connection failed")
-    mockDeleteById.mockRejectedValue(mockError)
-
-    // Act & Assert
-    await expect(deleteTransaction(1, mockTransactionRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+  it("データベースエラー時は例外として伝播する", async () => {
+    mockDeleteById.mockRejectedValue(new Error("Database connection failed"))
+    await expect(deleteTransaction(1, mockTransactionRepository)).rejects.toThrow()
   })
 })

@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 
-import { createCategoryRequestSchema, createCategoryResponse, ErrorResponse } from "@repo/api-schema"
+import { ErrorResponse, createCategoryRequestSchema, createCategoryResponse } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { CategoryRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
@@ -13,40 +12,34 @@ export class CategoryCreateController {
   constructor(private categoryRepository: CategoryRepository) {}
 
   async execute(req: Request, res: Response) {
-    try {
-      const data = createCategoryRequestSchema.parse(req.body)
+    const data = createCategoryRequestSchema.parse(req.body)
+    const result = await service.category.createCategory(
+      {
+        color: data.color,
+        name: data.name,
+        sortOrder: data.sort_order,
+      },
+      this.categoryRepository
+    )
 
-      const category = await service.category.createCategory(
-        {
-          color: data.color,
-          name: data.name,
-          sortOrder: data.sort_order,
-        },
-        this.categoryRepository
-      )
-
-      const response = createCategoryResponse.parse({
-        category: {
-          color: category.color,
-          created_at: category.createdAt.toISOString(),
-          id: category.id,
-          name: category.name,
-          sort_order: category.sortOrder,
-          updated_at: category.updatedAt.toISOString(),
-        },
-      })
-
-      res.status(201).json(response)
-    } catch (error) {
-      logger.error(
-        "CategoryCreateController: Failed to create category",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to create category",
-        status_code: 400,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(400).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = createCategoryResponse.parse({
+      category: {
+        color: result.value.color,
+        created_at: result.value.createdAt.toISOString(),
+        id: result.value.id,
+        name: result.value.name,
+        sort_order: result.value.sortOrder,
+        updated_at: result.value.updatedAt.toISOString(),
+      },
+    })
+    return res.status(201).json(response)
   }
 }

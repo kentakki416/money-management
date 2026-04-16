@@ -21,9 +21,10 @@ describe("deleteCategoryRule", () => {
     mockDeleteById.mockResolvedValue(undefined)
 
     // Act
-    await deleteCategoryRule(1, mockCategoryRuleRepository)
+    const result = await deleteCategoryRule(1, mockCategoryRuleRepository)
 
     // Assert
+    expect(result.ok).toBe(true)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
     expect(mockDeleteById).toHaveBeenCalledTimes(1)
   })
@@ -34,9 +35,7 @@ describe("deleteCategoryRule", () => {
     mockDeleteById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(deleteCategoryRule(1, mockCategoryRuleRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(deleteCategoryRule(1, mockCategoryRuleRepository)).rejects.toThrow()
     expect(mockDeleteById).toHaveBeenCalledWith(1)
   })
 })

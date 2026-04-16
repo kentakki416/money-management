@@ -1,15 +1,16 @@
 "use client"
 import { Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 
 import type { CsvUploadResponse, PaymentSource } from "@repo/api-schema"
 
 interface CsvUploadFormProps {
+  existingFileNames: string[]
   paymentSources: PaymentSource[]
 }
 
-export default function CsvUploadForm({ paymentSources }: CsvUploadFormProps) {
+export default function CsvUploadForm({ existingFileNames, paymentSources }: CsvUploadFormProps) {
   const router = useRouter()
   const [selectedSourceId, setSelectedSourceId] = useState<number | "">("")
   const [file, setFile] = useState<File | null>(null)
@@ -19,8 +20,31 @@ export default function CsvUploadForm({ paymentSources }: CsvUploadFormProps) {
     success?: string
   } | null>(null)
 
+  /**
+   * アップロード済みファイル名の集合（高速な重複チェック用）
+   */
+  const existingFileNameSet = useMemo(
+    () => new Set(existingFileNames),
+    [existingFileNames]
+  )
+
+  /**
+   * 選択中ファイルがすでにアップロード済みか
+   */
+  const isDuplicateFileName = file !== null && existingFileNameSet.has(file.name)
+
   const handleUpload = async () => {
     if (!file || !selectedSourceId) return
+
+    /**
+     * フロント側の重複チェック（送信前の保険）
+     */
+    if (existingFileNameSet.has(file.name)) {
+      setResult({
+        error: `同名のファイル「${file.name}」はすでにアップロード済みです`,
+      })
+      return
+    }
 
     setUploading(true)
     setResult(null)
@@ -102,14 +126,37 @@ export default function CsvUploadForm({ paymentSources }: CsvUploadFormProps) {
           </label>
           <input
             accept=".csv"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm transition-colors file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-4 file:py-1.5 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm transition-colors file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-4 file:py-1.5 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:bg-gray-700 dark:text-white ${
+              isDuplicateFileName
+                ? "border-red-400 dark:border-red-500"
+                : "border-gray-300 dark:border-gray-600"
+            }`}
             type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              setFile(e.target.files?.[0] ?? null)
+              setResult(null)
+            }}
           />
+          <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            同名のCSVファイルはアップロードできません。ファイル名は
+            <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+              smbc-transaction-期間.csv
+            </code>
+            のように、支払い元と期間が分かる形式を推奨します（例:
+            <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+              smbc-transaction-202604.csv
+            </code>
+            ）
+          </p>
+          {isDuplicateFileName && (
+            <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+              同名のファイル「{file?.name}」はすでにアップロード済みです。別の名前に変更してください
+            </p>
+          )}
         </div>
         <button
           className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
-          disabled={!file || !selectedSourceId || uploading}
+          disabled={!file || !selectedSourceId || uploading || isDuplicateFileName}
           onClick={handleUpload}
         >
           <Upload size={16} />

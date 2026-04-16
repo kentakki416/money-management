@@ -38,6 +38,15 @@ export type GetAdminUserListResponse = z.infer<typeof getAdminUserListResponseSc
 // ========================================================
 
 /**
+ * 管理画面ユーザー詳細の路径パラメータスキーマ
+ */
+export const getAdminUserDetailPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type GetAdminUserDetailPathParam = z.infer<typeof getAdminUserDetailPathParamSchema>
+
+/**
  * 管理画面ユーザー詳細のレスポンススキーマ
  */
 export const getAdminUserDetailResponseSchema = z.object({

@@ -3,7 +3,7 @@ import request from "supertest"
 import { PaymentSourceCreateController } from "../../../src/controller/payment-source/create"
 import { PrismaPaymentSourceRepository } from "../../../src/repository/mysql/payment-source-repository"
 import { paymentSourceRouter } from "../../../src/routes/payment-source-router"
-import { createTestApp, createTestUser } from "../helper"
+import { attachErrorHandler, createTestApp, createTestUser } from "../helper"
 import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
 
 const paymentSourceRepository = new PrismaPaymentSourceRepository(testPrisma)
@@ -11,6 +11,7 @@ const paymentSourceRepository = new PrismaPaymentSourceRepository(testPrisma)
 const app = createTestApp()
 
 app.use("/api/payment-sources", paymentSourceRouter({ create: new PaymentSourceCreateController(paymentSourceRepository) }))
+attachErrorHandler(app)
 
 beforeEach(async () => {
   await cleanupTestData()

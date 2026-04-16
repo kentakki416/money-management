@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import type { CalendarSummaryResponse } from "@repo/api-schema"
+import type { CalendarSummaryResponse, GetTransactionListResponse } from "@repo/api-schema"
 
 import CalendarPageContent from "@/components/features/calendar/CalendarPageContent"
 import { apiClient } from "@/libs/api-client"
@@ -17,13 +17,21 @@ export default async function CalendarPage() {
   const year = now.getFullYear()
   const month = now.getMonth() + 1
 
-  const data = await apiClient.get<CalendarSummaryResponse>(
-    `/api/summary/calendar?year=${year}&month=${month}`
-  )
+  const [calendarData, transactionsData] = await Promise.all([
+    apiClient.get<CalendarSummaryResponse>(
+      `/api/summary/calendar?year=${year}&month=${month}`
+    ),
+    apiClient.get<GetTransactionListResponse>(
+      `/api/transactions?year=${year}&month=${month}`
+    ),
+  ])
 
   return (
     <div className="space-y-6">
-      <CalendarPageContent initialData={data} />
+      <CalendarPageContent
+        initialCalendarData={calendarData}
+        initialTransactions={transactionsData.transactions}
+      />
     </div>
   )
 }

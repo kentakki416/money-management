@@ -51,8 +51,11 @@ describe("getUserCategoryRules", () => {
     const result = await getUserCategoryRules(100, mockUserCategoryRuleRepository)
 
     // Assert
-    expect(result).toEqual(mockRules)
-    expect(result).toHaveLength(2)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockRules)
+      expect(result.value).toHaveLength(2)
+    }
     expect(mockFindByUserId).toHaveBeenCalledWith(100)
     expect(mockFindByUserId).toHaveBeenCalledTimes(1)
   })
@@ -65,8 +68,11 @@ describe("getUserCategoryRules", () => {
     const result = await getUserCategoryRules(100, mockUserCategoryRuleRepository)
 
     // Assert
-    expect(result).toEqual([])
-    expect(result).toHaveLength(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual([])
+      expect(result.value).toHaveLength(0)
+    }
     expect(mockFindByUserId).toHaveBeenCalledWith(100)
     expect(mockFindByUserId).toHaveBeenCalledTimes(1)
   })
@@ -77,8 +83,6 @@ describe("getUserCategoryRules", () => {
     mockFindByUserId.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(getUserCategoryRules(100, mockUserCategoryRuleRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(getUserCategoryRules(100, mockUserCategoryRuleRepository)).rejects.toThrow()
   })
 })

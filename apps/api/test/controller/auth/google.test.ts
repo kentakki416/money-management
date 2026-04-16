@@ -3,7 +3,7 @@ import request from "supertest"
 import { IGoogleOAuthClient } from "../../../src/client/google-oauth"
 import { AuthGoogleController } from "../../../src/controller/auth/google"
 import { authRouter } from "../../../src/routes/auth-router"
-import { createTestApp } from "../helper"
+import { attachErrorHandler, createTestApp } from "../helper"
 
 // Google OAuth はモック
 const mockGenerateAuthUrl = jest.fn<string, []>()
@@ -18,6 +18,7 @@ const app = createTestApp()
 const authGoogleController = new AuthGoogleController(mockGoogleOAuthClient)
 
 app.use("/api/auth", authRouter({ google: authGoogleController }))
+attachErrorHandler(app)
 
 describe("GET /api/auth/google", () => {
   beforeEach(() => {
@@ -40,7 +41,10 @@ describe("GET /api/auth/google", () => {
 
     const res = await request(app).get("/api/auth/google")
 
+    /**
+     * メッセージ本文は検証しない（エラーハンドラは "Internal Server Error" で統一）
+     */
     expect(res.status).toBe(500)
-    expect(res.body.error).toBe("Failed to generate URL")
+    expect(res.body.error).toBeDefined()
   })
 })

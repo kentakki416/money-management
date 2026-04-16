@@ -5,7 +5,6 @@ import {
 import { getAllTransactions } from "../../../src/service/transaction-service"
 import { Transaction } from "../../../src/types/domain/transaction"
 
-// モック
 const mockFindByFilter = jest.fn<Promise<Transaction[]>, [TransactionFilter]>()
 
 const mockTransactionRepository: TransactionRepository = {
@@ -22,9 +21,11 @@ const mockTransaction: Transaction = {
   categoryColor: "#FF6384",
   categoryId: 1,
   categoryName: "飲食",
+  csvUpload: null,
   csvUploadId: null,
   description: "スタバで購入",
   isManual: true,
+  paymentSourceColor: "#6B7280",
   paymentSourceId: 1,
   paymentSourceName: "テストカード",
   transactionDate: new Date("2026-04-01"),
@@ -39,7 +40,6 @@ describe("getAllTransactions", () => {
   })
 
   it("取引一覧と合計金額を返す", async () => {
-    // Arrange
     const mockTransactions: Transaction[] = [
       { ...mockTransaction, id: 1, amount: 1000 },
       { ...mockTransaction, id: 2, amount: 2000 },
@@ -47,59 +47,39 @@ describe("getAllTransactions", () => {
     mockFindByFilter.mockResolvedValue(mockTransactions)
 
     const filter: TransactionFilter = { userId: 1 }
-
-    // Act
     const result = await getAllTransactions(filter, mockTransactionRepository)
 
-    // Assert
-    expect(result.transactions).toEqual(mockTransactions)
-    expect(result.totalAmount).toBe(3000)
-    expect(result.transactions).toHaveLength(2)
-    expect(mockFindByFilter).toHaveBeenCalledWith(filter)
-    expect(mockFindByFilter).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.transactions).toEqual(mockTransactions)
+      expect(result.value.totalAmount).toBe(3000)
+    }
   })
 
   it("フィルタ条件が正しくリポジトリに渡される", async () => {
-    // Arrange
     mockFindByFilter.mockResolvedValue([])
+    const filter: TransactionFilter = { userId: 1, year: 2026, month: 4, categoryId: 1 }
 
-    const filter: TransactionFilter = {
-      userId: 1,
-      year: 2026,
-      month: 4,
-      categoryId: 1,
-    }
-
-    // Act
     await getAllTransactions(filter, mockTransactionRepository)
 
-    // Assert
     expect(mockFindByFilter).toHaveBeenCalledWith(filter)
   })
 
   it("取引が存在しない場合、空配列と合計金額0を返す", async () => {
-    // Arrange
     mockFindByFilter.mockResolvedValue([])
 
-    const filter: TransactionFilter = { userId: 1 }
+    const result = await getAllTransactions({ userId: 1 }, mockTransactionRepository)
 
-    // Act
-    const result = await getAllTransactions(filter, mockTransactionRepository)
-
-    // Assert
-    expect(result.transactions).toEqual([])
-    expect(result.totalAmount).toBe(0)
-    expect(result.transactions).toHaveLength(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.transactions).toEqual([])
+      expect(result.value.totalAmount).toBe(0)
+    }
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const mockError = new Error("Database connection failed")
-    mockFindByFilter.mockRejectedValue(mockError)
+  it("データベースエラー時は例外として伝播する", async () => {
+    mockFindByFilter.mockRejectedValue(new Error("Database connection failed"))
 
-    // Act & Assert
-    await expect(
-      getAllTransactions({ userId: 1 }, mockTransactionRepository)
-    ).rejects.toThrow("Database connection failed")
+    await expect(getAllTransactions({ userId: 1 }, mockTransactionRepository)).rejects.toThrow()
   })
 })

@@ -32,10 +32,13 @@ describe("checkReadiness", () => {
     const result = await checkReadiness(mockRepository)
 
     // Assert
-    expect(result.database.status).toBe("ok")
-    expect(result.redis.status).toBe("ok")
-    expect(result.database.latency_ms).toBeGreaterThanOrEqual(0)
-    expect(result.redis.latency_ms).toBeGreaterThanOrEqual(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.database.status).toBe("ok")
+      expect(result.value.redis.status).toBe("ok")
+      expect(result.value.database.latency_ms).toBeGreaterThanOrEqual(0)
+      expect(result.value.redis.latency_ms).toBeGreaterThanOrEqual(0)
+    }
     expect(mockDatabasePing).toHaveBeenCalledTimes(1)
     expect(mockRedisPing).toHaveBeenCalledTimes(1)
   })
@@ -49,8 +52,11 @@ describe("checkReadiness", () => {
     const result = await checkReadiness(mockRepository)
 
     // Assert
-    expect(result.database.status).toBe("error")
-    expect(result.redis.status).toBe("ok")
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.database.status).toBe("error")
+      expect(result.value.redis.status).toBe("ok")
+    }
   })
 
   it("Redisがエラーの場合、redisのみerrorを返す", async () => {
@@ -62,8 +68,11 @@ describe("checkReadiness", () => {
     const result = await checkReadiness(mockRepository)
 
     // Assert
-    expect(result.database.status).toBe("ok")
-    expect(result.redis.status).toBe("error")
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.database.status).toBe("ok")
+      expect(result.value.redis.status).toBe("error")
+    }
   })
 
   it("全サービスがエラーの場合、全てerrorを返す", async () => {
@@ -75,7 +84,10 @@ describe("checkReadiness", () => {
     const result = await checkReadiness(mockRepository)
 
     // Assert
-    expect(result.database.status).toBe("error")
-    expect(result.redis.status).toBe("error")
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.database.status).toBe("error")
+      expect(result.value.redis.status).toBe("error")
+    }
   })
 })

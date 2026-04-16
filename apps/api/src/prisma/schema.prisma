@@ -40,7 +40,9 @@ model PaymentSource {
     id Int @id @default(autoincrement())
     userId Int @map("user_id")
     name String @db.VarChar(100)
-    type PaymentSourceType 
+    type PaymentSourceType
+    /** #RRGGBB */
+    color String @default("#6B7280") @db.VarChar(7)
     createdAt  DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -134,6 +136,8 @@ model CsvUpload {
     fileName String @db.VarChar(255) @map("file_name")
     fileHash String @unique @db.VarChar(64) @map("file_hash")
     rowCount Int @map("row_count")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     paymentSource PaymentSource @relation(fields: [paymentSourceId], references: [id], onDelete: Cascade)

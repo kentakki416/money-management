@@ -312,7 +312,15 @@ export default function TransactionPageContent({
                     </span>
                     {tx.is_manual && (
                       <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
-                        手動
+                        ✏️ 手動
+                      </span>
+                    )}
+                    {tx.csv_upload && (
+                      <span
+                        className="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 font-mono text-[11px] font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        title={`アップロード日時: ${new Date(tx.csv_upload.uploaded_at).toLocaleString("ja-JP")}`}
+                      >
+                        📄 {tx.csv_upload.file_name}
                       </span>
                     )}
                   </td>

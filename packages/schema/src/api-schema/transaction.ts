@@ -5,6 +5,18 @@ import { z } from "zod"
 // ========================================================
 
 /**
+ * 取引の出所となった CSV アップロード情報
+ * 手動追加の取引の場合は null
+ */
+export const transactionCsvUploadSchema = z.object({
+  file_name: z.string(),
+  id: z.number(),
+  uploaded_at: z.string(),
+})
+
+export type TransactionCsvUpload = z.infer<typeof transactionCsvUploadSchema>
+
+/**
  * 取引スキーマ
  */
 export const transactionSchema = z.object({
@@ -13,10 +25,12 @@ export const transactionSchema = z.object({
   category_id: z.number().nullable(),
   category_name: z.string().nullable().optional(),
   created_at: z.string(),
+  csv_upload: transactionCsvUploadSchema.nullable(),
   csv_upload_id: z.number().nullable(),
   description: z.string(),
   id: z.number(),
   is_manual: z.boolean(),
+  payment_source_color: z.string().optional(),
   payment_source_id: z.number(),
   payment_source_name: z.string().optional(),
   transaction_date: z.string(),
@@ -84,6 +98,15 @@ export type CreateTransactionResponse = z.infer<typeof createTransactionResponse
 // ========================================================
 
 /**
+ * 取引更新の路径パラメータスキーマ
+ */
+export const updateTransactionPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type UpdateTransactionPathParam = z.infer<typeof updateTransactionPathParamSchema>
+
+/**
  * 取引更新のリクエストスキーマ
  */
 export const updateTransactionRequestSchema = z.object({
@@ -107,6 +130,15 @@ export type UpdateTransactionResponse = z.infer<typeof updateTransactionResponse
 // ========================================================
 // DELETE /api/transactions/:id - 取引削除
 // ========================================================
+
+/**
+ * 取引削除の路径パラメータスキーマ
+ */
+export const deleteTransactionPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeleteTransactionPathParam = z.infer<typeof deleteTransactionPathParamSchema>
 
 /**
  * 取引削除のレスポンススキーマ

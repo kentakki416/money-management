@@ -6,6 +6,7 @@ import AppSidebar from "@/components/layout/AppSidebar"
 import Backdrop from "@/components/layout/Backdrop"
 import { AuthProvider, User } from "@/features/auth/auth.context"
 import { SidebarProvider, useSidebar } from "@/features/sidebar/sidebar.context"
+import { ToastProvider } from "@/features/toast/toast.context"
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar()
@@ -40,7 +41,9 @@ export function DashboardShell({
   return (
     <AuthProvider user={user}>
       <SidebarProvider>
-        <DashboardContent>{children}</DashboardContent>
+        <ToastProvider>
+          <DashboardContent>{children}</DashboardContent>
+        </ToastProvider>
       </SidebarProvider>
     </AuthProvider>
   )

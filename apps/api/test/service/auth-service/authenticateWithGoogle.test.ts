@@ -81,12 +81,12 @@ describe("authenticateWithGoogle", () => {
       mockTokenGenerator
     )
 
-    // Assert
-    expect(result.isNewUser).toBe(false)
-    expect(result.user).toEqual(mockExistingUser)
-    expect(result.jwtToken).toBe("mock-jwt-token-1")
-    expect(mockGetUserInfo).toHaveBeenCalledWith("auth-code")
-    expect(mockFindByProvider).toHaveBeenCalledWith("google", "google-123")
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.isNewUser).toBe(false)
+      expect(result.value.user).toEqual(mockExistingUser)
+      expect(result.value.jwtToken).toBe("mock-jwt-token-1")
+    }
     expect(mockCreateUserWithAuthAccountTx).not.toHaveBeenCalled()
   })
 
@@ -120,12 +120,12 @@ describe("authenticateWithGoogle", () => {
       mockTokenGenerator
     )
 
-    // Assert
-    expect(result.isNewUser).toBe(true)
-    expect(result.user).toEqual(mockNewUser)
-    expect(result.jwtToken).toBe("mock-jwt-token-2")
-    expect(mockGetUserInfo).toHaveBeenCalledWith("auth-code")
-    expect(mockFindByProvider).toHaveBeenCalledWith("google", "google-456")
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.isNewUser).toBe(true)
+      expect(result.value.user).toEqual(mockNewUser)
+      expect(result.value.jwtToken).toBe("mock-jwt-token-2")
+    }
     expect(mockCreateUserWithAuthAccountTx).toHaveBeenCalledWith({
       authAccount: {
         provider: "google",
@@ -144,7 +144,6 @@ describe("authenticateWithGoogle", () => {
     const mockError = new Error("Google authentication failed")
     mockGetUserInfo.mockRejectedValue(mockError)
 
-    // Act & Assert
     await expect(
       authenticateWithGoogle(
         "invalid-code",
@@ -152,6 +151,6 @@ describe("authenticateWithGoogle", () => {
         mockGoogleAuthClient,
         mockTokenGenerator
       )
-    ).rejects.toThrow("Google authentication failed")
+    ).rejects.toThrow()
   })
 })

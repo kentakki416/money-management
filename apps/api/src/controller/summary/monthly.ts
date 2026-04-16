@@ -2,7 +2,6 @@ import { Response } from "express"
 
 import { ErrorResponse, monthlySummaryRequestSchema, monthlySummaryResponseSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { AuthRequest } from "../../middleware/auth"
 import { SummaryRepository } from "../../repository/mysql"
 import * as service from "../../service"
@@ -14,42 +13,36 @@ export class SummaryMonthlyController {
   constructor(private summaryRepository: SummaryRepository) {}
 
   async execute(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.userId!
+    const userId = req.userId!
+    const query = monthlySummaryRequestSchema.parse(req.query)
 
-      const query = monthlySummaryRequestSchema.parse(req.query)
+    const result = await service.summary.getMonthlySummary(
+      userId,
+      query.year,
+      query.month,
+      this.summaryRepository
+    )
 
-      const { categories, month, totalAmount, year } = await service.summary.getMonthlySummary(
-        userId,
-        query.year,
-        query.month,
-        this.summaryRepository
-      )
-
-      const response = monthlySummaryResponseSchema.parse({
-        categories: categories.map((c) => ({
-          amount: c.amount,
-          category_color: c.categoryColor,
-          category_id: c.categoryId,
-          category_name: c.categoryName,
-          percentage: c.percentage,
-        })),
-        month,
-        total_amount: totalAmount,
-        year,
-      })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "SummaryMonthlyController: Failed to get monthly summary",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to get monthly summary",
-        status_code: 500,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(500).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = monthlySummaryResponseSchema.parse({
+      categories: result.value.categories.map((c) => ({
+        amount: c.amount,
+        category_color: c.categoryColor,
+        category_id: c.categoryId,
+        category_name: c.categoryName,
+        percentage: c.percentage,
+      })),
+      month: result.value.month,
+      total_amount: result.value.totalAmount,
+      year: result.value.year,
+    })
+    return res.status(200).json(response)
   }
 }

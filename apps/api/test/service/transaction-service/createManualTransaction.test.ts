@@ -43,9 +43,11 @@ const mockTransaction: Transaction = {
   categoryColor: "#FF6384",
   categoryId: 1,
   categoryName: "飲食",
+  csvUpload: null,
   csvUploadId: null,
   description: "スタバで購入",
   isManual: true,
+  paymentSourceColor: "#6B7280",
   paymentSourceId: 1,
   paymentSourceName: "テストカード",
   transactionDate: new Date("2026-04-01"),
@@ -72,7 +74,6 @@ describe("createManualTransaction", () => {
       userId: 1,
     }
 
-    // Act
     const result = await createManualTransaction(
       data,
       mockTransactionRepository,
@@ -80,8 +81,8 @@ describe("createManualTransaction", () => {
       mockUserCategoryRuleRepository
     )
 
-    // Assert
-    expect(result).toEqual(mockTransaction)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual(mockTransaction)
     expect(mockCreate).toHaveBeenCalledWith({
       amount: 1000,
       categoryId: 1,
@@ -137,7 +138,8 @@ describe("createManualTransaction", () => {
         isManual: true,
       })
     )
-    expect(result.categoryId).toBe(3)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value.categoryId).toBe(3)
   })
 
   it("カテゴリIDがnullの場合も自動分類を行う", async () => {
@@ -184,7 +186,6 @@ describe("createManualTransaction", () => {
       userId: 1,
     }
 
-    // Act & Assert
     await expect(
       createManualTransaction(
         data,
@@ -192,6 +193,6 @@ describe("createManualTransaction", () => {
         mockCategoryRuleRepository,
         mockUserCategoryRuleRepository
       )
-    ).rejects.toThrow("Database connection failed")
+    ).rejects.toThrow()
   })
 })

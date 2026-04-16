@@ -13,12 +13,22 @@ export type CreateCsvUploadInput = {
 }
 
 /**
+ * CSVアップロード削除時の戻り値
+ */
+export type DeleteCsvUploadResult = {
+  deletedTransactionCount: number
+}
+
+/**
  * CSVアップロードリポジトリのインターフェース
  */
 export interface CsvUploadRepository {
   count(): Promise<number>
   create(data: CreateCsvUploadInput): Promise<CsvUpload>
+  deleteByIdWithTransactions(id: number, userId: number): Promise<DeleteCsvUploadResult>
+  existsByFileName(userId: number, fileName: string): Promise<boolean>
   existsByHash(fileHash: string): Promise<boolean>
+  findByIdAndUser(id: number, userId: number): Promise<CsvUpload | null>
   findByUserId(userId: number): Promise<CsvUpload[]>
 }
 
@@ -52,6 +62,44 @@ export class PrismaCsvUploadRepository implements CsvUploadRepository {
       include: { paymentSource: true },
     })
     return this._toDomain(csvUpload)
+  }
+
+  /**
+   * CSV アップロードとそれに紐づく取引を一括削除する
+   * 原子性を保つためトランザクション内で実行する
+   * userId の所有権チェックは Service 側で事前に行う前提
+   */
+  async deleteByIdWithTransactions(id: number, userId: number): Promise<DeleteCsvUploadResult> {
+    return this._prisma.$transaction(async (tx) => {
+      /**
+       * 関連取引を先に削除し、件数を返す
+       */
+      const { count } = await tx.transaction.deleteMany({
+        where: { csvUploadId: id, userId },
+      })
+
+      await tx.csvUpload.delete({
+        where: { id },
+      })
+
+      return { deletedTransactionCount: count }
+    })
+  }
+
+  async findByIdAndUser(id: number, userId: number): Promise<CsvUpload | null> {
+    const csvUpload = await this._prisma.csvUpload.findFirst({
+      include: { paymentSource: true },
+      where: { id, userId },
+    })
+    if (!csvUpload) return null
+    return this._toDomain(csvUpload)
+  }
+
+  async existsByFileName(userId: number, fileName: string): Promise<boolean> {
+    const csvUpload = await this._prisma.csvUpload.findFirst({
+      where: { fileName, userId },
+    })
+    return csvUpload !== null
   }
 
   async existsByHash(fileHash: string): Promise<boolean> {

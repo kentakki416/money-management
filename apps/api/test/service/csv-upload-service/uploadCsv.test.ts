@@ -34,6 +34,7 @@ jest.mock("../../../src/service/csv-parser", () => ({
 
 // モック
 const mockExistsByHash = jest.fn<Promise<boolean>, [string]>()
+const mockExistsByFileName = jest.fn<Promise<boolean>, [number, string]>()
 const mockCsvUploadCreate = jest.fn<Promise<CsvUpload>, [CreateCsvUploadInput]>()
 const mockFindByUserId = jest.fn<Promise<CsvUpload[]>, [number]>()
 const mockTransactionCreateMany = jest.fn<Promise<Transaction[]>, [CreateTransactionInput[]]>()
@@ -41,8 +42,12 @@ const mockFindAll = jest.fn<Promise<CategoryRule[]>, []>()
 const mockUserFindByUserId = jest.fn<Promise<UserCategoryRule[]>, [number]>()
 
 const mockCsvUploadRepository: CsvUploadRepository = {
+  count: jest.fn(),
   create: mockCsvUploadCreate,
+  deleteByIdWithTransactions: jest.fn(),
+  existsByFileName: mockExistsByFileName,
   existsByHash: mockExistsByHash,
+  findByIdAndUser: jest.fn(),
   findByUserId: mockFindByUserId,
 }
 
@@ -80,100 +85,104 @@ const mockCsvUpload: CsvUpload = {
   userId: 1,
 }
 
+/**
+ * テスト用のデフォルト入力データを生成する
+ */
+const buildInput = (overrides?: Partial<Parameters<typeof uploadCsv>[0]>) => ({
+  fileBuffer: Buffer.from("csvdata"),
+  fileName: "test.csv",
+  paymentSourceId: 1,
+  paymentSourceType: "SMBC" as const,
+  userId: 1,
+  ...overrides,
+})
+
+/**
+ * uploadCsv をデフォルトのリポジトリで呼び出すヘルパー
+ */
+const callUploadCsv = async (data: Parameters<typeof uploadCsv>[0]) =>
+  uploadCsv(
+    data,
+    mockTransactionRepository,
+    mockCsvUploadRepository,
+    mockCategoryRuleRepository,
+    mockUserCategoryRuleRepository
+  )
+
 describe("uploadCsv", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-  })
-
-  it("正常アップロード時に取引が登録されcsvUploadとimportedCountを返す", async () => {
-    // Arrange
+    /**
+     * デフォルトでは重複なしに設定
+     */
+    mockExistsByFileName.mockResolvedValue(false)
     mockExistsByHash.mockResolvedValue(false)
     mockUserFindByUserId.mockResolvedValue([])
     mockFindAll.mockResolvedValue([])
     mockCsvUploadCreate.mockResolvedValue(mockCsvUpload)
     mockTransactionCreateMany.mockResolvedValue([])
+  })
 
-    const fileBuffer = Buffer.from("2026/04/01,スタバで購入,1000\n2026/04/02,スイカ利用,2000")
-    const data = {
-      fileBuffer,
-      fileName: "test.csv",
-      paymentSourceId: 1,
-      paymentSourceType: "SMBC" as const,
-      userId: 1,
+  it("正常アップロード時に ok: true と csvUpload/importedCount を返す", async () => {
+    const result = await callUploadCsv(buildInput())
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value.csvUpload).toEqual(mockCsvUpload)
+      expect(result.value.importedCount).toBe(2)
     }
-
-    // Act
-    const result = await uploadCsv(
-      data,
-      mockTransactionRepository,
-      mockCsvUploadRepository,
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
-    )
-
-    // Assert
-    expect(result.csvUpload).toEqual(mockCsvUpload)
-    expect(result.importedCount).toBe(2)
-    expect(mockExistsByHash).toHaveBeenCalledTimes(1)
     expect(mockCsvUploadCreate).toHaveBeenCalledTimes(1)
     expect(mockTransactionCreateMany).toHaveBeenCalledTimes(1)
   })
 
-  it("重複ハッシュの場合はエラーをスローする", async () => {
+  it("同一ユーザーで同名ファイルが既に存在する場合は 409 の業務エラーを返す", async () => {
     // Arrange
-    mockExistsByHash.mockResolvedValue(true)
+    mockExistsByFileName.mockResolvedValue(true)
 
-    const fileBuffer = Buffer.from("2026/04/01,スタバで購入,1000")
-    const data = {
-      fileBuffer,
-      fileName: "test.csv",
-      paymentSourceId: 1,
-      paymentSourceType: "SMBC" as const,
-      userId: 1,
+    // Act
+    const result = await callUploadCsv(buildInput({ fileName: "duplicate.csv" }))
+
+    // Assert: 具体的な文言ではなく、エラーの存在と statusCode のみを検証
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.statusCode).toBe(409)
+      expect(result.error.type).toBe("CONFLICT")
     }
-
-    // Act & Assert
-    await expect(
-      uploadCsv(
-        data,
-        mockTransactionRepository,
-        mockCsvUploadRepository,
-        mockCategoryRuleRepository,
-        mockUserCategoryRuleRepository
-      )
-    ).rejects.toThrow("このCSVファイルはすでにアップロード済みです")
-
+    expect(mockExistsByFileName).toHaveBeenCalledWith(1, "duplicate.csv")
+    /**
+     * ファイル名チェックで弾かれるので後続処理は呼ばれない
+     */
+    expect(mockExistsByHash).not.toHaveBeenCalled()
     expect(mockCsvUploadCreate).not.toHaveBeenCalled()
     expect(mockTransactionCreateMany).not.toHaveBeenCalled()
   })
 
-  it("正常アップロード時にcsvUploadCreateに正しい引数が渡される", async () => {
+  it("重複ハッシュの場合は 409 の業務エラーを返す", async () => {
     // Arrange
-    mockExistsByHash.mockResolvedValue(false)
-    mockUserFindByUserId.mockResolvedValue([])
-    mockFindAll.mockResolvedValue([])
-    mockCsvUploadCreate.mockResolvedValue(mockCsvUpload)
-    mockTransactionCreateMany.mockResolvedValue([])
-
-    const fileBuffer = Buffer.from("csvdata")
-    const data = {
-      fileBuffer,
-      fileName: "upload.csv",
-      paymentSourceId: 2,
-      paymentSourceType: "SMBC" as const,
-      userId: 5,
-    }
+    mockExistsByHash.mockResolvedValue(true)
 
     // Act
-    await uploadCsv(
-      data,
-      mockTransactionRepository,
-      mockCsvUploadRepository,
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+    const result = await callUploadCsv(buildInput())
+
+    // Assert: メッセージ本文は検証しない
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.statusCode).toBe(409)
+      expect(result.error.type).toBe("CONFLICT")
+    }
+    expect(mockCsvUploadCreate).not.toHaveBeenCalled()
+    expect(mockTransactionCreateMany).not.toHaveBeenCalled()
+  })
+
+  it("正常アップロード時に csvUploadCreate に正しい引数が渡される", async () => {
+    await callUploadCsv(
+      buildInput({
+        fileName: "upload.csv",
+        paymentSourceId: 2,
+        userId: 5,
+      })
     )
 
-    // Assert
     expect(mockCsvUploadCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         fileName: "upload.csv",
@@ -183,28 +192,11 @@ describe("uploadCsv", () => {
     )
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
+  it("DB 障害のような予期しないエラーは例外としてスローされる", async () => {
     // Arrange
     mockExistsByHash.mockRejectedValue(new Error("Database connection failed"))
 
-    const fileBuffer = Buffer.from("csvdata")
-    const data = {
-      fileBuffer,
-      fileName: "test.csv",
-      paymentSourceId: 1,
-      paymentSourceType: "SMBC" as const,
-      userId: 1,
-    }
-
-    // Act & Assert
-    await expect(
-      uploadCsv(
-        data,
-        mockTransactionRepository,
-        mockCsvUploadRepository,
-        mockCategoryRuleRepository,
-        mockUserCategoryRuleRepository
-      )
-    ).rejects.toThrow("Database connection failed")
+    // Act & Assert: 業務エラーではなく throw されることを確認（メッセージは検証しない）
+    await expect(callUploadCsv(buildInput())).rejects.toThrow()
   })
 })

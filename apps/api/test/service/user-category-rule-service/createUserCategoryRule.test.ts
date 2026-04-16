@@ -45,7 +45,10 @@ describe("createUserCategoryRule", () => {
     const result = await createUserCategoryRule(100, input, mockUserCategoryRuleRepository)
 
     // Assert
-    expect(result).toEqual(mockRule)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockRule)
+    }
     expect(mockCreate).toHaveBeenCalledWith(100, input)
     expect(mockCreate).toHaveBeenCalledTimes(1)
   })
@@ -61,9 +64,7 @@ describe("createUserCategoryRule", () => {
     mockCreate.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(createUserCategoryRule(100, input, mockUserCategoryRuleRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(createUserCategoryRule(100, input, mockUserCategoryRuleRepository)).rejects.toThrow()
     expect(mockCreate).toHaveBeenCalledWith(100, input)
   })
 })

@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 
-import { ErrorResponse , updateCategoryRequestSchema, updateCategoryResponseSchema } from "@repo/api-schema"
+import { ErrorResponse, updateCategoryPathParamSchema, updateCategoryRequestSchema, updateCategoryResponseSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { CategoryRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
@@ -13,59 +12,38 @@ export class AdminCategoryUpdateController {
   constructor(private categoryRepository: CategoryRepository) {}
 
   async execute(req: Request, res: Response) {
-    try {
-      const id = Number(req.params.id)
+    const { id } = updateCategoryPathParamSchema.parse(req.params)
 
-      if (isNaN(id)) {
-        const errorResponse: ErrorResponse = {
-          error: "Invalid category ID",
-          status_code: 400,
-        }
-        return res.status(400).json(errorResponse)
-      }
+    const data = updateCategoryRequestSchema.parse(req.body)
 
-      const data = updateCategoryRequestSchema.parse(req.body)
+    const result = await service.category.updateCategory(
+      id,
+      {
+        color: data.color,
+        name: data.name,
+        sortOrder: data.sort_order,
+      },
+      this.categoryRepository
+    )
 
-      const category = await service.category.updateCategory(
-        id,
-        {
-          color: data.color,
-          name: data.name,
-          sortOrder: data.sort_order,
-        },
-        this.categoryRepository
-      )
-
-      if (!category) {
-        const errorResponse: ErrorResponse = {
-          error: "Category not found",
-          status_code: 404,
-        }
-        return res.status(404).json(errorResponse)
-      }
-
-      const response = updateCategoryResponseSchema.parse({
-        category: {
-          id: category.id,
-          color: category.color,
-          name: category.name,
-          sort_order: category.sortOrder,
-          created_at: category.createdAt.toISOString(),
-          updated_at: category.updatedAt.toISOString(),
-        },
-      })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "AdminCategoryUpdateController: Failed to update category",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to update category",
-        status_code: 400,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(400).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = updateCategoryResponseSchema.parse({
+      category: {
+        id: result.value.id,
+        color: result.value.color,
+        name: result.value.name,
+        sort_order: result.value.sortOrder,
+        created_at: result.value.createdAt.toISOString(),
+        updated_at: result.value.updatedAt.toISOString(),
+      },
+    })
+    return res.status(200).json(response)
   }
 }

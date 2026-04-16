@@ -57,6 +57,7 @@ export class PrismaPaymentSourceRepository implements PaymentSourceRepository {
    */
   private _toDomain(p: PrismaTypes.PaymentSourceGetPayload<{}>): PaymentSource {
     return {
+      color: p.color,
       id: p.id,
       name: p.name,
       type: p.type,

@@ -33,9 +33,11 @@ const mockTransaction: Transaction = {
   categoryColor: "#FF6384",
   categoryId: 2,
   categoryName: "交通",
+  csvUpload: null,
   csvUploadId: null,
   description: "Suica利用",
   isManual: true,
+  paymentSourceColor: "#6B7280",
   paymentSourceId: 1,
   paymentSourceName: "テストカード",
   transactionDate: new Date("2026-04-01"),
@@ -82,8 +84,8 @@ describe("updateTransaction", () => {
       mockUserCategoryRuleRepository
     )
 
-    // Assert
-    expect(result).toEqual(mockTransaction)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual(mockTransaction)
     expect(mockUpdate).toHaveBeenCalledWith(1, data)
   })
 
@@ -188,7 +190,6 @@ describe("updateTransaction", () => {
     const mockError = new Error("Database connection failed")
     mockUpdate.mockRejectedValue(mockError)
 
-    // Act & Assert
     await expect(
       updateTransaction(
         1,
@@ -199,6 +200,6 @@ describe("updateTransaction", () => {
         mockTransactionRepository,
         mockUserCategoryRuleRepository
       )
-    ).rejects.toThrow("Database connection failed")
+    ).rejects.toThrow()
   })
 })

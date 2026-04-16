@@ -70,6 +70,15 @@ export type CreateCategoryRuleResponse = z.infer<typeof createCategoryRuleRespon
 // ========================================================
 
 /**
+ * 自動分類ルール更新の路径パラメータスキーマ
+ */
+export const updateCategoryRulePathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type UpdateCategoryRulePathParam = z.infer<typeof updateCategoryRulePathParamSchema>
+
+/**
  * 自動分類ルール更新のリクエストスキーマ
  */
 export const updateCategoryRuleRequestSchema = z.object({
@@ -93,6 +102,15 @@ export type UpdateCategoryRuleResponse = z.infer<typeof updateCategoryRuleRespon
 // ========================================================
 // DELETE /api/category-rules/:id - 自動分類ルール削除
 // ========================================================
+
+/**
+ * 自動分類ルール削除の路径パラメータスキーマ
+ */
+export const deleteCategoryRulePathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeleteCategoryRulePathParam = z.infer<typeof deleteCategoryRulePathParamSchema>
 
 /**
  * 自動分類ルール削除のレスポンススキーマ

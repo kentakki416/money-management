@@ -60,6 +60,15 @@ export type CreateCategoryReponse = z.infer<typeof createCategoryResponse>
 // ========================================================
 
 /**
+ * カテゴリー更新の路径パラメータスキーマ
+ */
+export const updateCategoryPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type UpdateCategoryPathParam = z.infer<typeof updateCategoryPathParamSchema>
+
+/**
  * カテゴリー更新のリクエストスキーマ
  */
 export const updateCategoryRequestSchema = z.object({
@@ -78,3 +87,16 @@ export const updateCategoryResponseSchema = z.object({
 })
 
 export type UpdateCategoryResponse = z.infer<typeof updateCategoryResponseSchema>
+
+// ========================================================
+// DELETE /api/categories/:id - カテゴリー削除
+// ========================================================
+
+/**
+ * カテゴリー削除の路径パラメータスキーマ
+ */
+export const deleteCategoryPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeleteCategoryPathParam = z.infer<typeof deleteCategoryPathParamSchema>

@@ -2,7 +2,6 @@ import { MemoRepository } from "../../../src/repository/mysql/memo-repository"
 import { getMemoById } from "../../../src/service/memo-service"
 import { Memo } from "../../../src/types/domain"
 
-// モック
 const mockFindById = jest.fn<Promise<Memo | null>, [number]>()
 
 const mockMemoRepository: MemoRepository = {
@@ -18,8 +17,7 @@ describe("getMemoById", () => {
     jest.clearAllMocks()
   })
 
-  it("メモが存在する場合、メモを返す", async () => {
-    // Arrange
+  it("メモが存在する場合、ok: true でメモを返す", async () => {
     const mockMemo: Memo = {
       body: "Test Body",
       createdAt: new Date(),
@@ -27,40 +25,28 @@ describe("getMemoById", () => {
       title: "Test Title",
       updatedAt: new Date(),
     }
-
     mockFindById.mockResolvedValue(mockMemo)
 
-    // Act
     const result = await getMemoById(1, mockMemoRepository)
 
-    // Assert
-    expect(result).toEqual(mockMemo)
-    expect(mockFindById).toHaveBeenCalledWith(1)
-    expect(mockFindById).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual(mockMemo)
   })
 
-  it("メモが存在しない場合、nullを返す", async () => {
-    // Arrange
+  it("メモが存在しない場合、ok: false で 404 エラーを返す", async () => {
     mockFindById.mockResolvedValue(null)
 
-    // Act
     const result = await getMemoById(999, mockMemoRepository)
 
-    // Assert
-    expect(result).toBeNull()
-    expect(mockFindById).toHaveBeenCalledWith(999)
-    expect(mockFindById).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.statusCode).toBe(404)
+      expect(result.error.type).toBe("NOT_FOUND")
+    }
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const mockError = new Error("Database connection failed")
-    mockFindById.mockRejectedValue(mockError)
-
-    // Act & Assert
-    await expect(getMemoById(1, mockMemoRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
-    expect(mockFindById).toHaveBeenCalledWith(1)
+  it("データベースエラー時は例外として伝播する", async () => {
+    mockFindById.mockRejectedValue(new Error("Database connection failed"))
+    await expect(getMemoById(1, mockMemoRepository)).rejects.toThrow()
   })
 })

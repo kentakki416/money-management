@@ -19,12 +19,17 @@ export default async function UploadPage() {
     apiClient.get<GetCsvUploadListResponse>("/api/csv-uploads"),
   ])
 
+  const existingFileNames = historyData.csv_uploads.map((u) => u.file_name)
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
         CSVアップロード
       </h1>
-      <CsvUploadForm paymentSources={sourcesData.payment_sources} />
+      <CsvUploadForm
+        existingFileNames={existingFileNames}
+        paymentSources={sourcesData.payment_sources}
+      />
       <UploadHistory initialHistory={historyData.csv_uploads} />
     </div>
   )

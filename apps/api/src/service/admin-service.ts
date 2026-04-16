@@ -1,6 +1,7 @@
 import { logger } from "../log"
 import { CsvUploadRepository, UserRepository, UserSummaryRepository } from "../repository/mysql"
 import { RegistrationPeriod } from "../types/domain"
+import { err, notFoundError, ok, Result } from "../types/result"
 
 import {
   DUMMY_REGISTRATIONS,
@@ -22,15 +23,19 @@ export const getStats = async (
   period: RegistrationPeriod,
   userRepository: UserRepository,
   csvUploadRepository: CsvUploadRepository
-) => {
+): Promise<Result<{
+  registrations: unknown
+  totalCsvUploads: number
+  totalUsers: number
+}>> => {
   logger.debug("admin.getStats: start", { period })
   if (isUsingDummy()) {
     logger.debug("admin.getStats: returning dummy data")
-    return {
+    return ok({
       registrations: DUMMY_REGISTRATIONS[period],
       totalCsvUploads: DUMMY_TOTAL_CSV_UPLOADS,
       totalUsers: DUMMY_TOTAL_USERS,
-    }
+    })
   }
   const [totalUsers, totalCsvUploads, registrations] = await Promise.all([
     userRepository.count(),
@@ -38,7 +43,7 @@ export const getStats = async (
     userRepository.countRegistrationsByPeriod(period),
   ])
   logger.debug("admin.getStats: done")
-  return { registrations, totalCsvUploads, totalUsers }
+  return ok({ registrations, totalCsvUploads, totalUsers })
 }
 
 /**
@@ -48,11 +53,11 @@ export const getAllUsers = async (userSummaryRepository: UserSummaryRepository) 
   logger.debug("admin.getAllUsers: start")
   if (isUsingDummy()) {
     logger.debug("admin.getAllUsers: returning dummy data")
-    return DUMMY_USERS
+    return ok(DUMMY_USERS)
   }
   const users = await userSummaryRepository.findAllWithCounts()
   logger.debug("admin.getAllUsers: done")
-  return users
+  return ok(users)
 }
 
 /**
@@ -62,9 +67,16 @@ export const getUserDetail = async (id: number, userSummaryRepository: UserSumma
   logger.debug("admin.getUserDetail: start", { id })
   if (isUsingDummy()) {
     logger.debug("admin.getUserDetail: returning dummy data", { id })
-    return getDummyUserDetail(id)
+    const user = getDummyUserDetail(id)
+    if (!user) {
+      return err(notFoundError("User not found"))
+    }
+    return ok(user)
   }
   const user = await userSummaryRepository.findByIdWithDetail(id)
+  if (!user) {
+    return err(notFoundError("User not found"))
+  }
   logger.debug("admin.getUserDetail: done", { id })
-  return user
+  return ok(user)
 }

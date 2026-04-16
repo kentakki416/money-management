@@ -25,6 +25,7 @@ import { CategoryRuleCreateController } from "./controller/category-rule/create"
 import { CategoryRuleDeleteController } from "./controller/category-rule/delete"
 import { CategoryRuleListController } from "./controller/category-rule/list"
 import { CategoryRuleUpdateController } from "./controller/category-rule/update"
+import { CsvUploadDeleteController } from "./controller/csv-upload/delete"
 import { CsvUploadListController } from "./controller/csv-upload/list"
 import { CsvUploadController } from "./controller/csv-upload/upload"
 import { HealthLivenessController } from "./controller/health/liveness"
@@ -50,6 +51,7 @@ import { UserCategoryRuleListController } from "./controller/user-category-rule/
 import { UserCategoryRuleUpdateController } from "./controller/user-category-rule/update"
 import { logger } from "./log"
 import { authMiddleware } from "./middleware/auth"
+import { errorHandler } from "./middleware/error-handler"
 import { requestLogger } from "./middleware/request-logger"
 import { prisma } from "./prisma/prisma.client"
 import {
@@ -159,6 +161,7 @@ const csvUploadController = new CsvUploadController(
   userCategoryRuleRepository,
 )
 const csvUploadListController = new CsvUploadListController(csvUploadRepository)
+const csvUploadDeleteController = new CsvUploadDeleteController(csvUploadRepository)
 
 // Memo Controller のインスタンス化
 const memoListController = new MemoListController(memoRepository)
@@ -257,6 +260,7 @@ app.use(
 app.use(
   "/api/csv-uploads",
   csvUploadRouter({
+    delete: csvUploadDeleteController,
     list: csvUploadListController,
     upload: csvUploadController,
   })
@@ -305,6 +309,12 @@ app.use(
     update: userCategoryRuleUpdateController,
   })
 )
+
+/**
+ * グローバルエラーハンドラ（必ず全ルート登録後に設定する）
+ * Controller でキャッチされなかった例外・ライブラリが throw した例外を 500 で返す
+ */
+app.use(errorHandler)
 
 // サーバー起動
 app.listen(PORT, () => {

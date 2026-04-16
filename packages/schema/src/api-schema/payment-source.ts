@@ -15,6 +15,7 @@ export type PaymentSourceType = z.infer<typeof paymentSourceTypeSchema>
  * 支払い元スキーマ
  */
 export const paymentSourceSchema = z.object({
+  color: z.string(),
   created_at: z.string(),
   id: z.number(),
   name: z.string(),
@@ -63,6 +64,15 @@ export type CreatePaymentSourceResponse = z.infer<typeof createPaymentSourceResp
 // ========================================================
 // DELETE /api/payment-sources/:id - 支払い元削除
 // ========================================================
+
+/**
+ * 支払い元削除の路径パラメータスキーマ
+ */
+export const deletePaymentSourcePathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeletePaymentSourcePathParam = z.infer<typeof deletePaymentSourcePathParamSchema>
 
 /**
  * 支払い元削除のレスポンススキーマ

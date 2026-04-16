@@ -2,7 +2,6 @@ import { Request, Response } from "express"
 
 import { ErrorResponse, RegistrationPeriod, adminStatsResponseSchema, registrationPeriodSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { CsvUploadRepository, UserRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
@@ -16,30 +15,25 @@ export class AdminStatsController {
   ) {}
 
   async execute(req: Request, res: Response) {
-    try {
-      const periodParam = req.query.period as string | undefined
-      const parsed = registrationPeriodSchema.safeParse(periodParam)
-      const period: RegistrationPeriod = parsed.success ? parsed.data : "yearly"
+    const periodParam = req.query.period as string | undefined
+    const parsed = registrationPeriodSchema.safeParse(periodParam)
+    const period: RegistrationPeriod = parsed.success ? parsed.data : "yearly"
 
-      const stats = await service.admin.getStats(period, this.userRepository, this.csvUploadRepository)
+    const result = await service.admin.getStats(period, this.userRepository, this.csvUploadRepository)
 
-      const response = adminStatsResponseSchema.parse({
-        registrations: stats.registrations,
-        total_csv_uploads: stats.totalCsvUploads,
-        total_users: stats.totalUsers,
-      })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "AdminStatsController: Failed to get admin stats",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to get admin stats",
-        status_code: 500,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(500).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = adminStatsResponseSchema.parse({
+      registrations: result.value.registrations,
+      total_csv_uploads: result.value.totalCsvUploads,
+      total_users: result.value.totalUsers,
+    })
+    return res.status(200).json(response)
   }
 }

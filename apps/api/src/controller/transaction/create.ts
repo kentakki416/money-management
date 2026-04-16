@@ -1,8 +1,7 @@
 import { Response } from "express"
 
-import { createTransactionRequestSchema, createTransactionResponseSchema, ErrorResponse } from "@repo/api-schema"
+import { ErrorResponse, createTransactionRequestSchema, createTransactionResponseSchema } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { AuthRequest } from "../../middleware/auth"
 import { CategoryRuleRepository, TransactionRepository, UserCategoryRuleRepository } from "../../repository/mysql"
 import * as service from "../../service"
@@ -18,55 +17,57 @@ export class TransactionCreateController {
   ) {}
 
   async execute(req: AuthRequest, res: Response) {
-    try {
-      const userId = req.userId!
+    const userId = req.userId!
+    const data = createTransactionRequestSchema.parse(req.body)
 
-      const data = createTransactionRequestSchema.parse(req.body)
+    const result = await service.transaction.createManualTransaction(
+      {
+        amount: data.amount,
+        categoryId: data.category_id,
+        description: data.description,
+        paymentSourceId: data.payment_source_id,
+        transactionDate: new Date(data.transaction_date),
+        userId,
+      },
+      this.transactionRepository,
+      this.categoryRuleRepository,
+      this.userCategoryRuleRepository
+    )
 
-      const transaction = await service.transaction.createManualTransaction(
-        {
-          amount: data.amount,
-          categoryId: data.category_id,
-          description: data.description,
-          paymentSourceId: data.payment_source_id,
-          transactionDate: new Date(data.transaction_date),
-          userId,
-        },
-        this.transactionRepository,
-        this.categoryRuleRepository,
-        this.userCategoryRuleRepository
-      )
-
-      const response = createTransactionResponseSchema.parse({
-        transaction: {
-          amount: transaction.amount,
-          category_color: transaction.categoryColor,
-          category_id: transaction.categoryId,
-          category_name: transaction.categoryName,
-          created_at: transaction.createdAt.toISOString(),
-          csv_upload_id: transaction.csvUploadId,
-          description: transaction.description,
-          id: transaction.id,
-          is_manual: transaction.isManual,
-          payment_source_id: transaction.paymentSourceId,
-          payment_source_name: transaction.paymentSourceName,
-          transaction_date: transaction.transactionDate.toISOString().split("T")[0],
-          updated_at: transaction.updatedAt.toISOString(),
-          user_id: transaction.userId,
-        },
-      })
-
-      res.status(201).json(response)
-    } catch (error) {
-      logger.error(
-        "TransactionCreateController: Failed to create transaction",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to create transaction",
-        status_code: 400,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(400).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = createTransactionResponseSchema.parse({
+      transaction: {
+        amount: result.value.amount,
+        category_color: result.value.categoryColor,
+        category_id: result.value.categoryId,
+        category_name: result.value.categoryName,
+        created_at: result.value.createdAt.toISOString(),
+        csv_upload: result.value.csvUpload
+          ? {
+            file_name: result.value.csvUpload.fileName,
+            id: result.value.csvUpload.id,
+            uploaded_at: result.value.csvUpload.uploadedAt.toISOString(),
+          }
+          : null,
+        csv_upload_id: result.value.csvUploadId,
+        description: result.value.description,
+        id: result.value.id,
+        is_manual: result.value.isManual,
+        payment_source_color: result.value.paymentSourceColor,
+        payment_source_id: result.value.paymentSourceId,
+        payment_source_name: result.value.paymentSourceName,
+        transaction_date: result.value.transactionDate.toISOString().split("T")[0],
+        updated_at: result.value.updatedAt.toISOString(),
+        user_id: result.value.userId,
+      },
+    })
+    return res.status(201).json(response)
   }
 }

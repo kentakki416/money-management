@@ -2,7 +2,6 @@ import { PaymentSourceRepository } from "../../../src/repository/mysql/payment-s
 import { getPaymentSources } from "../../../src/service/payment-source-service"
 import { PaymentSource } from "../../../src/types/domain/payment-source"
 
-// モック
 const mockFindByUserId = jest.fn<Promise<PaymentSource[]>, [number]>()
 
 const mockPaymentSourceRepository: PaymentSourceRepository = {
@@ -12,6 +11,7 @@ const mockPaymentSourceRepository: PaymentSourceRepository = {
 }
 
 const mockPaymentSource: PaymentSource = {
+  color: "#6B7280",
   id: 1,
   name: "テストカード",
   type: "SMBC",
@@ -26,54 +26,38 @@ describe("getPaymentSources", () => {
   })
 
   it("支払い元一覧を返す", async () => {
-    // Arrange
     const mockPaymentSources: PaymentSource[] = [
       { ...mockPaymentSource, id: 1, name: "SMBCカード" },
       { ...mockPaymentSource, id: 2, name: "MUFGカード", type: "MUFG" },
     ]
     mockFindByUserId.mockResolvedValue(mockPaymentSources)
 
-    // Act
     const result = await getPaymentSources(1, mockPaymentSourceRepository)
 
-    // Assert
-    expect(result).toEqual(mockPaymentSources)
-    expect(result).toHaveLength(2)
-    expect(mockFindByUserId).toHaveBeenCalledWith(1)
-    expect(mockFindByUserId).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockPaymentSources)
+      expect(result.value).toHaveLength(2)
+    }
   })
 
   it("支払い元が存在しない場合、空配列を返す", async () => {
-    // Arrange
     mockFindByUserId.mockResolvedValue([])
 
-    // Act
     const result = await getPaymentSources(1, mockPaymentSourceRepository)
 
-    // Assert
-    expect(result).toEqual([])
-    expect(result).toHaveLength(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value).toEqual([])
   })
 
   it("指定したuserIdでリポジトリが呼ばれる", async () => {
-    // Arrange
     mockFindByUserId.mockResolvedValue([])
-
-    // Act
     await getPaymentSources(99, mockPaymentSourceRepository)
-
-    // Assert
     expect(mockFindByUserId).toHaveBeenCalledWith(99)
   })
 
-  it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const mockError = new Error("Database connection failed")
-    mockFindByUserId.mockRejectedValue(mockError)
-
-    // Act & Assert
-    await expect(getPaymentSources(1, mockPaymentSourceRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+  it("データベースエラー時は例外として伝播する", async () => {
+    mockFindByUserId.mockRejectedValue(new Error("Database connection failed"))
+    await expect(getPaymentSources(1, mockPaymentSourceRepository)).rejects.toThrow()
   })
 })

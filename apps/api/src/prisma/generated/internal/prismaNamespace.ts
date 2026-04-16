@@ -1050,6 +1050,7 @@ export const PaymentSourceScalarFieldEnum = {
   userId: 'userId',
   name: 'name',
   type: 'type',
+  color: 'color',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1102,7 +1103,9 @@ export const CsvUploadScalarFieldEnum = {
   paymentSourceId: 'paymentSourceId',
   fileName: 'fileName',
   fileHash: 'fileHash',
-  rowCount: 'rowCount'
+  rowCount: 'rowCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type CsvUploadScalarFieldEnum = (typeof CsvUploadScalarFieldEnum)[keyof typeof CsvUploadScalarFieldEnum]
@@ -1175,7 +1178,8 @@ export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
 export const PaymentSourceOrderByRelevanceFieldEnum = {
-  name: 'name'
+  name: 'name',
+  color: 'color'
 } as const
 
 export type PaymentSourceOrderByRelevanceFieldEnum = (typeof PaymentSourceOrderByRelevanceFieldEnum)[keyof typeof PaymentSourceOrderByRelevanceFieldEnum]

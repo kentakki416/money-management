@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { paymentSourceTypeSchema } from "./payment-source"
+
 // ========================================================
 // CSVアップロード共通スキーマ
 // ========================================================
@@ -25,6 +27,17 @@ export type CsvUpload = z.infer<typeof csvUploadSchema>
 // ========================================================
 
 /**
+ * CSVアップロードのリクエストボディスキーマ（multipart form の文字列フィールド部分）
+ * ファイル本体は multer が `req.file` として扱うため、ここでは body の文字列のみ検証する
+ */
+export const csvUploadRequestSchema = z.object({
+  payment_source_id: z.coerce.number().int().positive(),
+  payment_source_type: paymentSourceTypeSchema,
+})
+
+export type CsvUploadRequest = z.infer<typeof csvUploadRequestSchema>
+
+/**
  * CSVアップロードのレスポンススキーマ
  */
 export const csvUploadResponseSchema = z.object({
@@ -46,3 +59,27 @@ export const getCsvUploadListResponseSchema = z.object({
 })
 
 export type GetCsvUploadListResponse = z.infer<typeof getCsvUploadListResponseSchema>
+
+// ========================================================
+// DELETE /api/csv-uploads/:id - CSVアップロード削除（関連取引も一緒に削除）
+// ========================================================
+
+/**
+ * CSVアップロード削除の路径パラメータスキーマ
+ */
+export const deleteCsvUploadPathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeleteCsvUploadPathParam = z.infer<typeof deleteCsvUploadPathParamSchema>
+
+/**
+ * CSVアップロード削除のレスポンススキーマ
+ * 削除した取引件数もユーザーに伝える
+ */
+export const deleteCsvUploadResponseSchema = z.object({
+  deleted_transaction_count: z.number(),
+  success: z.boolean(),
+})
+
+export type DeleteCsvUploadResponse = z.infer<typeof deleteCsvUploadResponseSchema>

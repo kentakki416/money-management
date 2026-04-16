@@ -1,8 +1,7 @@
 import { Request, Response } from "express"
 
-import { ErrorResponse , deleteCategoryRuleResponseSchema } from "@repo/api-schema"
+import { deleteCategoryRulePathParamSchema, deleteCategoryRuleResponseSchema, ErrorResponse } from "@repo/api-schema"
 
-import { logger } from "../../log"
 import { CategoryRuleRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
@@ -13,32 +12,19 @@ export class AdminCategoryRuleDeleteController {
   constructor(private categoryRuleRepository: CategoryRuleRepository) {}
 
   async execute(req: Request, res: Response) {
-    try {
-      const id = Number(req.params.id)
+    const { id } = deleteCategoryRulePathParamSchema.parse(req.params)
 
-      if (isNaN(id)) {
-        const errorResponse: ErrorResponse = {
-          error: "Invalid category rule ID",
-          status_code: 400,
-        }
-        return res.status(400).json(errorResponse)
-      }
+    const result = await service.categoryRule.deleteCategoryRule(id, this.categoryRuleRepository)
 
-      await service.categoryRule.deleteCategoryRule(id, this.categoryRuleRepository)
-
-      const response = deleteCategoryRuleResponseSchema.parse({ success: true })
-
-      res.status(200).json(response)
-    } catch (error) {
-      logger.error(
-        "AdminCategoryRuleDeleteController: Failed to delete category rule",
-        error instanceof Error ? error : new Error("Unknown error")
-      )
+    if (!result.ok) {
       const errorResponse: ErrorResponse = {
-        error: error instanceof Error ? error.message : "Failed to delete category rule",
-        status_code: 500,
+        error: result.error.message,
+        status_code: result.error.statusCode,
       }
-      res.status(500).json(errorResponse)
+      return res.status(result.error.statusCode).json(errorResponse)
     }
+
+    const response = deleteCategoryRuleResponseSchema.parse({ success: true })
+    return res.status(200).json(response)
   }
 }

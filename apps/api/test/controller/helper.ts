@@ -2,6 +2,7 @@ import express from "express"
 
 import { generateToken } from "../../src/lib/jwt"
 import { authMiddleware } from "../../src/middleware/auth"
+import { errorHandler } from "../../src/middleware/error-handler"
 import { User } from "../../src/types/domain"
 
 import { testPrisma } from "./setup"
@@ -9,12 +10,24 @@ import { testPrisma } from "./setup"
 /**
  * テスト用Expressアプリを構築する
  * 本番と同じミドルウェア構成を再現する
+ *
+ * エラーハンドラをルート登録後に適用したい場合は、
+ * `createTestApp()` → ルート登録 → `app.use(errorHandler)` の順に書くか、
+ * `createTestApp({ withErrorHandler: true })` で後付け登録を要求する
  */
 export const createTestApp = (): express.Express => {
   const app = express()
   app.use(express.json())
   app.use(authMiddleware)
   return app
+}
+
+/**
+ * ルート登録後にグローバルエラーハンドラを登録する
+ * （Express の仕様上、エラーハンドラはルートの後に登録する必要がある）
+ */
+export const attachErrorHandler = (app: express.Express): void => {
+  app.use(errorHandler)
 }
 
 /**

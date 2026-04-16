@@ -5,6 +5,7 @@ import {
   UserRegistrationRepository,
 } from "../repository/mysql"
 import { User } from "../types/domain"
+import { ok, Result } from "../types/result"
 
 export type AuthenticateWithGoogleResult = {
     isNewUser: boolean
@@ -23,7 +24,7 @@ export const authenticateWithGoogle = async (
     },
   googleAuthClient: IGoogleOAuthClient,
   tokenGenerator: (userId: number) => string
-): Promise<AuthenticateWithGoogleResult> => {
+): Promise<Result<AuthenticateWithGoogleResult>> => {
   const { authAccountRepository, userRegistrationRepository } = repository
 
   logger.info("AuthService: Starting Google authentication")
@@ -73,9 +74,9 @@ export const authenticateWithGoogle = async (
     userId: user.id,
   })
 
-  return {
+  return ok({
     isNewUser,
     jwtToken,
     user,
-  }
+  })
 }

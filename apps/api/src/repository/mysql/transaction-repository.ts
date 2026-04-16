@@ -49,7 +49,7 @@ export interface TransactionRepository {
 }
 
 type TransactionWithRelations = PrismaTypes.TransactionGetPayload<{
-  include: { category: true; paymentSource: true }
+  include: { category: true; csvUpload: true; paymentSource: true }
 }>
 
 /**
@@ -91,7 +91,7 @@ export class PrismaTransactionRepository implements TransactionRepository {
     }
 
     const transactions = await this._prisma.transaction.findMany({
-      include: { category: true, paymentSource: true },
+      include: { category: true, csvUpload: true, paymentSource: true },
       orderBy: { transactionDate: "desc" },
       where,
     })
@@ -111,7 +111,7 @@ export class PrismaTransactionRepository implements TransactionRepository {
         transactionDate: data.transactionDate,
         userId: data.userId,
       },
-      include: { category: true, paymentSource: true },
+      include: { category: true, csvUpload: true, paymentSource: true },
     })
     return this._toDomain(transaction)
   }
@@ -129,7 +129,7 @@ export class PrismaTransactionRepository implements TransactionRepository {
         description: data.description,
         transactionDate: data.transactionDate,
       },
-      include: { category: true, paymentSource: true },
+      include: { category: true, csvUpload: true, paymentSource: true },
       where: { id },
     })
     return this._toDomain(transaction)
@@ -149,9 +149,17 @@ export class PrismaTransactionRepository implements TransactionRepository {
       categoryColor: t.category?.color ?? null,
       categoryId: t.categoryId,
       categoryName: t.category?.name ?? null,
+      csvUpload: t.csvUpload
+        ? {
+          fileName: t.csvUpload.fileName,
+          id: t.csvUpload.id,
+          uploadedAt: t.csvUpload.createdAt,
+        }
+        : null,
       csvUploadId: t.csvUploadId,
       description: t.description,
       isManual: t.isManual,
+      paymentSourceColor: t.paymentSource.color,
       paymentSourceId: t.paymentSourceId,
       paymentSourceName: t.paymentSource.name,
       transactionDate: t.transactionDate,

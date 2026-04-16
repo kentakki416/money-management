@@ -4,6 +4,7 @@ import {
   Calendar,
   LayoutDashboard,
   List,
+  ListFilter,
   Upload,
   Wallet,
 } from "lucide-react"
@@ -31,19 +32,24 @@ const navItems: NavItem[] = [
     path: "/upload",
   },
   {
-    icon: <List size={20} />,
-    name: "取引一覧",
-    path: "/transactions",
-  },
-  {
     icon: <Calendar size={20} />,
     name: "カレンダー",
     path: "/calendar",
   },
   {
+    icon: <List size={20} />,
+    name: "取引一覧",
+    path: "/transactions",
+  },
+  {
     icon: <BarChart3 size={20} />,
     name: "グラフ",
     path: "/charts",
+  },
+  {
+    icon: <ListFilter size={20} />,
+    name: "分類ルール",
+    path: "/rules",
   },
 ]
 

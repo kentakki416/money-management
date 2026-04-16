@@ -63,6 +63,64 @@ apps/api/
 - `repository/mysql/aggregate/`: 複数テーブルをまたぐ集約操作（リレーションの include、トランザクション等）
 - Service層は欲しいデータを取得するだけで、詳細なリレーションは把握しなくて良い。必要なデータのリポジトリの関数を呼ぶだけでドメインロジックに集中できる設計にする
 
+### エラーハンドリング（Result 型）
+
+Service 層は業務エラー（重複・Not Found・権限不足など HTTP 4xx 系で返すべきエラー）を **`Result<T>` 型で返却** する。DB 障害などの予期しない例外のみ通常の `throw` として伝播し、グローバルエラーハンドラで 500 として処理される。
+
+```typescript
+// src/types/result.ts
+export type ApiError = {
+  statusCode: number
+  type: "BAD_REQUEST" | "CONFLICT" | "FORBIDDEN" | "NOT_FOUND" | "UNAUTHORIZED"
+  message: string
+}
+
+export type Result<T> =
+  | { ok: true; value: T }
+  | { error: ApiError; ok: false }
+```
+
+Controller 側での透過例:
+
+```typescript
+const result = await service.memo.getMemoById(id, memoRepository)
+
+if (!result.ok) {
+  const errorResponse: ErrorResponse = {
+    error: result.error.message,
+    status_code: result.error.statusCode,
+  }
+  return res.status(result.error.statusCode).json(errorResponse)
+}
+
+// result.value を利用してレスポンス生成
+```
+
+#### Result 型を導入している理由
+
+1. **想定内エラーと想定外エラーを型で分離できる**
+   - 想定内（業務エラー）: `Result.err` で返却 → Controller が 4xx に変換
+   - 想定外（DB 障害等）: そのまま `throw` → グローバルエラーハンドラが 500 を返却
+   - この区別が関数シグネチャで一目で分かる（`Promise<Result<T>>` vs `Promise<T>`）
+
+2. **エラーハンドリング漏れを型で防げる**
+   - `Result<T>` は discriminated union のため `.ok` チェックなしには `.value` にアクセスできない
+   - Controller で service の呼び出し結果を処理し忘れるとコンパイルエラーになる
+
+3. **エラーメッセージに依存する fragile な分岐が不要になる**
+   - かつての `error.message.includes("...")` のような実装を撤廃
+   - 代わりに `result.error.statusCode` / `result.error.type` を見て構造的に分岐可能
+
+4. **テストが文言変更に強くなる**
+   - `rejects.toThrow("具体的メッセージ")` のような脆い assertion を撤廃できる
+   - `expect(result.ok).toBe(false)` + `expect(result.error.statusCode).toBe(409)` で十分
+
+5. **Controller での HTTP ステータス決定が一元化される**
+   - Service 層が statusCode を決定し、Controller はそのまま透過
+   - 特殊ケースのみ Controller が明示的に再解釈（例: 404 → 400 の文脈変換）
+
+詳細は `src/types/result.ts` とヘルパー関数（`ok`, `err`, `notFoundError`, `conflictError`, `badRequestError`）を参照。
+
 
 ## テスト戦略
 
@@ -70,6 +128,54 @@ apps/api/
 
 - **Service層 → ユニットテスト**: DB不要、高速、並列実行可能
 - **Controller層 → インテグレーションテスト**: 実DB使用、supertest でHTTPレイヤーからテスト
+
+### テストの耐久性（重要）
+
+**エラーメッセージなどの文字列は assertion しない**。テストが脆くなり、文言の変更・i18n 対応・ログ改善のたびに無関係なテストが落ちるため。
+
+#### してはいけない例
+
+```typescript
+// ❌ メッセージの文言に依存した assertion
+await expect(uploadCsv(...)).rejects.toThrow("このCSVファイルはすでにアップロード済みです")
+expect(res.body.error).toBe("Invalid memo ID")
+expect(result.error.message).toContain("すでに")
+```
+
+#### 推奨される assertion
+
+**Service のユニットテスト**: Result 型の構造（`ok` / `statusCode` / `type`）のみを検証
+
+```typescript
+// ✅ Result 型の構造のみ検証（文言は見ない）
+const result = await uploadCsv(...)
+expect(result.ok).toBe(false)
+if (!result.ok) {
+  expect(result.error.statusCode).toBe(409)
+  expect(result.error.type).toBe("CONFLICT")
+}
+
+// ✅ 想定外の例外（DB 障害等）は throw の有無のみ検証
+await expect(uploadCsv(...)).rejects.toThrow()  // メッセージは引数に渡さない
+```
+
+**Controller のインテグレーションテスト**: HTTP ステータスコードとレスポンスボディの「定義されているか」のみを検証
+
+```typescript
+// ✅ ステータスコードと error フィールドの存在のみ
+expect(res.status).toBe(400)
+expect(res.body.error).toBeDefined()
+
+// ❌ エラー文言を照合しない
+// expect(res.body.error).toBe("Invalid memo ID")
+```
+
+#### この方針の理由
+
+1. **リファクタリング耐性**: 文言の改善・ログ改修・i18n 対応でテストが落ちない
+2. **レビュー負荷軽減**: 文言変更のたびにテストを更新する必要がない
+3. **網羅性と独立性**: 「何が起きたか」は `statusCode` / `type` で構造的に表現されるべきで、文字列で表現するのは表現が弱い
+4. **AI/自動化フレンドリー**: 文言に例外を作らないため、AI による自動リファクタリングで誤検知が起きにくい
 
 ### ユニットテスト（Service）
 

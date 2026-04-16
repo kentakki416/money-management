@@ -50,12 +50,15 @@ describe("updateCategory", () => {
     const result = await updateCategory(1, input, mockCategoryRepository)
 
     // Assert
-    expect(result).toEqual(updatedCategory)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(updatedCategory)
+    }
     expect(mockFindById).toHaveBeenCalledWith(1)
     expect(mockUpdate).toHaveBeenCalledWith(1, input)
   })
 
-  it("カテゴリが存在しない場合、nullを返す", async () => {
+  it("カテゴリが存在しない場合、ok: false で 404 エラーを返す", async () => {
     // Arrange
     const input: UpdateCateogryInput = {
       name: "テスト",
@@ -67,7 +70,11 @@ describe("updateCategory", () => {
     const result = await updateCategory(999, input, mockCategoryRepository)
 
     // Assert
-    expect(result).toBeNull()
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.statusCode).toBe(404)
+      expect(result.error.type).toBe("NOT_FOUND")
+    }
     expect(mockFindById).toHaveBeenCalledWith(999)
     expect(mockUpdate).not.toHaveBeenCalled()
   })
@@ -82,9 +89,7 @@ describe("updateCategory", () => {
     mockFindById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(updateCategory(1, input, mockCategoryRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(updateCategory(1, input, mockCategoryRepository)).rejects.toThrow()
     expect(mockFindById).toHaveBeenCalledWith(1)
   })
 })

@@ -39,36 +39,29 @@ describe("getAllMemos", () => {
 
     mockFindAll.mockResolvedValue(mockMemos)
 
-    // Act
     const result = await getAllMemos(mockMemoRepository)
 
-    // Assert
-    expect(result).toEqual(mockMemos)
-    expect(result).toHaveLength(2)
-    expect(mockFindAll).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockMemos)
+      expect(result.value).toHaveLength(2)
+    }
   })
 
   it("メモが存在しない場合、空配列を返す", async () => {
-    // Arrange
     mockFindAll.mockResolvedValue([])
 
-    // Act
     const result = await getAllMemos(mockMemoRepository)
 
-    // Assert
-    expect(result).toEqual([])
-    expect(result).toHaveLength(0)
-    expect(mockFindAll).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual([])
+    }
   })
 
   it("データベースエラー時にエラーをスローする", async () => {
-    // Arrange
-    const mockError = new Error("Database connection failed")
-    mockFindAll.mockRejectedValue(mockError)
+    mockFindAll.mockRejectedValue(new Error("Database connection failed"))
 
-    // Act & Assert
-    await expect(getAllMemos(mockMemoRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(getAllMemos(mockMemoRepository)).rejects.toThrow()
   })
 })

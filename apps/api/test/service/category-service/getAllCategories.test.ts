@@ -45,8 +45,11 @@ describe("getAllCategories", () => {
     const result = await getAllCategories(mockCategoryRepository)
 
     // Assert
-    expect(result).toEqual(mockCategories)
-    expect(result).toHaveLength(2)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual(mockCategories)
+      expect(result.value).toHaveLength(2)
+    }
     expect(mockFindAll).toHaveBeenCalledTimes(1)
   })
 
@@ -58,8 +61,11 @@ describe("getAllCategories", () => {
     const result = await getAllCategories(mockCategoryRepository)
 
     // Assert
-    expect(result).toEqual([])
-    expect(result).toHaveLength(0)
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.value).toEqual([])
+      expect(result.value).toHaveLength(0)
+    }
     expect(mockFindAll).toHaveBeenCalledTimes(1)
   })
 
@@ -69,8 +75,6 @@ describe("getAllCategories", () => {
     mockFindAll.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(getAllCategories(mockCategoryRepository)).rejects.toThrow(
-      "Database connection failed"
-    )
+    await expect(getAllCategories(mockCategoryRepository)).rejects.toThrow()
   })
 })

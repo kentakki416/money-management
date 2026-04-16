@@ -66,6 +66,15 @@ export type CreateUserCategoryRuleResponse = z.infer<typeof createUserCategoryRu
 // ========================================================
 
 /**
+ * ユーザールール更新の路径パラメータスキーマ
+ */
+export const updateUserCategoryRulePathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type UpdateUserCategoryRulePathParam = z.infer<typeof updateUserCategoryRulePathParamSchema>
+
+/**
  * ユーザールール更新のリクエストスキーマ
  */
 export const updateUserCategoryRuleRequestSchema = z.object({
@@ -89,6 +98,15 @@ export type UpdateUserCategoryRuleResponse = z.infer<typeof updateUserCategoryRu
 // ========================================================
 // DELETE /api/user-category-rules/:id - ユーザールール削除
 // ========================================================
+
+/**
+ * ユーザールール削除の路径パラメータスキーマ
+ */
+export const deleteUserCategoryRulePathParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export type DeleteUserCategoryRulePathParam = z.infer<typeof deleteUserCategoryRulePathParamSchema>
 
 /**
  * ユーザールール削除のレスポンススキーマ
