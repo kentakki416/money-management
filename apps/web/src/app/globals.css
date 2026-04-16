@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* ゆうちょグリーンベースのカラーパレット */
+  --color-brand-25: #f0faf4;
+  --color-brand-50: #e0f5e9;
+  --color-brand-100: #b3e6c7;
+  --color-brand-200: #80d4a2;
+  --color-brand-300: #4dc27d;
+  --color-brand-400: #26b461;
+  --color-brand-500: #00a645;
+  --color-brand-600: #00963e;
+  --color-brand-700: #008236;
+  --color-brand-800: #006f2e;
+  --color-brand-900: #004d1f;
+
+  /* グレー */
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #e4e7ec;
+  --color-gray-300: #d0d5dd;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #1d2939;
+  --color-gray-900: #101828;
+
+  /* サクセス */
+  --color-success-50: #ecfdf5;
+  --color-success-500: #12b76a;
+  --color-success-700: #027a48;
+
+  /* エラー */
+  --color-error-50: #fef3f2;
+  --color-error-500: #f04438;
+  --color-error-700: #b42318;
+
+  /* ワーニング */
+  --color-warning-50: #fffaeb;
+  --color-warning-500: #f79009;
+
+  /* シャドウ */
+  --shadow-sm: 0 1px 2px 0 rgb(16 24 40 / 0.06), 0 1px 3px 0 rgb(16 24 40 / 0.1);
+  --shadow-md: 0 4px 8px -2px rgb(16 24 40 / 0.1), 0 2px 4px -2px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 12px 16px -4px rgb(16 24 40 / 0.08), 0 4px 6px -2px rgb(16 24 40 / 0.03);
+  --shadow-xl: 0 20px 24px -4px rgb(16 24 40 / 0.08), 0 8px 8px -4px rgb(16 24 40 / 0.03);
+}
+
+:root {
+  --background: #f9fafb;
+  --foreground: #101828;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0c111d;
+    --foreground: #f2f4f7;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* スクロールバーのカスタマイズ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -230,7 +230,6 @@ export type UserWhereInput = {
   csvUploads?: Prisma.CsvUploadListRelationFilter
   userCategoryRules?: Prisma.UserCategoryRuleListRelationFilter
   accounts?: Prisma.AuthAccountListRelationFilter
-  userCharacters?: Prisma.UserCharacterListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -245,7 +244,6 @@ export type UserOrderByWithRelationInput = {
   csvUploads?: Prisma.CsvUploadOrderByRelationAggregateInput
   userCategoryRules?: Prisma.UserCategoryRuleOrderByRelationAggregateInput
   accounts?: Prisma.AuthAccountOrderByRelationAggregateInput
-  userCharacters?: Prisma.UserCharacterOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -264,7 +262,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   csvUploads?: Prisma.CsvUploadListRelationFilter
   userCategoryRules?: Prisma.UserCategoryRuleListRelationFilter
   accounts?: Prisma.AuthAccountListRelationFilter
-  userCharacters?: Prisma.UserCharacterListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -304,7 +301,6 @@ export type UserCreateInput = {
   csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -319,7 +315,6 @@ export type UserUncheckedCreateInput = {
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -333,7 +328,6 @@ export type UserUpdateInput = {
   csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -348,7 +342,6 @@ export type UserUncheckedUpdateInput = {
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -497,20 +490,6 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
-export type UserCreateNestedOneWithoutUserCharactersInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUserCharactersInput, Prisma.UserUncheckedCreateWithoutUserCharactersInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserCharactersInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
-export type UserUpdateOneRequiredWithoutUserCharactersNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutUserCharactersInput, Prisma.UserUncheckedCreateWithoutUserCharactersInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserCharactersInput
-  upsert?: Prisma.UserUpsertWithoutUserCharactersInput
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUserCharactersInput, Prisma.UserUpdateWithoutUserCharactersInput>, Prisma.UserUncheckedUpdateWithoutUserCharactersInput>
-}
-
 export type UserCreateWithoutPaymentSourcesInput = {
   email?: string | null
   name?: string | null
@@ -521,7 +500,6 @@ export type UserCreateWithoutPaymentSourcesInput = {
   csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentSourcesInput = {
@@ -535,7 +513,6 @@ export type UserUncheckedCreateWithoutPaymentSourcesInput = {
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentSourcesInput = {
@@ -564,7 +541,6 @@ export type UserUpdateWithoutPaymentSourcesInput = {
   csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentSourcesInput = {
@@ -578,7 +554,6 @@ export type UserUncheckedUpdateWithoutPaymentSourcesInput = {
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUserCategoryRulesInput = {
@@ -591,7 +566,6 @@ export type UserCreateWithoutUserCategoryRulesInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUserCategoryRulesInput = {
@@ -605,7 +579,6 @@ export type UserUncheckedCreateWithoutUserCategoryRulesInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUserCategoryRulesInput = {
@@ -634,7 +607,6 @@ export type UserUpdateWithoutUserCategoryRulesInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserCategoryRulesInput = {
@@ -648,7 +620,6 @@ export type UserUncheckedUpdateWithoutUserCategoryRulesInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCsvUploadsInput = {
@@ -661,7 +632,6 @@ export type UserCreateWithoutCsvUploadsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCsvUploadsInput = {
@@ -675,7 +645,6 @@ export type UserUncheckedCreateWithoutCsvUploadsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCsvUploadsInput = {
@@ -704,7 +673,6 @@ export type UserUpdateWithoutCsvUploadsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCsvUploadsInput = {
@@ -718,7 +686,6 @@ export type UserUncheckedUpdateWithoutCsvUploadsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -731,7 +698,6 @@ export type UserCreateWithoutTransactionsInput = {
   csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -745,7 +711,6 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -774,7 +739,6 @@ export type UserUpdateWithoutTransactionsInput = {
   csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -788,7 +752,6 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -801,7 +764,6 @@ export type UserCreateWithoutAccountsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
   csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -815,7 +777,6 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
   csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
-  userCharacters?: Prisma.UserCharacterUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -844,7 +805,6 @@ export type UserUpdateWithoutAccountsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
   csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -858,77 +818,6 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
   csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
   userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
-  userCharacters?: Prisma.UserCharacterUncheckedUpdateManyWithoutUserNestedInput
-}
-
-export type UserCreateWithoutUserCharactersInput = {
-  email?: string | null
-  name?: string | null
-  avatarUrl?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  paymentSources?: Prisma.PaymentSourceCreateNestedManyWithoutUserInput
-  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
-  csvUploads?: Prisma.CsvUploadCreateNestedManyWithoutUserInput
-  userCategoryRules?: Prisma.UserCategoryRuleCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AuthAccountCreateNestedManyWithoutUserInput
-}
-
-export type UserUncheckedCreateWithoutUserCharactersInput = {
-  id?: number
-  email?: string | null
-  name?: string | null
-  avatarUrl?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  paymentSources?: Prisma.PaymentSourceUncheckedCreateNestedManyWithoutUserInput
-  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
-  csvUploads?: Prisma.CsvUploadUncheckedCreateNestedManyWithoutUserInput
-  userCategoryRules?: Prisma.UserCategoryRuleUncheckedCreateNestedManyWithoutUserInput
-  accounts?: Prisma.AuthAccountUncheckedCreateNestedManyWithoutUserInput
-}
-
-export type UserCreateOrConnectWithoutUserCharactersInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutUserCharactersInput, Prisma.UserUncheckedCreateWithoutUserCharactersInput>
-}
-
-export type UserUpsertWithoutUserCharactersInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutUserCharactersInput, Prisma.UserUncheckedUpdateWithoutUserCharactersInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutUserCharactersInput, Prisma.UserUncheckedCreateWithoutUserCharactersInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutUserCharactersInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutUserCharactersInput, Prisma.UserUncheckedUpdateWithoutUserCharactersInput>
-}
-
-export type UserUpdateWithoutUserCharactersInput = {
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentSources?: Prisma.PaymentSourceUpdateManyWithoutUserNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
-  csvUploads?: Prisma.CsvUploadUpdateManyWithoutUserNestedInput
-  userCategoryRules?: Prisma.UserCategoryRuleUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AuthAccountUpdateManyWithoutUserNestedInput
-}
-
-export type UserUncheckedUpdateWithoutUserCharactersInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentSources?: Prisma.PaymentSourceUncheckedUpdateManyWithoutUserNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
-  csvUploads?: Prisma.CsvUploadUncheckedUpdateManyWithoutUserNestedInput
-  userCategoryRules?: Prisma.UserCategoryRuleUncheckedUpdateManyWithoutUserNestedInput
-  accounts?: Prisma.AuthAccountUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -942,7 +831,6 @@ export type UserCountOutputType = {
   csvUploads: number
   userCategoryRules: number
   accounts: number
-  userCharacters: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -951,7 +839,6 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   csvUploads?: boolean | UserCountOutputTypeCountCsvUploadsArgs
   userCategoryRules?: boolean | UserCountOutputTypeCountUserCategoryRulesArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
-  userCharacters?: boolean | UserCountOutputTypeCountUserCharactersArgs
 }
 
 /**
@@ -999,13 +886,6 @@ export type UserCountOutputTypeCountAccountsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.AuthAccountWhereInput
 }
 
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountUserCharactersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserCharacterWhereInput
-}
-
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1019,7 +899,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   csvUploads?: boolean | Prisma.User$csvUploadsArgs<ExtArgs>
   userCategoryRules?: boolean | Prisma.User$userCategoryRulesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
-  userCharacters?: boolean | Prisma.User$userCharactersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1041,7 +920,6 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   csvUploads?: boolean | Prisma.User$csvUploadsArgs<ExtArgs>
   userCategoryRules?: boolean | Prisma.User$userCategoryRulesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
-  userCharacters?: boolean | Prisma.User$userCharactersArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1053,7 +931,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     csvUploads: Prisma.$CsvUploadPayload<ExtArgs>[]
     userCategoryRules: Prisma.$UserCategoryRulePayload<ExtArgs>[]
     accounts: Prisma.$AuthAccountPayload<ExtArgs>[]
-    userCharacters: Prisma.$UserCharacterPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1407,7 +1284,6 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   csvUploads<T extends Prisma.User$csvUploadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$csvUploadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CsvUploadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userCategoryRules<T extends Prisma.User$userCategoryRulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userCategoryRulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserCategoryRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  userCharacters<T extends Prisma.User$userCharactersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userCharactersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserCharacterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1903,30 +1779,6 @@ export type User$accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.AuthAccountScalarFieldEnum | Prisma.AuthAccountScalarFieldEnum[]
-}
-
-/**
- * User.userCharacters
- */
-export type User$userCharactersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the UserCharacter
-   */
-  select?: Prisma.UserCharacterSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the UserCharacter
-   */
-  omit?: Prisma.UserCharacterOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserCharacterInclude<ExtArgs> | null
-  where?: Prisma.UserCharacterWhereInput
-  orderBy?: Prisma.UserCharacterOrderByWithRelationInput | Prisma.UserCharacterOrderByWithRelationInput[]
-  cursor?: Prisma.UserCharacterWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.UserCharacterScalarFieldEnum | Prisma.UserCharacterScalarFieldEnum[]
 }
 
 /**

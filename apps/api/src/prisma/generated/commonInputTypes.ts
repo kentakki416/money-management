@@ -211,23 +211,6 @@ export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
 }
 
-export type EnumCharacterCodeFilter<$PrismaModel = never> = {
-  equals?: $Enums.CharacterCode | Prisma.EnumCharacterCodeFieldRefInput<$PrismaModel>
-  in?: $Enums.CharacterCode[]
-  notIn?: $Enums.CharacterCode[]
-  not?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel> | $Enums.CharacterCode
-}
-
-export type EnumCharacterCodeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CharacterCode | Prisma.EnumCharacterCodeFieldRefInput<$PrismaModel>
-  in?: $Enums.CharacterCode[]
-  notIn?: $Enums.CharacterCode[]
-  not?: Prisma.NestedEnumCharacterCodeWithAggregatesFilter<$PrismaModel> | $Enums.CharacterCode
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel>
-}
-
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -440,23 +423,6 @@ export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
-}
-
-export type NestedEnumCharacterCodeFilter<$PrismaModel = never> = {
-  equals?: $Enums.CharacterCode | Prisma.EnumCharacterCodeFieldRefInput<$PrismaModel>
-  in?: $Enums.CharacterCode[]
-  notIn?: $Enums.CharacterCode[]
-  not?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel> | $Enums.CharacterCode
-}
-
-export type NestedEnumCharacterCodeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.CharacterCode | Prisma.EnumCharacterCodeFieldRefInput<$PrismaModel>
-  in?: $Enums.CharacterCode[]
-  notIn?: $Enums.CharacterCode[]
-  not?: Prisma.NestedEnumCharacterCodeWithAggregatesFilter<$PrismaModel> | $Enums.CharacterCode
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumCharacterCodeFilter<$PrismaModel>
 }
 
 

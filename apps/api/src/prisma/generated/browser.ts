@@ -69,18 +69,6 @@ export type User = Prisma.UserModel
  */
 export type AuthAccount = Prisma.AuthAccountModel
 /**
- * Model Character
- * *
- *  * キャラクターマスター
- */
-export type Character = Prisma.CharacterModel
-/**
- * Model UserCharacter
- * *
- *  * ユーザーが保持するキャラクター
- */
-export type UserCharacter = Prisma.UserCharacterModel
-/**
  * Model Memo
  * *
  *  * メモ

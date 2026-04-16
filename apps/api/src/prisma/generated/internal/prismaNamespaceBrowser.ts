@@ -59,8 +59,6 @@ export const ModelName = {
   Transaction: 'Transaction',
   User: 'User',
   AuthAccount: 'AuthAccount',
-  Character: 'Character',
-  UserCharacter: 'UserCharacter',
   Memo: 'Memo'
 } as const
 
@@ -190,32 +188,6 @@ export const AuthAccountScalarFieldEnum = {
 export type AuthAccountScalarFieldEnum = (typeof AuthAccountScalarFieldEnum)[keyof typeof AuthAccountScalarFieldEnum]
 
 
-export const CharacterScalarFieldEnum = {
-  characterCode: 'characterCode',
-  name: 'name',
-  description: 'description',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type CharacterScalarFieldEnum = (typeof CharacterScalarFieldEnum)[keyof typeof CharacterScalarFieldEnum]
-
-
-export const UserCharacterScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  characterCode: 'characterCode',
-  nickName: 'nickName',
-  level: 'level',
-  experience: 'experience',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type UserCharacterScalarFieldEnum = (typeof UserCharacterScalarFieldEnum)[keyof typeof UserCharacterScalarFieldEnum]
-
-
 export const MemoScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -307,21 +279,6 @@ export const AuthAccountOrderByRelevanceFieldEnum = {
 } as const
 
 export type AuthAccountOrderByRelevanceFieldEnum = (typeof AuthAccountOrderByRelevanceFieldEnum)[keyof typeof AuthAccountOrderByRelevanceFieldEnum]
-
-
-export const CharacterOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
-} as const
-
-export type CharacterOrderByRelevanceFieldEnum = (typeof CharacterOrderByRelevanceFieldEnum)[keyof typeof CharacterOrderByRelevanceFieldEnum]
-
-
-export const UserCharacterOrderByRelevanceFieldEnum = {
-  nickName: 'nickName'
-} as const
-
-export type UserCharacterOrderByRelevanceFieldEnum = (typeof UserCharacterOrderByRelevanceFieldEnum)[keyof typeof UserCharacterOrderByRelevanceFieldEnum]
 
 
 export const MemoOrderByRelevanceFieldEnum = {

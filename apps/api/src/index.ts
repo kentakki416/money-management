@@ -70,6 +70,7 @@ import {
 import { IoRedisHealthRepository } from "./repository/redis"
 import { adminRouter } from "./routes/admin-router"
 import { authRouter } from "./routes/auth-router"
+import { categoryRouter } from "./routes/category-router"
 import { csvUploadRouter } from "./routes/csv-upload-router"
 import { healthRouter } from "./routes/health-router"
 import { memoRouter } from "./routes/memo-router"
@@ -245,7 +246,16 @@ app.use(
   })
 )
 app.use(
-  "/api/csv-upload",
+  "/api/categories",
+  categoryRouter({
+    create: categoryCreateController,
+    delete: categoryDeleteController,
+    list: categoryListController,
+    update: categoryUpdateController,
+  })
+)
+app.use(
+  "/api/csv-uploads",
   csvUploadRouter({
     list: csvUploadListController,
     upload: csvUploadController,

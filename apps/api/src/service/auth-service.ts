@@ -4,7 +4,7 @@ import {
   AuthAccountRepository,
   UserRegistrationRepository,
 } from "../repository/mysql"
-import { User , CharacterCode } from "../types/domain"
+import { User } from "../types/domain"
 
 export type AuthenticateWithGoogleResult = {
     isNewUser: boolean
@@ -50,8 +50,8 @@ export const authenticateWithGoogle = async (
     isNewUser = true
     logger.info("AuthService: Creating new user")
 
-    // 新規ユーザー、アカウント、キャラクターを作成
-    user = await userRegistrationRepository.createUserWithAuthAccountAndUserCharacterTx({
+    // 新規ユーザーとアカウントを作成
+    user = await userRegistrationRepository.createUserWithAuthAccountTx({
       authAccount: {
         provider: "google",
         providerAccountId: googleUser.id,
@@ -60,11 +60,6 @@ export const authenticateWithGoogle = async (
         avatarUrl: googleUser.picture,
         email: googleUser.email,
         name: googleUser.name,
-      },
-      userCharacter: {
-        characterCode: "TRAECHAN" as CharacterCode,
-        isActive: true,
-        nickName: "トレちゃん",
       },
     })
     logger.info("AuthService: New user created", {
