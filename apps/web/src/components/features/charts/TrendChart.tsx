@@ -20,12 +20,6 @@ export const TOTAL_LINE_ID = -1
 export const TOTAL_LINE_COLOR = "#3B82F6"
 
 /**
- * 金額をフォーマットする
- */
-const formatAmount = (amount: number) =>
-  amount.toLocaleString("ja-JP", { currency: "JPY", style: "currency" })
-
-/**
  * 金額を短縮表記にする（グラフのY軸用）
  */
 const formatShortAmount = (amount: number): string => {
@@ -33,6 +27,12 @@ const formatShortAmount = (amount: number): string => {
   if (amount >= 1000) return `${(amount / 1000).toFixed(0)}千`
   return String(amount)
 }
+
+/**
+ * 金額をフォーマットする（ツールチップ用）
+ */
+const formatAmount = (amount: number): string =>
+  `¥${amount.toLocaleString()}`
 
 /**
  * カテゴリごとの月次データを年月キーでマップ化する
@@ -48,8 +48,16 @@ const buildCategoryAmountMap = (category: CategoryTrend): Map<string, number> =>
 /**
  * SVGベースの月次推移チャート（合計 + カテゴリ別）
  */
+/**
+ * ホバー中のデータポイントを特定する型
+ */
+type HoveredPoint = {
+  lineId: number
+  monthIndex: number
+}
+
 export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [hoveredPoint, setHoveredPoint] = useState<HoveredPoint | null>(null)
 
   if (trendData.months.length === 0) {
     return (
@@ -129,22 +137,6 @@ export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props
   const totalLinePath = buildLinePath(totalAmounts)
   const totalAreaPath = `${totalLinePath} L ${getX(totalAmounts.length - 1)} ${paddingTop + plotHeight} L ${getX(0)} ${paddingTop + plotHeight} Z`
 
-  /**
-   * ホバー時に表示する値のリストを作成する
-   */
-  const hoveredValues = hoveredIndex !== null
-    ? [
-      ...(isTotalVisible
-        ? [{ amount: totalAmounts[hoveredIndex], color: TOTAL_LINE_COLOR, name: "合計" }]
-        : []),
-      ...visibleCategories.map((cat) => ({
-        amount: getCategoryAmounts(cat)[hoveredIndex],
-        color: cat.category_color,
-        name: cat.category_name,
-      })),
-    ]
-    : []
-
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
       <div className="border-b border-gray-200 p-4 dark:border-gray-700">
@@ -218,86 +210,98 @@ export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props
             />
           )}
 
-          {/* ホバー領域とX軸ラベル */}
+          {/* X軸ラベル */}
           {trendData.months.map((m, i) => (
-            <g
+            <text
               key={`${m.year}-${m.month}`}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
+              className="fill-gray-400 text-[10px] dark:fill-gray-500"
+              dominantBaseline="hanging"
+              textAnchor="middle"
+              x={getX(i)}
+              y={paddingTop + plotHeight + 10}
             >
-              {/* ホバー時の縦線 */}
-              {hoveredIndex === i && (
-                <line
-                  className="stroke-gray-300 dark:stroke-gray-600"
-                  strokeDasharray="4 4"
-                  x1={getX(i)}
-                  x2={getX(i)}
-                  y1={paddingTop}
-                  y2={paddingTop + plotHeight}
-                />
-              )}
+              {m.month}月
+            </text>
+          ))}
 
-              {/* 透明なホバー領域 */}
-              <rect
-                fill="transparent"
-                height={plotHeight}
-                width={plotWidth / trendData.months.length}
-                x={getX(i) - plotWidth / trendData.months.length / 2}
-                y={paddingTop}
-              />
-
-              {/* 合計データポイント */}
-              {isTotalVisible && (
+          {/* 合計データポイント（個別ホバー） */}
+          {isTotalVisible && trendData.months.map((_, i) => {
+            const isHovered = hoveredPoint?.lineId === TOTAL_LINE_ID && hoveredPoint.monthIndex === i
+            const cx = getX(i)
+            const cy = getY(totalAmounts[i])
+            return (
+              <g
+                key={`total-${i}`}
+                onMouseEnter={() => setHoveredPoint({ lineId: TOTAL_LINE_ID, monthIndex: i })}
+                onMouseLeave={() => setHoveredPoint(null)}
+              >
+                {/* 透明な大きめのホバー領域 */}
+                <circle cx={cx} cy={cy} fill="transparent" r={12} />
                 <circle
-                  cx={getX(i)}
-                  cy={getY(totalAmounts[i])}
-                  fill={hoveredIndex === i ? TOTAL_LINE_COLOR : "white"}
-                  r={hoveredIndex === i ? 5 : 3.5}
+                  cx={cx}
+                  cy={cy}
+                  fill={isHovered ? TOTAL_LINE_COLOR : "white"}
+                  r={isHovered ? 5 : 3.5}
                   stroke={TOTAL_LINE_COLOR}
                   strokeWidth={2}
                 />
-              )}
+                {isHovered && (
+                  <text
+                    className="text-[11px] font-bold"
+                    dominantBaseline="auto"
+                    fill={TOTAL_LINE_COLOR}
+                    textAnchor="middle"
+                    x={cx}
+                    y={cy - 10}
+                  >
+                    {formatAmount(totalAmounts[i])}
+                  </text>
+                )}
+              </g>
+            )
+          })}
 
-              {/* X軸ラベル */}
-              <text
-                className="fill-gray-400 text-[10px] dark:fill-gray-500"
-                dominantBaseline="hanging"
-                textAnchor="middle"
-                x={getX(i)}
-                y={paddingTop + plotHeight + 10}
-              >
-                {m.month}月
-              </text>
-            </g>
-          ))}
+          {/* カテゴリ別データポイント（個別ホバー） */}
+          {visibleCategories.map((cat) => {
+            const amounts = getCategoryAmounts(cat)
+            return trendData.months.map((_, i) => {
+              const isHovered = hoveredPoint?.lineId === cat.category_id && hoveredPoint.monthIndex === i
+              const cx = getX(i)
+              const cy = getY(amounts[i])
+              return (
+                <g
+                  key={`cat-${cat.category_id}-${i}`}
+                  onMouseEnter={() => setHoveredPoint({ lineId: cat.category_id, monthIndex: i })}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                >
+                  {/* 透明な大きめのホバー領域 */}
+                  <circle cx={cx} cy={cy} fill="transparent" r={12} />
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    fill={isHovered ? cat.category_color : "white"}
+                    r={isHovered ? 4.5 : 3}
+                    stroke={cat.category_color}
+                    strokeWidth={1.75}
+                  />
+                  {isHovered && (
+                    <text
+                      className="text-[11px] font-semibold"
+                      dominantBaseline="auto"
+                      fill={cat.category_color}
+                      textAnchor="middle"
+                      x={cx}
+                      y={cy - 8}
+                    >
+                      {formatAmount(amounts[i])}
+                    </text>
+                  )}
+                </g>
+              )
+            })
+          })}
         </svg>
 
-        {/* ホバー時の詳細 */}
-        {hoveredIndex !== null && hoveredValues.length > 0 && (
-          <div className="mt-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/40">
-            <div className="mb-2 text-xs font-semibold text-gray-700 dark:text-gray-300">
-              {trendData.months[hoveredIndex].year}年{trendData.months[hoveredIndex].month}月
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 md:grid-cols-3">
-              {hoveredValues.map((v) => (
-                <div key={v.name} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <div
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: v.color }}
-                    />
-                    <span className="truncate text-[11px] text-gray-600 dark:text-gray-400">
-                      {v.name}
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-[11px] font-semibold text-gray-900 dark:text-white">
-                    {formatAmount(v.amount)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* インタラクティブな凡例（クリックで表示切替） */}
