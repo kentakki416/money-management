@@ -4,18 +4,20 @@ import React, { useState } from "react"
 import type { CategoryTrend, TrendResponse } from "@repo/api-schema"
 
 type Props = {
+  hiddenIds: Set<number>
+  onToggleLine: (id: number) => void
   trendData: TrendResponse
 }
 
 /**
  * 合計線を表す特別なID（カテゴリIDとは区別するため負値を使用）
  */
-const TOTAL_LINE_ID = -1
+export const TOTAL_LINE_ID = -1
 
 /**
  * 合計線の色
  */
-const TOTAL_LINE_COLOR = "#3B82F6"
+export const TOTAL_LINE_COLOR = "#3B82F6"
 
 /**
  * 金額をフォーマットする
@@ -46,9 +48,8 @@ const buildCategoryAmountMap = (category: CategoryTrend): Map<string, number> =>
 /**
  * SVGベースの月次推移チャート（合計 + カテゴリ別）
  */
-export default function TrendChart({ trendData }: Props) {
+export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set())
 
   if (trendData.months.length === 0) {
     return (
@@ -62,21 +63,6 @@ export default function TrendChart({ trendData }: Props) {
   const visibleCategories = trendData.categories.filter(
     (cat) => !hiddenIds.has(cat.category_id)
   )
-
-  /**
-   * 凡例の表示/非表示を切り替える
-   */
-  const toggleLine = (id: number) => {
-    setHiddenIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
 
   const totalAmounts = trendData.total.map((t) => t.amount)
 
@@ -327,7 +313,7 @@ export default function TrendChart({ trendData }: Props) {
                 ? "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 : "border-gray-100 bg-gray-50 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
             }`}
-            onClick={() => toggleLine(TOTAL_LINE_ID)}
+            onClick={() => onToggleLine(TOTAL_LINE_ID)}
           >
             <div
               className="h-2.5 w-2.5 rounded-full"
@@ -350,7 +336,7 @@ export default function TrendChart({ trendData }: Props) {
                     ? "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                     : "border-gray-100 bg-gray-50 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
                 }`}
-                onClick={() => toggleLine(cat.category_id)}
+                onClick={() => onToggleLine(cat.category_id)}
               >
                 <div
                   className="h-2.5 w-2.5 rounded-full"

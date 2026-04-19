@@ -8,7 +8,10 @@ const mockTransactionRepository: TransactionRepository = {
   createMany: jest.fn(),
   deleteById: mockDeleteById,
   findByFilter: jest.fn(),
+  findByUserIdAndCategoryId: jest.fn(),
+  findUncategorizedByUserId: jest.fn(),
   update: jest.fn(),
+  updateCategoryByIds: jest.fn(),
 }
 
 describe("deleteTransaction", () => {

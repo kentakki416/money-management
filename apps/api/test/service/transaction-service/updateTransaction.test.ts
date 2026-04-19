@@ -16,12 +16,16 @@ const mockTransactionRepository: TransactionRepository = {
   createMany: jest.fn(),
   deleteById: jest.fn(),
   findByFilter: jest.fn(),
+  findByUserIdAndCategoryId: jest.fn(),
+  findUncategorizedByUserId: jest.fn(),
   update: mockUpdate,
+  updateCategoryByIds: jest.fn(),
 }
 
 const mockUserCategoryRuleRepository: UserCategoryRuleRepository = {
   create: jest.fn(),
   deleteById: jest.fn(),
+  findById: jest.fn(),
   findByUserId: jest.fn(),
   update: jest.fn(),
   upsertByKeyword: mockUpsertByKeyword,

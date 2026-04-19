@@ -3,14 +3,18 @@ import { Response } from "express"
 import { ErrorResponse, createUserCategoryRuleRequestSchema, createUserCategoryRuleResponseSchema } from "@repo/api-schema"
 
 import { AuthRequest } from "../../middleware/auth"
-import { UserCategoryRuleRepository } from "../../repository/mysql"
+import { CategoryRuleRepository, TransactionRepository, UserCategoryRuleRepository } from "../../repository/mysql"
 import * as service from "../../service"
 
 /**
  * ユーザー個別分類ルール作成API
  */
 export class UserCategoryRuleCreateController {
-  constructor(private userCategoryRuleRepository: UserCategoryRuleRepository) {}
+  constructor(
+    private userCategoryRuleRepository: UserCategoryRuleRepository,
+    private transactionRepository: TransactionRepository,
+    private categoryRuleRepository: CategoryRuleRepository,
+  ) {}
 
   async execute(req: AuthRequest, res: Response) {
     const userId = req.userId!
@@ -35,7 +39,15 @@ export class UserCategoryRuleCreateController {
       return res.status(result.error.statusCode).json(errorResponse)
     }
 
+    const reclassifiedCount = await service.categorize.reclassifyUncategorizedTransactions(
+      userId,
+      this.transactionRepository,
+      this.categoryRuleRepository,
+      this.userCategoryRuleRepository,
+    )
+
     const response = createUserCategoryRuleResponseSchema.parse({
+      reclassified_count: reclassifiedCount,
       rule: {
         category_id: result.value.categoryId,
         category_name: result.value.categoryName,

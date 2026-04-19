@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import type {
   CreateUserCategoryRuleRequest,
   CreateUserCategoryRuleResponse,
+  DeleteUserCategoryRuleResponse,
   UpdateUserCategoryRuleRequest,
   UpdateUserCategoryRuleResponse,
   UserCategoryRule,
@@ -17,13 +18,15 @@ import { apiClient } from "@/libs/api-client"
  */
 export const createUserCategoryRule = async (
   data: CreateUserCategoryRuleRequest
-): Promise<UserCategoryRule> => {
+): Promise<{ reclassifiedCount: number; rule: UserCategoryRule }> => {
   const res = await apiClient.post<CreateUserCategoryRuleResponse>(
     "/api/user-category-rules",
     data
   )
   revalidatePath("/rules")
-  return res.rule
+  revalidatePath("/")
+  revalidatePath("/transactions")
+  return { reclassifiedCount: res.reclassified_count, rule: res.rule }
 }
 
 /**
@@ -44,7 +47,10 @@ export const updateUserCategoryRule = async (
 /**
  * ユーザー固有の分類ルールを削除する
  */
-export const deleteUserCategoryRule = async (id: number) => {
-  await apiClient.delete(`/api/user-category-rules/${id}`)
+export const deleteUserCategoryRule = async (id: number): Promise<{ reclassifiedCount: number }> => {
+  const res = await apiClient.delete<DeleteUserCategoryRuleResponse>(`/api/user-category-rules/${id}`)
   revalidatePath("/rules")
+  revalidatePath("/")
+  revalidatePath("/transactions")
+  return { reclassifiedCount: res.reclassified_count }
 }

@@ -55,6 +55,7 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
   const [editingRule, setEditingRule] = useState<UserCategoryRule | null>(null)
   const [deletingRule, setDeletingRule] = useState<UserCategoryRule | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const initialForm: RuleForm = {
@@ -141,6 +142,7 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
 
     setIsSubmitting(true)
     setError(null)
+    setSuccessMessage(null)
     try {
       const data: CreateUserCategoryRuleRequest = {
         category_id: form.category_id,
@@ -148,9 +150,12 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
         match_type: form.match_type,
         priority: form.priority,
       }
-      const createdRule = await createUserCategoryRule(data)
+      const { reclassifiedCount, rule: createdRule } = await createUserCategoryRule(data)
       setRules((prev) => [...prev, createdRule])
       setIsCreateModalOpen(false)
+      if (reclassifiedCount > 0) {
+        setSuccessMessage(`ルールを作成しました。未分類だった ${reclassifiedCount} 件の取引に自動でカテゴリを割り当てました。`)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "作成に失敗しました")
     } finally {
@@ -191,10 +196,14 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
     if (!deletingRule) return
     setIsSubmitting(true)
     setError(null)
+    setSuccessMessage(null)
     try {
-      await deleteUserCategoryRule(deletingRule.id)
+      const { reclassifiedCount } = await deleteUserCategoryRule(deletingRule.id)
       setRules((prev) => prev.filter((r) => r.id !== deletingRule.id))
       setDeletingRule(null)
+      if (reclassifiedCount > 0) {
+        setSuccessMessage(`ルールを削除しました。${reclassifiedCount} 件の取引のカテゴリを再分類しました。`)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "削除に失敗しました")
     } finally {
@@ -225,12 +234,29 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
         </button>
       </div>
 
+      {/* 成功メッセージ */}
+      {successMessage && (
+        <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50/60 p-4 dark:border-green-900/40 dark:bg-green-900/20">
+          <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+          <button
+            className="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
+            onClick={() => setSuccessMessage(null)}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* 使い方の説明 */}
       <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 dark:border-blue-900/40 dark:bg-blue-900/20">
         <p className="text-sm text-blue-900 dark:text-blue-200">
           例えば「鳥貴族」を<span className="font-semibold">部分一致</span>で
           <span className="font-semibold">飲食</span>に設定すると、店名に「鳥貴族」を含む取引は自動で「飲食」に分類されます。
           ユーザー固有のルールはマスタールールより優先されます。
+        </p>
+        <p className="mt-2 text-sm text-blue-900 dark:text-blue-200">
+          新しいルールを追加すると、<span className="font-semibold">未分類の取引</span>に対してルールが自動で適用されます。
+          既にカテゴリが設定されている取引は変更されません。
         </p>
       </div>
 

@@ -5,7 +5,9 @@ import type { CategorySummary } from "@repo/api-schema"
 
 type Props = {
   categories: CategorySummary[]
+  hiddenIds: Set<number>
   isLoading: boolean
+  onToggleCategory: (id: number) => void
   totalAmount: number
 }
 
@@ -75,7 +77,13 @@ const calculatePieSlices = (categories: CategorySummary[]): PieSlice[] => {
   })
 }
 
-export default function CategoryBreakdown({ categories, isLoading, totalAmount }: Props) {
+export default function CategoryBreakdown({
+  categories,
+  hiddenIds,
+  isLoading,
+  onToggleCategory,
+  totalAmount,
+}: Props) {
   const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(null)
 
   if (totalAmount === 0) {
@@ -86,7 +94,16 @@ export default function CategoryBreakdown({ categories, isLoading, totalAmount }
     )
   }
 
-  const slices = calculatePieSlices(categories)
+  /**
+   * 表示中カテゴリのみで円グラフを再計算する（割合は表示中の合計に対して算出）
+   */
+  const visibleCategories = categories.filter((cat) => !hiddenIds.has(cat.category_id))
+  const visibleTotal = visibleCategories.reduce((sum, c) => sum + c.amount, 0)
+  const recomputedForPie: CategorySummary[] = visibleCategories.map((cat) => ({
+    ...cat,
+    percentage: visibleTotal > 0 ? (cat.amount / visibleTotal) * 100 : 0,
+  }))
+  const slices = calculatePieSlices(recomputedForPie)
 
   return (
     <div className={`rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${isLoading ? "opacity-50" : ""}`}>
@@ -138,39 +155,49 @@ export default function CategoryBreakdown({ categories, isLoading, totalAmount }
         </svg>
       </div>
 
-      {/* カテゴリリスト */}
-      <div className="divide-y divide-gray-100 border-t border-gray-200 p-4 dark:divide-gray-700 dark:border-gray-700">
-        {categories.map((cat) => {
-          const isHovered = hoveredCategoryId === cat.category_id
-          return (
-            <div
-              key={cat.category_id}
-              className={`flex items-center justify-between py-3 first:pt-0 last:pb-0 transition-colors ${
-                isHovered ? "bg-gray-50 dark:bg-gray-700/40" : ""
-              }`}
-              onMouseEnter={() => setHoveredCategoryId(cat.category_id)}
-              onMouseLeave={() => setHoveredCategoryId(null)}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: cat.category_color }}
-                />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {cat.category_name}
-                </span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {formatAmount(cat.amount)}
-                </span>
-                <span className="w-14 text-right text-xs text-gray-500 dark:text-gray-400">
-                  {cat.percentage.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          )
-        })}
+      {/* カテゴリリスト（クリックで表示切替） */}
+      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+        <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+          クリックで表示を切り替え
+        </div>
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          {categories.map((cat) => {
+            const isHovered = hoveredCategoryId === cat.category_id
+            const isVisible = !hiddenIds.has(cat.category_id)
+            return (
+              <button
+                key={cat.category_id}
+                className={`flex w-full items-center justify-between py-3 text-left first:pt-0 last:pb-0 transition-colors ${
+                  isHovered ? "bg-gray-50 dark:bg-gray-700/40" : ""
+                } ${isVisible ? "" : "opacity-40"}`}
+                onClick={() => onToggleCategory(cat.category_id)}
+                onMouseEnter={() => setHoveredCategoryId(cat.category_id)}
+                onMouseLeave={() => setHoveredCategoryId(null)}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{
+                      backgroundColor: isVisible ? cat.category_color : "transparent",
+                      border: `2px solid ${cat.category_color}`,
+                    }}
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {cat.category_name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {formatAmount(cat.amount)}
+                  </span>
+                  <span className="w-14 text-right text-xs text-gray-500 dark:text-gray-400">
+                    {cat.percentage.toFixed(1)}%
+                  </span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

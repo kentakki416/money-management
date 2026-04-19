@@ -27,6 +27,7 @@ export type UpdateUserCategoryRuleInput = {
 export interface UserCategoryRuleRepository {
   create(userId: number, data: CreateUserCategoryRuleInput): Promise<UserCategoryRule>
   deleteById(id: number, userId: number): Promise<void>
+  findById(id: number, userId: number): Promise<UserCategoryRule | null>
   findByUserId(userId: number): Promise<UserCategoryRule[]>
   update(id: number, userId: number, data: UpdateUserCategoryRuleInput): Promise<UserCategoryRule>
   upsertByKeyword(userId: number, keyword: string, categoryId: number): Promise<UserCategoryRule>
@@ -44,6 +45,15 @@ export class PrismaUserCategoryRuleRepository implements UserCategoryRuleReposit
 
   constructor(prisma: PrismaClient) {
     this._prisma = prisma
+  }
+
+  async findById(id: number, userId: number): Promise<UserCategoryRule | null> {
+    const rule = await this._prisma.userCategoryRule.findFirst({
+      include: { category: true },
+      where: { id, userId },
+    })
+    if (!rule) return null
+    return this._toDomain(rule)
   }
 
   async findByUserId(userId: number): Promise<UserCategoryRule[]> {

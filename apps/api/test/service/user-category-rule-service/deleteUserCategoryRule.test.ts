@@ -7,6 +7,7 @@ const mockDeleteById = jest.fn<Promise<void>, [number, number]>()
 const mockUserCategoryRuleRepository: UserCategoryRuleRepository = {
   create: jest.fn(),
   deleteById: mockDeleteById,
+  findById: jest.fn(),
   findByUserId: jest.fn(),
   update: jest.fn(),
   upsertByKeyword: jest.fn(),

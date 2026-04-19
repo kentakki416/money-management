@@ -195,9 +195,17 @@ const transactionDeleteController = new TransactionDeleteController(transactionR
 
 // UserCategoryRule Controller のインスタンス化
 const userCategoryRuleListController = new UserCategoryRuleListController(userCategoryRuleRepository)
-const userCategoryRuleCreateController = new UserCategoryRuleCreateController(userCategoryRuleRepository)
+const userCategoryRuleCreateController = new UserCategoryRuleCreateController(
+  userCategoryRuleRepository,
+  transactionRepository,
+  categoryRuleRepository,
+)
 const userCategoryRuleUpdateController = new UserCategoryRuleUpdateController(userCategoryRuleRepository)
-const userCategoryRuleDeleteController = new UserCategoryRuleDeleteController(userCategoryRuleRepository)
+const userCategoryRuleDeleteController = new UserCategoryRuleDeleteController(
+  userCategoryRuleRepository,
+  transactionRepository,
+  categoryRuleRepository,
+)
 
 // cors設定のミドルウェア
 app.use(

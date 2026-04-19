@@ -8,6 +8,7 @@ const mockFindByUserId = jest.fn<Promise<UserCategoryRule[]>, [number]>()
 const mockUserCategoryRuleRepository: UserCategoryRuleRepository = {
   create: jest.fn(),
   deleteById: jest.fn(),
+  findById: jest.fn(),
   findByUserId: mockFindByUserId,
   update: jest.fn(),
   upsertByKeyword: jest.fn(),

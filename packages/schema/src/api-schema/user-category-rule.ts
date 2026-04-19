@@ -56,6 +56,7 @@ export type CreateUserCategoryRuleRequest = z.infer<typeof createUserCategoryRul
  * ユーザールール作成のレスポンススキーマ
  */
 export const createUserCategoryRuleResponseSchema = z.object({
+  reclassified_count: z.number().int().min(0),
   rule: userCategoryRuleSchema,
 })
 
@@ -112,6 +113,7 @@ export type DeleteUserCategoryRulePathParam = z.infer<typeof deleteUserCategoryR
  * ユーザールール削除のレスポンススキーマ
  */
 export const deleteUserCategoryRuleResponseSchema = z.object({
+  reclassified_count: z.number().int().min(0),
   success: z.boolean(),
 })
 

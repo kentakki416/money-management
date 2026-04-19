@@ -1,11 +1,11 @@
 "use client"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import React, { useCallback, useState } from "react"
 
 import type { MonthlySummaryResponse, TrendResponse } from "@repo/api-schema"
 
 import CategoryBreakdown from "./CategoryBreakdown"
-import TrendChart from "./TrendChart"
+import TrendChart, { TOTAL_LINE_ID } from "./TrendChart"
 
 type Props = {
   initialMonthlyData: MonthlySummaryResponse
@@ -26,6 +26,28 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
   const [year, setYear] = useState(initialMonthlyData.year)
   const [month, setMonth] = useState(initialMonthlyData.month)
   const [isLoading, setIsLoading] = useState(false)
+  const [trendHiddenIds, setTrendHiddenIds] = useState<Set<number>>(new Set())
+  const [monthlyHiddenIds, setMonthlyHiddenIds] = useState<Set<number>>(new Set())
+  const [isYearlyBreakdownOpen, setIsYearlyBreakdownOpen] = useState(false)
+
+  /**
+   * 指定したIDの表示/非表示を切り替える
+   */
+  const toggleId = (setter: React.Dispatch<React.SetStateAction<Set<number>>>) =>
+    (id: number) => {
+      setter((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) {
+          next.delete(id)
+        } else {
+          next.add(id)
+        }
+        return next
+      })
+    }
+
+  const toggleTrendLine = toggleId(setTrendHiddenIds)
+  const toggleMonthlyCategory = toggleId(setMonthlyHiddenIds)
 
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -65,9 +87,42 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
   }
 
   /**
-   * 年間の合計金額を計算する
+   * カテゴリごとの年間合計を計算する
    */
-  const yearlyTotal = trendData.total.reduce((sum, m) => sum + m.amount, 0)
+  const yearlyCategoryTotals = trendData.categories.map((cat) => ({
+    amount: cat.data.reduce((s, p) => s + p.amount, 0),
+    category_color: cat.category_color,
+    category_id: cat.category_id,
+    category_name: cat.category_name,
+  }))
+  const yearlyGrandTotal = trendData.total.reduce((sum, m) => sum + m.amount, 0)
+
+  /**
+   * 年間の合計金額を計算する（合計ラインが表示されていれば総合計、そうでなければ表示中カテゴリの合計）
+   */
+  const isTrendTotalVisible = !trendHiddenIds.has(TOTAL_LINE_ID)
+  const yearlyTotal = isTrendTotalVisible
+    ? yearlyGrandTotal
+    : yearlyCategoryTotals
+      .filter((cat) => !trendHiddenIds.has(cat.category_id))
+      .reduce((sum, cat) => sum + cat.amount, 0)
+  const isTrendFiltered =
+    !isTrendTotalVisible ||
+    trendData.categories.some((cat) => trendHiddenIds.has(cat.category_id))
+
+  /**
+   * 月間の合計金額を計算する（表示中カテゴリのみ合計）
+   */
+  const visibleMonthlyCategories = monthlyData.categories.filter(
+    (cat) => !monthlyHiddenIds.has(cat.category_id)
+  )
+  const monthlyFilteredTotal = visibleMonthlyCategories.reduce(
+    (sum, cat) => sum + cat.amount,
+    0
+  )
+  const isMonthlyFiltered = monthlyData.categories.some((cat) =>
+    monthlyHiddenIds.has(cat.category_id)
+  )
 
   return (
     <div className="space-y-6">
@@ -142,31 +197,110 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
 
           {/* 合計金額 */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <div className="text-sm text-gray-500 dark:text-gray-400">月間支出合計</div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              月間支出合計
+              {isMonthlyFiltered && (
+                <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                  選択中の項目
+                </span>
+              )}
+            </div>
             <div className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
-              {formatAmount(monthlyData.total_amount)}
+              {formatAmount(isMonthlyFiltered ? monthlyFilteredTotal : monthlyData.total_amount)}
             </div>
           </div>
 
           {/* カテゴリ別内訳（円グラフ） */}
           <CategoryBreakdown
             categories={monthlyData.categories}
+            hiddenIds={monthlyHiddenIds}
             isLoading={isLoading}
             totalAmount={monthlyData.total_amount}
+            onToggleCategory={toggleMonthlyCategory}
           />
         </div>
       ) : (
         <div className="space-y-4">
           {/* 年間合計 */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <div className="text-sm text-gray-500 dark:text-gray-400">年間支出合計（過去12ヶ月）</div>
-            <div className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
-              {formatAmount(yearlyTotal)}
+          <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div className="p-6">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                年間支出合計（過去12ヶ月）
+                {isTrendFiltered && (
+                  <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                    選択中の項目
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
+                {formatAmount(yearlyTotal)}
+              </div>
             </div>
+
+            {/* カテゴリ別の年間合計（折りたたみ） */}
+            {yearlyCategoryTotals.length > 0 && (
+              <div className="border-t border-gray-200 dark:border-gray-700">
+                <button
+                  aria-expanded={isYearlyBreakdownOpen}
+                  className="flex w-full items-center justify-between px-4 py-3 text-xs text-gray-500 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/40"
+                  onClick={() => setIsYearlyBreakdownOpen((prev) => !prev)}
+                >
+                  <span>カテゴリ別の年間合計（クリックで表示を切り替え）</span>
+                  {isYearlyBreakdownOpen ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </button>
+                {isYearlyBreakdownOpen && (
+                  <div className="divide-y divide-gray-100 px-4 pb-4 dark:divide-gray-700">
+                    {yearlyCategoryTotals.map((cat) => {
+                      const isVisible = !trendHiddenIds.has(cat.category_id)
+                      const percentage =
+                        yearlyGrandTotal > 0 ? (cat.amount / yearlyGrandTotal) * 100 : 0
+                      return (
+                        <button
+                          key={cat.category_id}
+                          className={`flex w-full items-center justify-between py-3 text-left first:pt-0 last:pb-0 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40 ${
+                            isVisible ? "" : "opacity-40"
+                          }`}
+                          onClick={() => toggleTrendLine(cat.category_id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="h-3 w-3 rounded-full"
+                              style={{
+                                backgroundColor: isVisible ? cat.category_color : "transparent",
+                                border: `2px solid ${cat.category_color}`,
+                              }}
+                            />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {cat.category_name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {formatAmount(cat.amount)}
+                            </span>
+                            <span className="w-14 text-right text-xs text-gray-500 dark:text-gray-400">
+                              {percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 年間推移グラフ */}
-          <TrendChart trendData={trendData} />
+          <TrendChart
+            hiddenIds={trendHiddenIds}
+            trendData={trendData}
+            onToggleLine={toggleTrendLine}
+          />
         </div>
       )}
     </div>

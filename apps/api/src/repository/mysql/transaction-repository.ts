@@ -42,9 +42,12 @@ export type UpdateTransactionInput = {
  */
 export interface TransactionRepository {
   findByFilter(filter: TransactionFilter): Promise<Transaction[]>
+  findByUserIdAndCategoryId(userId: number, categoryId: number): Promise<{ id: number; description: string }[]>
+  findUncategorizedByUserId(userId: number): Promise<{ id: number; description: string }[]>
   create(data: CreateTransactionInput): Promise<Transaction>
   createMany(data: CreateTransactionInput[]): Promise<Transaction[]>
   update(id: number, data: UpdateTransactionInput): Promise<Transaction>
+  updateCategoryByIds(ids: number[], categoryId: number): Promise<number>
   deleteById(id: number): Promise<void>
 }
 
@@ -133,6 +136,31 @@ export class PrismaTransactionRepository implements TransactionRepository {
       where: { id },
     })
     return this._toDomain(transaction)
+  }
+
+  async findByUserIdAndCategoryId(userId: number, categoryId: number): Promise<{ id: number; description: string }[]> {
+    const transactions = await this._prisma.transaction.findMany({
+      select: { description: true, id: true },
+      where: { categoryId, userId },
+    })
+    return transactions
+  }
+
+  async findUncategorizedByUserId(userId: number): Promise<{ id: number; description: string }[]> {
+    const transactions = await this._prisma.transaction.findMany({
+      select: { description: true, id: true },
+      where: { categoryId: 99, userId },
+    })
+    return transactions
+  }
+
+  async updateCategoryByIds(ids: number[], categoryId: number): Promise<number> {
+    if (ids.length === 0) return 0
+    const result = await this._prisma.transaction.updateMany({
+      data: { categoryId },
+      where: { id: { in: ids } },
+    })
+    return result.count
   }
 
   async deleteById(id: number): Promise<void> {
