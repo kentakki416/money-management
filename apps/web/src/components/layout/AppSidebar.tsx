@@ -8,9 +8,15 @@ import {
   Upload,
   Wallet,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import React, { useCallback } from "react"
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false },
+)
 
 import { useSidebar } from "@/features/sidebar/sidebar.context"
 
@@ -109,6 +115,13 @@ export default function AppSidebar() {
             </li>
           ))}
         </ul>
+
+        {/* kenttaki-bot */}
+        <div className="mt-auto flex justify-center pb-4">
+          <div className={`${isOpen ? "h-28 w-28" : "h-12 w-12"} transition-all duration-300`}>
+            <DotLottieReact autoplay loop src="/kenttaki-bot.lottie" />
+          </div>
+        </div>
       </nav>
     </aside>
   )

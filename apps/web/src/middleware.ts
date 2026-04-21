@@ -32,6 +32,6 @@ export const config = {
     /**
      * 静的ファイルと Next.js 内部パスを除外
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|lottie)$).*)",
   ],
 }

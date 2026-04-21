@@ -11,6 +11,7 @@ Turborepo + pnpm monorepo を使用したフルスタックアプリケーショ
   - [1. プロジェクトのコピー](#1-プロジェクトのコピー)
   - [2. 環境変数の設定](#2-環境変数の設定)
   - [3. セットアップ](#3-セットアップ)
+- [Claude Code（MCP設定）](#claude-codemcp設定)
 - [開発ルール](#開発ルール)
   - [1. 命名規則](#1-命名規則)
   - [2. 基本コマンド](#2-基本コマンド)
@@ -85,6 +86,15 @@ graph TB
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+## クイックリファレンス
+
+| ドキュメント | 内容 |
+|---|---|
+| [docs/mcp.md](docs/mcp.md) | MCP サーバーの一覧・使い方・追加方法 |
+| [.claude/README.md](.claude/README.md) | Claude Code の設定（Agents・Commands・Skills） |
+
+---
 
 ## 使い方
 
@@ -172,6 +182,16 @@ cd packages/schema && pnpm build
 cd ../..
 pnpm dev
 ```
+
+## Claude Code（MCP設定）
+
+このプロジェクトでは MCP サーバーの設定ファイル（`.mcp.json`）をリポジトリルートに配置しています。Claude Code 起動時に MCP サーバーを認識させるには、以下のコマンドを使用してください:
+
+```bash
+claude --mcp-config=./.mcp.json
+```
+
+MCP サーバーの詳細は [docs/mcp.md](docs/mcp.md) を参照してください。
 
 ## 開発ルール
 

@@ -1,7 +1,13 @@
 "use client"
-import { Upload } from "lucide-react"
+import { Upload, X } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import React, { useMemo, useState } from "react"
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false },
+)
 
 import type { CsvUploadResponse, PaymentSource } from "@repo/api-schema"
 
@@ -163,17 +169,42 @@ export default function CsvUploadForm({ existingFileNames, paymentSources }: Csv
           {uploading ? "アップロード中..." : "アップロード"}
         </button>
 
-        {result?.success && (
-          <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
-            {result.success}
-          </div>
-        )}
         {result?.error && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
             {result.error}
           </div>
         )}
       </div>
+
+      {/* 成功ポップアップ */}
+      {result?.success && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          {/* モーダル */}
+          <div className="relative mx-4 w-full max-w-sm rounded-2xl bg-white/90 p-8 text-center shadow-xl backdrop-blur-sm dark:bg-gray-800/90">
+            <button
+              className="absolute right-3 top-3 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              onClick={() => setResult(null)}
+            >
+              <X size={20} />
+            </button>
+            <p className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+              {result.success}
+            </p>
+            <button
+              className="mt-6 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+              onClick={() => setResult(null)}
+            >
+              閉じる
+            </button>
+          </div>
+          {/* 画面いっぱいのLottieアニメーション（モーダルの上に重ねる） */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-[80vh] w-[80vh]">
+              <DotLottieReact autoplay loop src="/celebration.lottie" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

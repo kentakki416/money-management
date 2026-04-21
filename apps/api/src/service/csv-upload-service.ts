@@ -3,6 +3,7 @@ import crypto from "crypto"
 import { PaymentSourceType } from "@repo/api-schema"
 
 import { logger } from "../log"
+import { decodeCsvBuffer } from "../utils/decode-csv-buffer"
 import {
   CategoryRuleRepository,
   CreateTransactionInput,
@@ -71,7 +72,7 @@ export const uploadCsv = async (
     return err(conflictError("このCSVファイルはすでにアップロード済みです"))
   }
 
-  const content = data.fileBuffer.toString("utf-8")
+  const content = decodeCsvBuffer(data.fileBuffer)
   const parser = getCsvParser(data.paymentSourceType)
   const parsed = parser(content)
 

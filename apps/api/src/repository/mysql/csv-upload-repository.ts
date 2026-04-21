@@ -129,7 +129,7 @@ export class PrismaCsvUploadRepository implements CsvUploadRepository {
       paymentSourceId: c.paymentSourceId,
       paymentSourceName: c.paymentSource.name,
       rowCount: c.rowCount,
-      uploadedAt: new Date(),
+      uploadedAt: c.createdAt,
       userId: c.userId,
     }
   }

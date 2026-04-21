@@ -1,6 +1,12 @@
 "use client"
 import { Wallet } from "lucide-react"
+import dynamic from "next/dynamic"
 import React from "react"
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false },
+)
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
@@ -101,12 +107,9 @@ export default function SignInPage() {
             Googleアカウントでログイン
           </button>
 
-          <div className="rounded-xl border border-brand-100 bg-brand-25 p-4 dark:border-brand-800 dark:bg-brand-900/20">
-            <p className="text-center text-xs text-brand-700 dark:text-brand-400">
-              ログインすることで、あなたの取引データを安全に管理できます。
-              <br />
-              データは暗号化されて保存されます。
-            </p>
+          {/* kenttaki-bot */}
+          <div className="mx-auto h-56 w-56">
+            <DotLottieReact autoplay loop src="/kenttaki-bot.lottie" />
           </div>
         </div>
       </div>
