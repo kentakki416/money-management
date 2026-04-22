@@ -4,7 +4,7 @@ import dynamic from "next/dynamic"
 import React from "react"
 
 const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  async () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
   { ssr: false },
 )
 

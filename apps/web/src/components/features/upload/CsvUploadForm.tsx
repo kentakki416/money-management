@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import React, { useMemo, useState } from "react"
 
 const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  async () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
   { ssr: false },
 )
 

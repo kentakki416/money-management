@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation"
 import React, { useCallback } from "react"
 
 const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  async () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
   { ssr: false },
 )
 
