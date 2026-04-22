@@ -3,7 +3,6 @@ import crypto from "crypto"
 import { PaymentSourceType } from "@repo/api-schema"
 
 import { logger } from "../log"
-import { decodeCsvBuffer } from "../utils/decode-csv-buffer"
 import {
   CategoryRuleRepository,
   CreateTransactionInput,
@@ -13,6 +12,7 @@ import {
 } from "../repository/mysql"
 import { CsvUpload } from "../types/domain"
 import { conflictError, err, notFoundError, ok, Result } from "../types/result"
+import { decodeCsvBuffer } from "../utils/decode-csv-buffer"
 
 import { categorizeManyDescriptions } from "./categorize-service"
 import { getCsvParser } from "./csv-parser"

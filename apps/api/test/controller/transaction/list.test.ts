@@ -148,6 +148,62 @@ describe("GET /api/transactions", () => {
     expect(res.body.transactions[0].description).toBe("自分の取引")
   })
 
+  it("前月末の取引が翌月フィルタに含まれないこと", async () => {
+    const { token, user } = await createTestUser()
+
+    const paymentSource = await testPrisma.paymentSource.create({
+      data: { name: "SMBCカード", type: "SMBC", userId: user.id },
+    })
+
+    await testPrisma.transaction.createMany({
+      data: [
+        {
+          amount: 500,
+          description: "2月末の取引",
+          isManual: true,
+          paymentSourceId: paymentSource.id,
+          transactionDate: new Date("2026-02-28"),
+          userId: user.id,
+        },
+        {
+          amount: 1000,
+          description: "3月初の取引",
+          isManual: true,
+          paymentSourceId: paymentSource.id,
+          transactionDate: new Date("2026-03-01"),
+          userId: user.id,
+        },
+        {
+          amount: 2000,
+          description: "3月末の取引",
+          isManual: true,
+          paymentSourceId: paymentSource.id,
+          transactionDate: new Date("2026-03-31"),
+          userId: user.id,
+        },
+        {
+          amount: 3000,
+          description: "4月初の取引",
+          isManual: true,
+          paymentSourceId: paymentSource.id,
+          transactionDate: new Date("2026-04-01"),
+          userId: user.id,
+        },
+      ],
+    })
+
+    const res = await request(app)
+      .get("/api/transactions")
+      .set("Authorization", `Bearer ${token}`)
+      .query({ month: 3, year: 2026 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.transactions).toHaveLength(2)
+    expect(res.body.transactions.map((t: { description: string }) => t.description).sort())
+      .toEqual(["3月初の取引", "3月末の取引"])
+    expect(res.body.total_amount).toBe(3000)
+  })
+
   it("取引が存在しない場合、200 と空配列を返す", async () => {
     const { token } = await createTestUser()
 

@@ -15,12 +15,29 @@ type Props = {
 }
 
 /**
+ * 1セルに表示する最大取引数
+ */
+const MAX_VISIBLE_TRANSACTIONS = 3
+
+/**
  * 金額をフォーマットする
  */
 const formatAmount = (amount: number) =>
   amount.toLocaleString("ja-JP", { currency: "JPY", style: "currency" })
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"]
+
+/**
+ * payment_source_color から薄い背景色を生成する
+ */
+const getTransactionStyle = (color: string | null | undefined) => {
+  const baseColor = color ?? "#6B7280"
+  return {
+    backgroundColor: `${baseColor}18`,
+    borderColor: `${baseColor}40`,
+    borderLeftColor: baseColor,
+  }
+}
 
 /**
  * 取引詳細モーダル
@@ -120,6 +137,87 @@ function TransactionDetailModal({
   )
 }
 
+/**
+ * 日付の取引一覧モーダル
+ */
+function DayTransactionsModal({
+  date,
+  onClose,
+  onSelectTransaction,
+  transactions: dayTransactions,
+}: {
+  date: string
+  onClose: () => void
+  onSelectTransaction: (t: Transaction) => void
+  transactions: Transaction[]
+}) {
+  const dateObj = new Date(date)
+  const formattedDate = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日`
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              {formattedDate}の取引（{dayTransactions.length}件）
+            </h2>
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+              onClick={onClose}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto px-5 py-4">
+            <div className="space-y-2">
+              {dayTransactions.map((t) => {
+                const txStyle = getTransactionStyle(t.payment_source_color)
+                return (
+                  <button
+                    key={t.id}
+                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-l-[3px] px-3 py-2.5 text-left shadow-sm transition-all hover:shadow-md"
+                    onClick={() => onSelectTransaction(t)}
+                    style={txStyle}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1 text-sm text-gray-700 dark:text-gray-200">
+                        <span className="shrink-0" title={t.is_manual ? "手動追加" : t.csv_upload ? `CSV: ${t.csv_upload.file_name}` : "不明"}>
+                          {t.is_manual ? "✏️" : t.csv_upload ? "📄" : ""}
+                        </span>
+                        <span className="truncate">{t.description}</span>
+                      </div>
+                      {t.category_name && (
+                        <div className="mt-0.5 flex items-center gap-1">
+                          <span
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ backgroundColor: t.category_color ?? undefined }}
+                          />
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400">{t.category_name}</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatAmount(t.amount)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function CalendarPageContent({ initialCalendarData, initialTransactions }: Props) {
   const [calendarData, setCalendarData] = useState(initialCalendarData)
   const [transactions, setTransactions] = useState(initialTransactions)
@@ -127,6 +225,7 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
   const [month, setMonth] = useState(initialCalendarData.month)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null)
 
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -204,11 +303,31 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
     calendarCells.push(dayMap.get(dateStr) ?? { amount: 0, date: dateStr, transaction_count: 0 })
   }
 
+  /**
+   * カレンダーの行数を計算する
+   */
+  const totalRows = Math.ceil(calendarCells.length / 7)
+
+  /**
+   * 日付の取引一覧モーダルから取引を選択する
+   */
+  const handleSelectTransactionFromDayModal = (t: Transaction) => {
+    setSelectedDayDate(null)
+    setSelectedTransaction(t)
+  }
+
+  /**
+   * 選択された日付の取引一覧を取得する
+   */
+  const selectedDayTransactions = selectedDayDate
+    ? transactionsByDate.get(selectedDayDate) ?? []
+    : []
+
   return (
-    <div className="space-y-6">
+    <div className="flex h-[calc(100vh-64px-48px)] flex-col gap-3">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+      <div className="flex shrink-0 items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">
           カレンダー
         </h1>
         <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -217,17 +336,17 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
       </div>
 
       {/* 月切り替え */}
-      <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex shrink-0 items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
           disabled={isLoading}
           onClick={goToPreviousMonth}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
 
         <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold text-gray-900 dark:text-white">
+          <span className="text-base font-semibold text-gray-900 dark:text-white">
             {`${year}年${month}月`}
           </span>
           {year === currentYear && month === currentMonth ? (
@@ -246,22 +365,22 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
         </div>
 
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
           disabled={isLoading}
           onClick={goToNextMonth}
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
 
       {/* カレンダーグリッド */}
-      <div className={`rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${isLoading ? "opacity-50" : ""}`}>
+      <div className={`flex min-h-0 flex-1 flex-col rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${isLoading ? "opacity-50" : ""}`}>
         {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
+        <div className="grid shrink-0 grid-cols-7 border-b border-gray-200 dark:border-gray-700">
           {WEEKDAY_LABELS.map((label, i) => (
             <div
               key={label}
-              className={`py-3 text-center text-xs font-semibold ${
+              className={`py-1 text-center text-xs font-semibold ${
                 i === 0
                   ? "text-red-500"
                   : i === 6
@@ -275,13 +394,16 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
         </div>
 
         {/* 日付セル */}
-        <div className="grid grid-cols-7">
+        <div
+          className="grid min-h-0 flex-1 grid-cols-7"
+          style={{ gridTemplateRows: `repeat(${totalRows}, 1fr)` }}
+        >
           {calendarCells.map((cell, index) => {
             if (!cell) {
               return (
                 <div
                   key={`empty-${index}`}
-                  className="min-h-[120px] border-b border-r border-gray-100 bg-gray-50/50 dark:border-gray-700/50 dark:bg-gray-800/50 md:min-h-[140px]"
+                  className="border-b border-r border-gray-100 bg-gray-50/50 dark:border-gray-700/50 dark:bg-gray-800/50"
                 />
               )
             }
@@ -289,15 +411,17 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
             const dayOfMonth = parseInt(cell.date.split("-")[2])
             const dayOfWeek = new Date(cell.date).getDay()
             const dayTransactions = transactionsByDate.get(cell.date) ?? []
+            const visibleTransactions = dayTransactions.slice(0, MAX_VISIBLE_TRANSACTIONS)
+            const hiddenCount = dayTransactions.length - MAX_VISIBLE_TRANSACTIONS
 
             return (
               <div
                 key={cell.date}
-                className="min-h-[120px] border-b border-r border-gray-100 p-1.5 dark:border-gray-700/50 md:min-h-[140px] md:p-2"
+                className="flex flex-col overflow-hidden border-b border-r border-gray-100 p-1 dark:border-gray-700/50 md:p-1.5"
               >
                 {/* 日付番号 */}
                 <div
-                  className={`text-xs font-medium md:text-sm ${
+                  className={`shrink-0 text-xs font-medium ${
                     dayOfWeek === 0
                       ? "text-red-500"
                       : dayOfWeek === 6
@@ -310,26 +434,33 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
 
                 {/* 取引ボタン一覧 */}
                 {dayTransactions.length > 0 && (
-                  <div className="mt-1 space-y-1">
-                    {dayTransactions.map((t) => (
-                      <button
-                        key={t.id}
-                        className="flex w-full items-center justify-between gap-1 rounded-md border border-gray-200 border-l-[3px] bg-white px-1.5 py-1 text-left transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
-                        onClick={() => setSelectedTransaction(t)}
-                        style={{ borderLeftColor: t.payment_source_color ?? "#6B7280" }}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-[10px] text-gray-600 dark:text-gray-300 md:text-xs">
-                          {/* 取得元の判別アイコン */}
-                          <span className="mr-0.5" title={t.is_manual ? "手動追加" : t.csv_upload ? `CSV: ${t.csv_upload.file_name}` : "不明"}>
-                            {t.is_manual ? "✏️" : t.csv_upload ? "📄" : ""}
+                  <div className="mt-0.5 min-h-0 flex-1 space-y-0.5">
+                    {visibleTransactions.map((t) => {
+                      const txStyle = getTransactionStyle(t.payment_source_color)
+                      return (
+                        <button
+                          key={t.id}
+                          className="flex w-full items-center justify-between gap-0.5 rounded border border-l-[3px] px-1 py-px text-left shadow-sm transition-all hover:shadow-md"
+                          onClick={() => setSelectedTransaction(t)}
+                          style={txStyle}
+                        >
+                          <span className="min-w-0 flex-1 truncate text-[10px] text-gray-700 dark:text-gray-200">
+                            {t.description}
                           </span>
-                          {t.description}
-                        </span>
-                        <span className="shrink-0 text-[10px] font-semibold text-gray-900 dark:text-white md:text-xs">
-                          {formatAmount(t.amount)}
-                        </span>
+                          <span className="shrink-0 text-[10px] font-semibold text-gray-900 dark:text-white">
+                            {formatAmount(t.amount)}
+                          </span>
+                        </button>
+                      )
+                    })}
+                    {hiddenCount > 0 && (
+                      <button
+                        className="w-full rounded px-1 py-px text-center text-[10px] font-medium text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                        onClick={() => setSelectedDayDate(cell.date)}
+                      >
+                        +{hiddenCount}件 もっと見る
                       </button>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
@@ -337,6 +468,16 @@ export default function CalendarPageContent({ initialCalendarData, initialTransa
           })}
         </div>
       </div>
+
+      {/* 日付の取引一覧モーダル */}
+      {selectedDayDate && (
+        <DayTransactionsModal
+          date={selectedDayDate}
+          onClose={() => setSelectedDayDate(null)}
+          onSelectTransaction={handleSelectTransactionFromDayModal}
+          transactions={selectedDayTransactions}
+        />
+      )}
 
       {/* 取引詳細モーダル */}
       {selectedTransaction && (

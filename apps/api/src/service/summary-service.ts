@@ -84,8 +84,10 @@ export const getTrend = async (
   const now = new Date()
   const monthLabels: { month: number; year: number }[] = []
   for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    monthLabels.push({ month: d.getMonth() + 1, year: d.getFullYear() })
+    let m = now.getMonth() + 1 - i
+    let y = now.getFullYear()
+    while (m <= 0) { m += 12; y-- }
+    monthLabels.push({ month: m, year: y })
   }
 
   const categoryMap = new Map<

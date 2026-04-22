@@ -1,5 +1,6 @@
 import { PrismaClient } from "../../prisma/generated/client"
 import { CategorySummary, DailySummary, MonthlyTrend } from "../../types/domain"
+import { createMonthStartDate, createNextMonthStartDate } from "../../utils/date"
 
 /**
  * 集計リポジトリのインターフェース
@@ -24,15 +25,15 @@ export class PrismaSummaryRepository implements SummaryRepository {
    * カレンダー用: 指定月の日別支出合計
    */
   async getDailySummary(userId: number, year: number, month: number): Promise<DailySummary[]> {
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
+    const startDate = createMonthStartDate(year, month)
+    const endDate = createNextMonthStartDate(year, month)
 
     const results = await this._prisma.transaction.groupBy({
       _count: { id: true },
       _sum: { amount: true },
       by: ["transactionDate"],
       where: {
-        transactionDate: { gte: startDate, lte: endDate },
+        transactionDate: { gte: startDate, lt: endDate },
         userId,
       },
     })
@@ -48,14 +49,14 @@ export class PrismaSummaryRepository implements SummaryRepository {
    * 月間カテゴリ別集計
    */
   async getMonthlyCategorySummary(userId: number, year: number, month: number): Promise<CategorySummary[]> {
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
+    const startDate = createMonthStartDate(year, month)
+    const endDate = createNextMonthStartDate(year, month)
 
     const results = await this._prisma.transaction.groupBy({
       _sum: { amount: true },
       by: ["categoryId"],
       where: {
-        transactionDate: { gte: startDate, lte: endDate },
+        transactionDate: { gte: startDate, lt: endDate },
         userId,
       },
     })
@@ -88,7 +89,10 @@ export class PrismaSummaryRepository implements SummaryRepository {
    */
   async getMonthlyTrend(userId: number, months: number): Promise<MonthlyTrend[]> {
     const now = new Date()
-    const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1)
+    let startMonth = now.getMonth() + 1 - months + 1
+    let startYear = now.getFullYear()
+    while (startMonth <= 0) { startMonth += 12; startYear-- }
+    const startDate = createMonthStartDate(startYear, startMonth)
 
     const transactions = await this._prisma.transaction.findMany({
       include: { category: true },

@@ -1,5 +1,6 @@
 import { Prisma as PrismaTypes, PrismaClient } from "../../prisma/generated/client"
 import { Transaction } from "../../types/domain"
+import { createMonthStartDate, createNextDayDate, createNextMonthStartDate, formatDateString } from "../../utils/date"
 
 /**
  * 取引フィルタ条件
@@ -72,16 +73,15 @@ export class PrismaTransactionRepository implements TransactionRepository {
 
     if (filter.date) {
       const d = new Date(filter.date)
-      const nextDay = new Date(d)
-      nextDay.setDate(nextDay.getDate() + 1)
+      const nextDay = createNextDayDate(filter.date)
       where.transactionDate = { gte: d, lt: nextDay }
     } else if (filter.year !== undefined && filter.month !== undefined) {
-      const start = new Date(filter.year, filter.month - 1, 1)
-      const end = new Date(filter.year, filter.month, 1)
+      const start = createMonthStartDate(filter.year, filter.month)
+      const end = createNextMonthStartDate(filter.year, filter.month)
       where.transactionDate = { gte: start, lt: end }
     } else if (filter.year !== undefined) {
-      const start = new Date(filter.year, 0, 1)
-      const end = new Date(filter.year + 1, 0, 1)
+      const start = new Date(formatDateString(filter.year, 1, 1))
+      const end = new Date(formatDateString(filter.year + 1, 1, 1))
       where.transactionDate = { gte: start, lt: end }
     }
 
