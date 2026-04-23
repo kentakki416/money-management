@@ -17,7 +17,7 @@ CSVアップロードによる取引の一括登録、自動カテゴリ分類�
 
 ### デモ動画
 
-https://github.com/user-attachments/assets/money-management.mov
+https://github.com/kentakki416/money-management/raw/main/images/money-management.mp4
 
 </div>
 
