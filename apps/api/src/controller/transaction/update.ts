@@ -40,6 +40,7 @@ export class TransactionUpdateController {
       existingTransaction.categoryId,
       existingTransaction.description,
       userId,
+      data.add_rule_flag ?? false,
       this.transactionRepository,
       this.userCategoryRuleRepository
     )

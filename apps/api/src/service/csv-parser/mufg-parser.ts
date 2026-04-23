@@ -2,6 +2,17 @@ import { logger } from "../../log"
 import { ParsedTransaction } from "../../types/domain/transaction"
 import { convertCommaAmountToNumber, convertFullWidthToHalfWidth, splitCsvLineWithQuotes } from "../../utils/normalize"
 
+/**
+ * 説明文から分割払いの回数を抽出する（例: "15回払い 4回目" → 15）
+ * 分割払いでない場合は null を返す
+ */
+const extractInstallmentCount = (description: string): number | null => {
+  const match = description.match(/(\d+)回払い/)
+  if (!match) return null
+  const count = parseInt(match[1], 10)
+  return count > 1 ? count : null
+}
+
 const parseJapaneseDate = (dateStr: string): Date | null => {
   const normalized = convertFullWidthToHalfWidth(dateStr)
   const match = normalized.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
@@ -43,10 +54,25 @@ export const parseMufgCsv = (csvContent: string): ParsedTransaction[] => {
     // ご利用金額（7列目）
     const amountStr = cols[6] ?? "0"
     try {
-      const amount = convertCommaAmountToNumber(convertFullWidthToHalfWidth(amountStr))
+      let amount = convertCommaAmountToNumber(convertFullWidthToHalfWidth(amountStr))
       if (amount <= 0) {
         logger.info("MUFG CSV: skipped line (amount <= 0)", { amount, line: lineIndex + 1 })
         continue
+      }
+
+      /**
+       * 分割払いの場合は総額を回数で割って1回あたりの支払額にする
+       */
+      const installmentCount = extractInstallmentCount(description)
+      if (installmentCount) {
+        const originalAmount = amount
+        amount = Math.round(amount / installmentCount)
+        logger.info("MUFG CSV: installment payment detected", {
+          installmentCount,
+          line: lineIndex + 1,
+          originalAmount,
+          perInstallmentAmount: amount,
+        })
       }
 
       transactions.push({

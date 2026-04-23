@@ -125,10 +125,10 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* ヘッダー + 表示モード切り替え */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">
           グラフ
         </h1>
         <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-800">
@@ -156,9 +156,9 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
       </div>
 
       {viewMode === "month" ? (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* 月切り替え */}
-          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800">
             <button
               className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
               disabled={isLoading}
@@ -195,44 +195,31 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
             </button>
           </div>
 
-          {/* 合計金額 */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              月間支出合計
-              {isMonthlyFiltered && (
-                <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
-                  選択中の項目
-                </span>
-              )}
-            </div>
-            <div className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
-              {formatAmount(isMonthlyFiltered ? monthlyFilteredTotal : monthlyData.total_amount)}
-            </div>
-          </div>
-
-          {/* カテゴリ別内訳（円グラフ） */}
+          {/* カテゴリ別内訳（円グラフ）+ 月間支出合計 */}
           <CategoryBreakdown
             categories={monthlyData.categories}
+            filteredTotal={monthlyFilteredTotal}
             hiddenIds={monthlyHiddenIds}
+            isFiltered={isMonthlyFiltered}
             isLoading={isLoading}
             totalAmount={monthlyData.total_amount}
             onToggleCategory={toggleMonthlyCategory}
           />
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* 年間合計 */}
           <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <div className="p-6">
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 年間支出合計（過去12ヶ月）
                 {isTrendFiltered && (
-                  <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
-                    選択中の項目
+                  <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                    選択中
                   </span>
                 )}
               </div>
-              <div className="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
+              <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {formatAmount(yearlyTotal)}
               </div>
             </div>
@@ -242,7 +229,7 @@ export default function ChartsPageContent({ initialMonthlyData, trendData }: Pro
               <div className="border-t border-gray-200 dark:border-gray-700">
                 <button
                   aria-expanded={isYearlyBreakdownOpen}
-                  className="flex w-full items-center justify-between px-4 py-3 text-xs text-gray-500 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/40"
+                  className="flex w-full items-center justify-between px-4 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/40"
                   onClick={() => setIsYearlyBreakdownOpen((prev) => !prev)}
                 >
                   <span>カテゴリ別の年間合計（クリックで表示を切り替え）</span>

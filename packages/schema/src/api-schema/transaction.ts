@@ -110,6 +110,7 @@ export type UpdateTransactionPathParam = z.infer<typeof updateTransactionPathPar
  * 取引更新のリクエストスキーマ
  */
 export const updateTransactionRequestSchema = z.object({
+  add_rule_flag: z.boolean().optional(),
   amount: z.number().int().min(1).optional(),
   category_id: z.number().int().nullable().optional(),
   description: z.string().min(1).max(500).optional(),

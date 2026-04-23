@@ -23,7 +23,7 @@ export default async function UploadPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+      <h1 className="text-xl font-bold text-gray-800 dark:text-white">
         CSVアップロード
       </h1>
       <CsvUploadForm

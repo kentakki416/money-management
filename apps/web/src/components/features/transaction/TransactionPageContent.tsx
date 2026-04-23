@@ -12,7 +12,7 @@ import type {
 import {
   createTransaction,
   deleteTransaction,
-  updateTransaction,
+  updateTransactionCategory,
 } from "@/app/(dashboard)/transactions/actions"
 
 interface TransactionPageContentProps {
@@ -37,6 +37,11 @@ export default function TransactionPageContent({
   const [filterYear, setFilterYear] = useState(now.getFullYear())
   const [filterMonth, setFilterMonth] = useState(now.getMonth() + 1)
   const [filterCategoryId, setFilterCategoryId] = useState<number | "">("")
+
+  const [categoryChangeModal, setCategoryChangeModal] = useState<{
+    categoryId: number
+    txId: number
+  } | null>(null)
 
   const [form, setForm] = useState({
     amount: 0,
@@ -99,8 +104,18 @@ export default function TransactionPageContent({
     await refetchTransactions()
   }
 
-  const handleCategoryChange = async (txId: number, categoryId: number) => {
-    await updateTransaction(txId, { category_id: categoryId })
+  const handleCategoryChange = (txId: number, categoryId: number) => {
+    setCategoryChangeModal({ categoryId, txId })
+  }
+
+  const handleCategoryChangeConfirm = async (addRuleFlag: boolean) => {
+    if (!categoryChangeModal) return
+    await updateTransactionCategory(
+      categoryChangeModal.txId,
+      categoryChangeModal.categoryId,
+      addRuleFlag
+    )
+    setCategoryChangeModal(null)
     await refetchTransactions()
   }
 
@@ -108,7 +123,7 @@ export default function TransactionPageContent({
     <>
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
           取引一覧
         </h1>
         <button
@@ -328,7 +343,7 @@ export default function TransactionPageContent({
                     <select
                       className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs transition-colors focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       value={tx.category_id ?? ""}
-                      onChange={async (e) =>
+                      onChange={(e) =>
                         handleCategoryChange(tx.id, Number(e.target.value))
                       }
                     >
@@ -371,6 +386,34 @@ export default function TransactionPageContent({
           </table>
         </div>
       </div>
+
+      {/* カテゴリ変更時のルール追加確認モーダル */}
+      {categoryChangeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
+            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+              分類ルールに追加しますか？
+            </h3>
+            <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+              この変更を自動分類ルールに追加すると、今後のCSVアップロード時に同じ摘要の取引が自動的にこのカテゴリに分類されます。
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                onClick={async () => handleCategoryChangeConfirm(false)}
+              >
+                いいえ
+              </button>
+              <button
+                className="flex-1 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+                onClick={async () => handleCategoryChangeConfirm(true)}
+              >
+                はい
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

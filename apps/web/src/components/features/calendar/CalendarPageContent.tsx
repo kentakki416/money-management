@@ -17,7 +17,7 @@ type Props = {
 /**
  * 1セルに表示する最大取引数
  */
-const MAX_VISIBLE_TRANSACTIONS = 3
+const MAX_VISIBLE_TRANSACTIONS = 5
 
 /**
  * 金額をフォーマットする

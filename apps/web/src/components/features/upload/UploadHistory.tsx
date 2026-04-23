@@ -1,15 +1,23 @@
 "use client"
 import { History, Trash2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import type { CsvUpload } from "@repo/api-schema"
 
 import { deleteCsvUpload } from "@/app/(dashboard)/upload/actions"
+import { DataTable, type Column } from "@/components/ui/table"
 import { useToast } from "@/features/toast/toast.context"
 
 interface UploadHistoryProps {
   initialHistory: CsvUpload[]
+}
+
+/**
+ * DataTable用の行データ型（検索用にフラットなフィールドを持つ）
+ */
+type UploadRow = CsvUpload & {
+  formatted_date: string
 }
 
 export default function UploadHistory({ initialHistory }: UploadHistoryProps) {
@@ -39,83 +47,76 @@ export default function UploadHistory({ initialHistory }: UploadHistoryProps) {
     }
   }
 
+  const rows: UploadRow[] = useMemo(() =>
+    initialHistory.map((upload) => ({
+      ...upload,
+      formatted_date: new Date(upload.uploaded_at).toLocaleString("ja-JP"),
+    })),
+  [initialHistory])
+
+  const columns: Column<UploadRow>[] = useMemo(() => [
+    {
+      header: "ファイル名",
+      key: "file_name",
+      className: "px-5 py-4 text-sm font-medium text-gray-900 dark:text-white",
+    },
+    {
+      header: "支払い元",
+      key: "payment_source_name",
+      className: "px-5 py-4 text-sm text-gray-600 dark:text-gray-300",
+    },
+    {
+      header: "取込件数",
+      render: (row) => (
+        <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+          {row.row_count}件
+        </span>
+      ),
+    },
+    {
+      header: "アップロード日時",
+      key: "formatted_date",
+    },
+    {
+      className: "px-5 py-4 text-right",
+      header: "操作",
+      render: (row) => (
+        <div className="flex justify-end">
+          <button
+            aria-label="削除"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            onClick={() => setDeletingUpload(row)}
+            title="このCSVと関連する取引を削除"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [])
+
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex items-center gap-3 border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-            <History className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+      <div>
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+            <History className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
             アップロード履歴
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-100 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50">
-              <tr>
-                <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">
-                  ファイル名
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">
-                  支払い元
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">
-                  取込件数
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">
-                  アップロード日時
-                </th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {initialHistory.map((upload) => (
-                <tr
-                  key={upload.id}
-                  className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                >
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                    {upload.file_name}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
-                    {upload.payment_source_name}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-                      {upload.row_count}件
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                    {new Date(upload.uploaded_at).toLocaleString("ja-JP")}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      aria-label="削除"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                      onClick={() => setDeletingUpload(upload)}
-                      title="このCSVと関連する取引を削除"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {initialHistory.length === 0 && (
-                <tr>
-                  <td
-                    className="px-6 py-12 text-center text-gray-400"
-                    colSpan={5}
-                  >
-                    アップロード履歴がありません
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={rows}
+          emptyMessage="アップロード履歴がありません"
+          getRowKey={(row) => row.id}
+          pagination={{ pageSizeOptions: [5, 10, 20] }}
+          search={{
+            filterKeys: ["file_name", "payment_source_name"],
+            placeholder: "ファイル名・支払い元で検索...",
+          }}
+        />
       </div>
 
       {/* 削除確認モーダル */}

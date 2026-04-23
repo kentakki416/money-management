@@ -1,5 +1,5 @@
 "use client"
-import { Pencil, Plus, Search, Trash2, X } from "lucide-react"
+import { Pencil, Plus, Trash2, X } from "lucide-react"
 import React, { useMemo, useState } from "react"
 
 import type {
@@ -14,6 +14,7 @@ import {
   deleteUserCategoryRule,
   updateUserCategoryRule,
 } from "@/app/(dashboard)/rules/actions"
+import { DataTable, type Column, type FilterConfig } from "@/components/ui/table"
 
 type Props = {
   categories: Category[]
@@ -46,11 +47,15 @@ const buildCategoryMap = (categories: Category[]): Map<number, Category> => {
   return map
 }
 
+/**
+ * DataTable用の行データ型（検索・フィルタ用にフラットなフィールドを持つ）
+ */
+type RuleRow = UserCategoryRule & {
+  category_name: string
+}
+
 export default function RulesPageContent({ categories, initialRules }: Props) {
   const [rules, setRules] = useState<UserCategoryRule[]>(initialRules)
-  const [searchText, setSearchText] = useState("")
-  const [filterCategoryId, setFilterCategoryId] = useState<number | "">("")
-  const [filterMatchType, setFilterMatchType] = useState<MatchType | "">("")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<UserCategoryRule | null>(null)
   const [deletingRule, setDeletingRule] = useState<UserCategoryRule | null>(null)
@@ -70,34 +75,16 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
   const categoryMap = useMemo(() => buildCategoryMap(categories), [categories])
 
   /**
-   * 検索・フィルタを適用したルールリストを計算する
+   * ルールを優先度の高い順でソートしてDataTable用の行データに変換する
    */
-  const filteredRules = useMemo(() => {
-    return rules.filter((rule) => {
-      if (filterMatchType && rule.match_type !== filterMatchType) return false
-      if (filterCategoryId !== "" && rule.category_id !== filterCategoryId) return false
-      if (searchText) {
-        const q = searchText.toLowerCase()
-        const cat = categoryMap.get(rule.category_id)
-        const catName = cat?.name ?? ""
-        if (
-          !rule.keyword.toLowerCase().includes(q) &&
-          !catName.toLowerCase().includes(q)
-        ) {
-          return false
-        }
-      }
-      return true
-    })
-  }, [rules, filterMatchType, filterCategoryId, searchText, categoryMap])
-
-  /**
-   * ルールを優先度の高い順でソートしてから表示する
-   */
-  const sortedRules = useMemo(
-    () => [...filteredRules].sort((a, b) => b.priority - a.priority),
-    [filteredRules]
-  )
+  const sortedRows: RuleRow[] = useMemo(() =>
+    [...rules]
+      .sort((a, b) => b.priority - a.priority)
+      .map((rule) => ({
+        ...rule,
+        category_name: categoryMap.get(rule.category_id)?.name ?? "",
+      })),
+  [rules, categoryMap])
 
   const handleOpenCreate = () => {
     setForm(initialForm)
@@ -211,14 +198,102 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
     }
   }
 
-  const hasFilters = searchText || filterCategoryId !== "" || filterMatchType
+  const columns: Column<RuleRow>[] = useMemo(() => [
+    {
+      header: "キーワード",
+      render: (row) => (
+        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+          {row.keyword}
+        </code>
+      ),
+    },
+    {
+      header: "マッチ方式",
+      render: (row) => (
+        <span
+          className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${
+            row.match_type === "EXACT"
+              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+          }`}
+        >
+          {MATCH_TYPE_LABEL[row.match_type]}
+        </span>
+      ),
+    },
+    {
+      header: "カテゴリ",
+      render: (row) => {
+        const cat = categoryMap.get(row.category_id)
+        return cat ? (
+          <span className="inline-flex items-center gap-2">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: cat.color }}
+            />
+            <span className="text-gray-900 dark:text-white">
+              {cat.name}
+            </span>
+          </span>
+        ) : (
+          <span className="text-gray-400">未設定</span>
+        )
+      },
+    },
+    {
+      className: "px-5 py-4 text-sm text-gray-700 dark:text-gray-300",
+      header: "優先度",
+      key: "priority",
+    },
+    {
+      className: "px-5 py-4 text-right",
+      header: "操作",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            aria-label="編集"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            onClick={() => handleOpenEdit(row)}
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            aria-label="削除"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            onClick={() => setDeletingRule(row)}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ], [categoryMap])
+
+  const filters: FilterConfig<RuleRow>[] = useMemo(() => [
+    {
+      key: "match_type",
+      label: "マッチ方式",
+      options: [
+        { label: "完全一致", value: "EXACT" },
+        { label: "部分一致", value: "PARTIAL" },
+      ],
+    },
+    {
+      key: "category_name",
+      label: "カテゴリ",
+      options: categories.map((cat) => ({
+        label: cat.name,
+        value: cat.name,
+      })),
+    },
+  ], [categories])
 
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
             分類ルール
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -260,164 +335,21 @@ export default function RulesPageContent({ categories, initialRules }: Props) {
         </p>
       </div>
 
-      {/* フィルタ */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
-            <input
-              className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500"
-              placeholder="キーワード・カテゴリ名で検索..."
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            value={filterMatchType}
-            onChange={(e) => setFilterMatchType(e.target.value as MatchType | "")}
-          >
-            <option value="">すべてのマッチタイプ</option>
-            <option value="PARTIAL">部分一致</option>
-            <option value="EXACT">完全一致</option>
-          </select>
-
-          <select
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            value={filterCategoryId}
-            onChange={(e) =>
-              setFilterCategoryId(e.target.value === "" ? "" : Number(e.target.value))
-            }
-          >
-            <option value="">すべてのカテゴリ</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-
-          {hasFilters && (
-            <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
-              onClick={() => {
-                setSearchText("")
-                setFilterCategoryId("")
-                setFilterMatchType("")
-              }}
-            >
-              <X size={14} />
-              クリア
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* ルール一覧 */}
-      <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        {sortedRules.length === 0 ? (
-          <div className="p-10 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {rules.length === 0
-                ? "まだルールが登録されていません。「新規追加」から最初のルールを作成しましょう。"
-                : "条件に一致するルールがありません"}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-400">
-                    キーワード
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-400">
-                    マッチ方式
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-400">
-                    カテゴリ
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-400">
-                    優先度
-                  </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-400">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {sortedRules.map((rule) => {
-                  const cat = categoryMap.get(rule.category_id)
-                  return (
-                    <tr
-                      key={rule.id}
-                      className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40"
-                    >
-                      <td className="px-4 py-3">
-                        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                          {rule.keyword}
-                        </code>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${
-                            rule.match_type === "EXACT"
-                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                              : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                          }`}
-                        >
-                          {MATCH_TYPE_LABEL[rule.match_type]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {cat ? (
-                          <span className="inline-flex items-center gap-2">
-                            <span
-                              className="h-2.5 w-2.5 rounded-full"
-                              style={{ backgroundColor: cat.color }}
-                            />
-                            <span className="text-gray-900 dark:text-white">
-                              {cat.name}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">未設定</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                        {rule.priority}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            aria-label="編集"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                            onClick={() => handleOpenEdit(rule)}
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            aria-label="削除"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                            onClick={() => setDeletingRule(rule)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={sortedRows}
+        emptyMessage={rules.length === 0
+          ? "まだルールが登録されていません。「新規追加」から最初のルールを作成しましょう。"
+          : "条件に一致するルールがありません"}
+        filters={filters}
+        getRowKey={(row) => row.id}
+        pagination={{ pageSizeOptions: [10, 20, 50] }}
+        search={{
+          filterKeys: ["keyword", "category_name"],
+          placeholder: "キーワード・カテゴリ名で検索...",
+        }}
+      />
 
       {/* 作成モーダル */}
       {isCreateModalOpen && (

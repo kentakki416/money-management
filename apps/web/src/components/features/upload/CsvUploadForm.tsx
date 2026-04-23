@@ -93,82 +93,81 @@ export default function CsvUploadForm({ existingFileNames, paymentSources }: Csv
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-500/10">
-          <Upload className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <Upload className="h-4 w-4 text-brand-600 dark:text-brand-400" />
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
           CSVファイルをアップロード
         </h2>
       </div>
-      <div className="space-y-4">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            支払い元
-          </label>
-          <select
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            value={selectedSourceId}
-            onChange={(e) =>
-              setSelectedSourceId(
-                e.target.value ? Number(e.target.value) : ""
-              )
-            }
-          >
-            <option value="">選択してください</option>
-            {paymentSources
-              .filter((s) => s.type !== "MANUAL")
-              .map((source) => (
-                <option key={source.id} value={source.id}>
-                  {source.name} ({source.type})
-                </option>
-              ))}
-          </select>
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              支払い元
+            </label>
+            <select
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-[9px] text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              value={selectedSourceId}
+              onChange={(e) =>
+                setSelectedSourceId(
+                  e.target.value ? Number(e.target.value) : ""
+                )
+              }
+            >
+              <option value="">選択してください</option>
+              {paymentSources
+                .filter((s) => s.type !== "MANUAL")
+                .map((source) => (
+                  <option key={source.id} value={source.id}>
+                    {source.name} ({source.type})
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              CSVファイル
+            </label>
+            <input
+              accept=".csv"
+              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm transition-colors file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:bg-gray-700 dark:text-white ${
+                isDuplicateFileName
+                  ? "border-red-400 dark:border-red-500"
+                  : "border-gray-300 dark:border-gray-600"
+              }`}
+              type="file"
+              onChange={(e) => {
+                setFile(e.target.files?.[0] ?? null)
+                setResult(null)
+              }}
+            />
+          </div>
         </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            CSVファイル
-          </label>
-          <input
-            accept=".csv"
-            className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm transition-colors file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-4 file:py-1.5 file:text-sm file:font-medium file:text-brand-600 hover:file:bg-brand-100 dark:bg-gray-700 dark:text-white ${
-              isDuplicateFileName
-                ? "border-red-400 dark:border-red-500"
-                : "border-gray-300 dark:border-gray-600"
-            }`}
-            type="file"
-            onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null)
-              setResult(null)
-            }}
-          />
-          <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             同名のCSVファイルはアップロードできません。ファイル名は
-            <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-              smbc-transaction-期間.csv
-            </code>
-            のように、支払い元と期間が分かる形式を推奨します（例:
             <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
               smbc-transaction-202604.csv
             </code>
-            ）
+            のように支払い元と期間が分かる形式を推奨
           </p>
-          {isDuplicateFileName && (
-            <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
-              同名のファイル「{file?.name}」はすでにアップロード済みです。別の名前に変更してください
-            </p>
-          )}
+          <button
+            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+            disabled={!file || !selectedSourceId || uploading || isDuplicateFileName}
+            onClick={handleUpload}
+          >
+            <Upload size={16} />
+            {uploading ? "アップロード中..." : "アップロード"}
+          </button>
         </div>
-        <button
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
-          disabled={!file || !selectedSourceId || uploading || isDuplicateFileName}
-          onClick={handleUpload}
-        >
-          <Upload size={16} />
-          {uploading ? "アップロード中..." : "アップロード"}
-        </button>
-
+        {isDuplicateFileName && (
+          <p className="text-xs text-red-600 dark:text-red-400">
+            同名のファイル「{file?.name}」はすでにアップロード済みです。別の名前に変更してください
+          </p>
+        )}
         {result?.error && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
             {result.error}

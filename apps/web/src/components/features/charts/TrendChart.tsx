@@ -143,7 +143,7 @@ export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props
         <h2 className="font-semibold text-gray-900 dark:text-white">月次推移（過去12ヶ月）</h2>
       </div>
 
-      <div className="p-4">
+      <div className="px-4 pb-0 pt-4">
         <svg
           className="w-full"
           preserveAspectRatio="xMidYMid meet"
@@ -305,10 +305,7 @@ export default function TrendChart({ hiddenIds, onToggleLine, trendData }: Props
       </div>
 
       {/* インタラクティブな凡例（クリックで表示切替） */}
-      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-        <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-          クリックで表示を切り替え
-        </div>
+      <div className="border-t border-gray-200 px-4 py-2 dark:border-gray-700">
         <div className="flex flex-wrap gap-2">
           {/* 合計 */}
           <button

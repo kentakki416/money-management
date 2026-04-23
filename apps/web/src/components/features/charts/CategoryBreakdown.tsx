@@ -5,7 +5,9 @@ import type { CategorySummary } from "@repo/api-schema"
 
 type Props = {
   categories: CategorySummary[]
+  filteredTotal?: number
   hiddenIds: Set<number>
+  isFiltered?: boolean
   isLoading: boolean
   onToggleCategory: (id: number) => void
   totalAmount: number
@@ -79,7 +81,9 @@ const calculatePieSlices = (categories: CategorySummary[]): PieSlice[] => {
 
 export default function CategoryBreakdown({
   categories,
+  filteredTotal,
   hiddenIds,
+  isFiltered = false,
   isLoading,
   onToggleCategory,
   totalAmount,
@@ -107,8 +111,21 @@ export default function CategoryBreakdown({
 
   return (
     <div className={`rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 ${isLoading ? "opacity-50" : ""}`}>
-      <div className="border-b border-gray-200 p-4 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
         <h2 className="font-semibold text-gray-900 dark:text-white">カテゴリ別内訳</h2>
+        <div className="text-right">
+          <div className="flex items-center justify-end gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            月間支出合計
+            {isFiltered && (
+              <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                選択中
+              </span>
+            )}
+          </div>
+          <div className="text-lg font-bold text-gray-900 dark:text-white">
+            {formatAmount(isFiltered && filteredTotal !== undefined ? filteredTotal : totalAmount)}
+          </div>
+        </div>
       </div>
 
       {/* 円グラフ */}
@@ -155,42 +172,42 @@ export default function CategoryBreakdown({
         </svg>
       </div>
 
-      {/* カテゴリリスト（クリックで表示切替） */}
+      {/* カテゴリリスト（クリックで表示切替・2列） */}
       <div className="border-t border-gray-200 p-4 dark:border-gray-700">
         <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
           クリックで表示を切り替え
         </div>
-        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           {categories.map((cat) => {
             const isHovered = hoveredCategoryId === cat.category_id
             const isVisible = !hiddenIds.has(cat.category_id)
             return (
               <button
                 key={cat.category_id}
-                className={`flex w-full items-center justify-between py-3 text-left first:pt-0 last:pb-0 transition-colors ${
+                className={`flex items-center justify-between rounded-lg px-2 py-2 text-left transition-colors ${
                   isHovered ? "bg-gray-50 dark:bg-gray-700/40" : ""
                 } ${isVisible ? "" : "opacity-40"}`}
                 onClick={() => onToggleCategory(cat.category_id)}
                 onMouseEnter={() => setHoveredCategoryId(cat.category_id)}
                 onMouseLeave={() => setHoveredCategoryId(null)}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 overflow-hidden">
                   <div
-                    className="h-3 w-3 rounded-full"
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{
                       backgroundColor: isVisible ? cat.category_color : "transparent",
                       border: `2px solid ${cat.category_color}`,
                     }}
                   />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="truncate text-base font-medium text-gray-700 dark:text-gray-300">
                     {cat.category_name}
                   </span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                <div className="ml-1 flex shrink-0 items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-900 dark:text-white">
                     {formatAmount(cat.amount)}
                   </span>
-                  <span className="w-14 text-right text-xs text-gray-500 dark:text-gray-400">
+                  <span className="w-10 text-right text-[10px] text-gray-500 dark:text-gray-400">
                     {cat.percentage.toFixed(1)}%
                   </span>
                 </div>

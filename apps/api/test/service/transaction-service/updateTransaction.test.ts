@@ -84,6 +84,7 @@ describe("updateTransaction", () => {
       1,
       "Suica利用",
       1,
+      true,
       mockTransactionRepository,
       mockUserCategoryRuleRepository
     )
@@ -93,7 +94,7 @@ describe("updateTransaction", () => {
     expect(mockUpdate).toHaveBeenCalledWith(1, data)
   })
 
-  it("カテゴリが変更された場合はupsertByKeywordが呼ばれる", async () => {
+  it("カテゴリが変更されaddRuleFlagがtrueの場合はupsertByKeywordが呼ばれる", async () => {
     // Arrange
     mockUpdate.mockResolvedValue(mockTransaction)
     mockUpsertByKeyword.mockResolvedValue(mockUserCategoryRule)
@@ -110,6 +111,7 @@ describe("updateTransaction", () => {
       previousCategoryId,
       "Suica利用",
       1,
+      true,
       mockTransactionRepository,
       mockUserCategoryRuleRepository
     )
@@ -117,6 +119,31 @@ describe("updateTransaction", () => {
     // Assert
     expect(mockUpsertByKeyword).toHaveBeenCalledWith(1, "Suica利用", 2)
     expect(mockUpsertByKeyword).toHaveBeenCalledTimes(1)
+  })
+
+  it("カテゴリが変更されてもaddRuleFlagがfalseの場合はupsertByKeywordが呼ばれない", async () => {
+    // Arrange
+    mockUpdate.mockResolvedValue(mockTransaction)
+
+    const data: UpdateTransactionInput = {
+      categoryId: 2,
+    }
+    const previousCategoryId = 1
+
+    // Act
+    await updateTransaction(
+      1,
+      data,
+      previousCategoryId,
+      "Suica利用",
+      1,
+      false,
+      mockTransactionRepository,
+      mockUserCategoryRuleRepository
+    )
+
+    // Assert
+    expect(mockUpsertByKeyword).not.toHaveBeenCalled()
   })
 
   it("カテゴリが変更されない場合はupsertByKeywordが呼ばれない", async () => {
@@ -135,6 +162,7 @@ describe("updateTransaction", () => {
       previousCategoryId,
       "Suica利用",
       1,
+      true,
       mockTransactionRepository,
       mockUserCategoryRuleRepository
     )
@@ -158,6 +186,7 @@ describe("updateTransaction", () => {
       1,
       "Suica利用",
       1,
+      true,
       mockTransactionRepository,
       mockUserCategoryRuleRepository
     )
@@ -181,6 +210,7 @@ describe("updateTransaction", () => {
       1,
       "Suica利用",
       1,
+      true,
       mockTransactionRepository,
       mockUserCategoryRuleRepository
     )
@@ -201,6 +231,7 @@ describe("updateTransaction", () => {
         1,
         "Suica利用",
         1,
+        false,
         mockTransactionRepository,
         mockUserCategoryRuleRepository
       )

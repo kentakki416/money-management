@@ -26,6 +26,22 @@ export const updateTransaction = async (
 }
 
 /**
+ * 取引のカテゴリを更新する（ルール追加フラグ付き）
+ */
+export const updateTransactionCategory = async (
+  id: number,
+  categoryId: number,
+  addRuleFlag: boolean
+) => {
+  const data: UpdateTransactionRequest = {
+    add_rule_flag: addRuleFlag,
+    category_id: categoryId,
+  }
+  await apiClient.put(`/api/transactions/${id}`, data)
+  revalidatePath("/transactions")
+}
+
+/**
  * 取引を削除する
  */
 export const deleteTransaction = async (id: number) => {

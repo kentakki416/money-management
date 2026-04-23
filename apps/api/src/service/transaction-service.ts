@@ -81,6 +81,7 @@ export const updateTransaction = async (
   previousCategoryId: number | null | undefined,
   description: string,
   userId: number,
+  addRuleFlag: boolean,
   transactionRepository: TransactionRepository,
   userCategoryRuleRepository: UserCategoryRuleRepository
 ): Promise<Result<Transaction>> => {
@@ -89,6 +90,7 @@ export const updateTransaction = async (
   const transaction = await transactionRepository.update(id, data)
 
   if (
+    addRuleFlag &&
     data.categoryId !== undefined &&
     data.categoryId !== null &&
     data.categoryId !== previousCategoryId
