@@ -1,55 +1,35 @@
-<!-- TODO: プロジェクト名に変更してください -->
 # money-management
 
-Turborepo + pnpm monorepo を使用したフルスタックアプリケーションテンプレート
+個人の支出を可視化・管理するためのフルスタック家計簿アプリケーションです。
+CSVアップロードによる取引の一括登録、自動カテゴリ分類、月別のグラフ分析などを提供します。
 
-## 目次
+## サービス概要
 
-- [プロジェクト構成図](#プロジェクト構成図)
-- [技術スタック](#技術スタック)
-- [使い方](#使い方)
-  - [1. プロジェクトのコピー](#1-プロジェクトのコピー)
-  - [2. 環境変数の設定](#2-環境変数の設定)
-  - [3. セットアップ](#3-セットアップ)
-- [Claude Code（MCP設定）](#claude-codemcp設定)
-- [開発ルール](#開発ルール)
-  - [1. 命名規則](#1-命名規則)
-  - [2. 基本コマンド](#2-基本コマンド)
-  - [3. pnpm ワークスペースコマンド](#3-pnpm-ワークスペースコマンド)
-  - [4. 環境変数の管理コマンド](#4-環境変数の管理コマンド)
-  - [5. Docker環境の起動コマンド](#5-docker環境の起動コマンド)
+<div align="center">
 
-## プロジェクト構成図
+### Web アプリ
 
-```mermaid
-graph TB
-    subgraph Apps
-        Web["apps/web<br/>Next.js 16 :3000"]
-        Admin["apps/admin<br/>Next.js 16 :3030"]
-        Mobile["apps/mobile<br/>Expo / React Native"]
-        API["apps/api<br/>Express 5 :8080"]
-    end
+<img src="images/money-management.png" alt="money-management" width="800" />
 
-    subgraph Packages
-        Schema["packages/schema<br/>Zod スキーマ / 型定義"]
-        Terraform["packages/terraform<br/>AWS IaC"]
-    end
+### 管理画面
 
-    subgraph Infrastructure
-        MySQL[(MySQL 8.0)]
-        Redis[(Redis 7)]
-    end
+<img src="images/money-management-admin.png" alt="money-management-admin" width="800" />
 
-    Web --> API
-    Admin --> API
-    Mobile --> API
-    API --> MySQL
-    API --> Redis
-    Schema --> Web
-    Schema --> Admin
-    Schema --> Mobile
-    Schema --> API
-```
+### デモ動画
+
+https://github.com/user-attachments/assets/money-management.mov
+
+</div>
+
+### 主な機能
+
+- **CSVアップロード** - 銀行やクレジットカードのCSV明細を一括取り込み（MUFG / PayPay 対応）
+- **自動カテゴリ分類** - マスタールール＋ユーザールールで取引を自動分類。手動変更時にルール追加も選択可能
+- **取引管理** - 月別フィルタ、カテゴリ別フィルタ、手動登録・編集・削除
+- **グラフ分析** - カテゴリ別の支出割合（円グラフ）、月別推移（棒グラフ）で支出傾向を可視化
+- **カレンダー表示** - 日別の支出額をカレンダー形式で一覧表示
+- **分類ルール管理** - ユーザー独自の自動分類ルールの追加・編集・削除
+- **管理画面** - ユーザー管理、統計情報の確認
 
 ## 技術スタック
 
@@ -98,24 +78,7 @@ graph TB
 
 ## 使い方
 
-### 1. プロジェクトのコピー
-
-`scripts/copy-template.sh` を実行して、テンプレートを新しいプロジェクトとしてコピーします。
-
-```bash
-# 例: 相対パスで指定
-./scripts/copy-template.sh ../my-new-app
-
-# 例: プロジェクト名を明示的に指定
-./scripts/copy-template.sh ../my-new-app my-new-app
-
-# 例: 絶対パスで指定
-./scripts/copy-template.sh ~/workspace/my-new-app
-```
-
-プロジェクト名を省略した場合、コピー先ディレクトリ名が使用されます。
-
-### 2. 環境変数の設定
+### 1. 環境変数の設定
 
 各アプリの `.env.local` は [dotenvx](https://dotenvx.com/) で暗号化されています。復号に必要な `.env.keys` をプロジェクトルートに配置してください。
 
@@ -160,15 +123,9 @@ ln -s ../../.env.keys apps/mobile/.env.keys
 
 > `.env.keys` には復号キーが含まれるため、**git にコミットしないでください**（`.gitignore` で除外済み）。
 
-### 3. セットアップ
+### 2. セットアップ
 
 ```bash
-# コピー先に移動
-cd <コピー先パス>
-
-# git リポジトリを初期化
-git init
-
 # 依存関係のインストール
 pnpm install
 
