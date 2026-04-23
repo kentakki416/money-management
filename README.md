@@ -15,10 +15,9 @@ CSVアップロードによる取引の一括登録、自動カテゴリ分類�
 
 <img src="images/money-management-admin.png" alt="money-management-admin" width="800" />
 
-### デモ動画
+### デモ
 
-<!-- TODO: GitHubのIssueに動画をアップロードし、生成されたURLに差し替えてください -->
-<!-- https://github.com/kentakki416/money-management/assets/xxxxx/xxxxx.mp4 -->
+<img src="images/money-management.gif" alt="demo" width="800" />
 
 </div>
 

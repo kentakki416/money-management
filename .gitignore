@@ -81,6 +81,7 @@ Thumbs.db
 
 # Large media files
 *.mov
+*.mp4
 
 # Docker
 docker-compose.override.yml
