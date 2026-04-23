@@ -17,7 +17,8 @@ CSVアップロードによる取引の一括登録、自動カテゴリ分類�
 
 ### デモ動画
 
-<video src="images/money-management.mp4" controls width="800"></video>
+<!-- TODO: GitHubのIssueに動画をアップロードし、生成されたURLに差し替えてください -->
+<!-- https://github.com/kentakki416/money-management/assets/xxxxx/xxxxx.mp4 -->
 
 </div>
 
