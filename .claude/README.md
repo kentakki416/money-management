@@ -24,17 +24,17 @@
 
 | エージェント | 用途 | モデル |
 |---|---|---|
-| `architect` | システム設計、スケーラビリティ、技術的意思決定 | opus |
-| `build-error-resolver` | ビルド/TypeScriptエラーの最小差分修正 | opus |
+| `architect` | システム設計、スケーラビリティ、技術的意思決定（ADR形式で出力） | opus |
+| `build-error-resolver` | ビルド/TypeScriptエラーの最小差分修正（リファクタリングはしない） | opus |
 | `code-reviewer` | コード品質・セキュリティ・保守性レビュー | opus |
-| `document-updater` | ドキュメント・コードマップの自動更新 | opus |
-| `e2e-runner` | Playwright E2Eテストの生成・実行 | opus |
-| `planner` | 機能実装・リファクタリングの計画作成 | opus |
-| `refactor-cleaner` | デッドコード検出・削除（knip, depcheck等） | opus |
-| `security-auditor` | フロントエンド/バックエンド/インフラの包括的セキュリティ分析 | sonnet |
-| `security-reviewer` | OWASP Top 10等の脆弱性検出・修復 | opus |
-| `serena-expert` | /serenaコマンドを使った効率的なアプリ開発 | sonnet |
-| `tdd-guide` | テスト駆動開発の強制（80%以上カバレッジ） | opus |
+| `e2e-runner` | Playwright E2Eテストの生成・実行・フレーキー対策 | opus |
+| `planner` | 機能実装・リファクタリングの計画作成（ステップ分解） | opus |
+| `refactor-cleaner` | デッドコード検出・削除（knip / depcheck / ts-prune） | opus |
+| `security-auditor` | フロント/バックエンド/インフラの包括的セキュリティ監査（リリース前など広範囲） | sonnet |
+| `security-reviewer` | OWASP Top 10 観点の個別コード変更レビュー（範囲は狭く深く） | opus |
+| `tdd-guide` | テスト駆動開発の強制。プロジェクトのテスト方針（`jest.fn()` 推奨・文字列assertion禁止）に従う | opus |
+
+> 各エージェントは**プロジェクト固有の知識を本文に持たない**設計です。実装規約は `CLAUDE.md` 階層（ルート + `apps/*/CLAUDE.md` + `packages/*/CLAUDE.md`）に集約し、エージェントはファイルを読んだタイミングで自動ロードされる仕組みに依存します。これにより文書の二重管理と腐敗を防いでいます。
 
 ### 使い方
 
@@ -151,19 +151,17 @@ Claudeが参照するドメイン知識・パターン集。タスクに関連�
 
 | スキル | 説明 |
 |---|---|
-| `coding-standard` | TypeScript/React/Node.jsの普遍的コーディング標準 |
-| `backend-pattern` | API設計、DB最適化、Express/Next.js APIルートのベストプラクティス |
-| `frontend-pattern` | React/Next.js、状態管理、パフォーマンス最適化パターン |
-| `project-guideline` | プロジェクト固有のアーキテクチャ・ファイル構造・テスト要件 |
-| `security-review` | 認証・入力処理・シークレット・API・決済のセキュリティチェックリスト |
+| `design-feature` | 新機能の設計書（`docs/spec/{feature}/` 配下の人間用 README + AI実装用 step ファイル）を作成し、`docs/spec/README.md`（全機能のクイックリファレンス）も更新する。**実装前に必ず通すこと**。「〜の設計を作って」「〜機能を追加したい」で起動 |
+| `design-mock` | デザインモックを `apps/web` に作成し、ユーザー承認後に `docs/spec/{feature}/README.md` の「UI設計」セクションを追記する。テーマヒアリング → `apps/admin` の既存デザイン参照 → モック作成 → 承認 → 仕様書化 までを 1 skill で対応。「モック作って」「画面のイメージを作って」で起動 |
+
+> プロジェクト固有のコーディング規約・アーキテクチャは `CLAUDE.md` と各サブディレクトリ（`apps/*/CLAUDE.md`、`packages/*/CLAUDE.md`）に集約されています。skill には**タスク手順型のもの**だけを置きます。
 
 ### 使い方
 
 **ユーザーが明示的に呼び出す必要はありません。** Claudeが現在のタスクに関連するスキルを `description` から判断し、自動的にロードします。
 
-- バックエンドのAPIを書いている → `backend-pattern` が参照される
-- セキュリティに関わるコードを書いている → `security-review` が参照される
-- フロントエンドコンポーネントを作成中 → `frontend-pattern` が参照される
+- 新機能の設計を依頼された → `design-feature` がロードされる
+- モック作成を依頼された → `design-mock` がロードされる
 
 スキルはCommandsやAgentsとは異なり、**知識ベース**（参照資料）として機能します。処理を実行するのではなく、Claudeの判断に影響を与えます。
 
