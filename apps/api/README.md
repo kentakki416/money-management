@@ -127,7 +127,7 @@ if (!result.ok) {
 ### 基本方針
 
 - **Service層 → ユニットテスト**: DB不要、高速、並列実行可能
-- **Controller層 → インテグレーションテスト**: 実DB使用、supertest でHTTPレイヤーからテスト
+- **Controller層 → インテグレーションテスト**（`apps/api/test/controller/`）: 自前インフラ（MySQL・Redis）は本物を使い必ず実データを検証する。`supertest` で HTTP レイヤーから検証
 
 ### テストの耐久性（重要）
 
