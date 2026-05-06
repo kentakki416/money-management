@@ -28,7 +28,7 @@ export class UserCategoryRuleCreateController {
         matchType: data.match_type,
         priority: data.priority,
       },
-      this.userCategoryRuleRepository
+      { userCategoryRuleRepository: this.userCategoryRuleRepository }
     )
 
     if (!result.ok) {
@@ -41,9 +41,11 @@ export class UserCategoryRuleCreateController {
 
     const reclassifiedCount = await service.categorize.reclassifyUncategorizedTransactions(
       userId,
-      this.transactionRepository,
-      this.categoryRuleRepository,
-      this.userCategoryRuleRepository,
+      {
+        categoryRuleRepository: this.categoryRuleRepository,
+        transactionRepository: this.transactionRepository,
+        userCategoryRuleRepository: this.userCategoryRuleRepository,
+      },
     )
 
     const response = createUserCategoryRuleResponseSchema.parse({

@@ -27,7 +27,7 @@ describe("getMemoById", () => {
     }
     mockFindById.mockResolvedValue(mockMemo)
 
-    const result = await getMemoById(1, mockMemoRepository)
+    const result = await getMemoById(1, { memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value).toEqual(mockMemo)
@@ -36,7 +36,7 @@ describe("getMemoById", () => {
   it("メモが存在しない場合、ok: false で 404 エラーを返す", async () => {
     mockFindById.mockResolvedValue(null)
 
-    const result = await getMemoById(999, mockMemoRepository)
+    const result = await getMemoById(999, { memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
@@ -47,6 +47,6 @@ describe("getMemoById", () => {
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockFindById.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getMemoById(1, mockMemoRepository)).rejects.toThrow()
+    await expect(getMemoById(1, { memoRepository: mockMemoRepository })).rejects.toThrow()
   })
 })

@@ -19,7 +19,10 @@ export class AdminStatsController {
     const parsed = registrationPeriodSchema.safeParse(periodParam)
     const period: RegistrationPeriod = parsed.success ? parsed.data : "yearly"
 
-    const result = await service.admin.getStats(period, this.userRepository, this.csvUploadRepository)
+    const result = await service.admin.getStats(period, {
+      csvUploadRepository: this.csvUploadRepository,
+      userRepository: this.userRepository,
+    })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

@@ -30,7 +30,7 @@ describe("getUserById", () => {
 
     mockFindById.mockResolvedValue(mockUser)
 
-    const result = await getUserById(1, mockUserRepository)
+    const result = await getUserById(1, { userRepository: mockUserRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -41,7 +41,7 @@ describe("getUserById", () => {
   it("ユーザーが存在しない場合、ok: false で 404 エラーを返す", async () => {
     mockFindById.mockResolvedValue(null)
 
-    const result = await getUserById(999, mockUserRepository)
+    const result = await getUserById(999, { userRepository: mockUserRepository })
 
     /**
      * メッセージ本文は検証しない（変更に強くするため）
@@ -59,6 +59,6 @@ describe("getUserById", () => {
     /**
      * 業務エラーではなく throw されることを確認（メッセージは検証しない）
      */
-    await expect(getUserById(1, mockUserRepository)).rejects.toThrow()
+    await expect(getUserById(1, { userRepository: mockUserRepository })).rejects.toThrow()
   })
 })

@@ -34,7 +34,7 @@ describe("deleteCategory", () => {
     mockDeleteById.mockResolvedValue(undefined)
 
     // Act
-    const result = await deleteCategory(1, mockCategoryRepository)
+    const result = await deleteCategory(1, { categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -47,7 +47,7 @@ describe("deleteCategory", () => {
     mockFindById.mockResolvedValue(null)
 
     // Act
-    const result = await deleteCategory(999, mockCategoryRepository)
+    const result = await deleteCategory(999, { categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(false)
@@ -65,7 +65,7 @@ describe("deleteCategory", () => {
     mockFindById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(deleteCategory(1, mockCategoryRepository)).rejects.toThrow()
+    await expect(deleteCategory(1, { categoryRepository: mockCategoryRepository })).rejects.toThrow()
     expect(mockFindById).toHaveBeenCalledWith(1)
   })
 })

@@ -27,7 +27,7 @@ export class UserCategoryRuleDeleteController {
     const result = await service.userCategoryRule.deleteUserCategoryRule(
       id,
       userId,
-      this.userCategoryRuleRepository
+      { userCategoryRuleRepository: this.userCategoryRuleRepository }
     )
 
     if (!result.ok) {
@@ -43,9 +43,11 @@ export class UserCategoryRuleDeleteController {
       reclassifiedCount = await service.categorize.reclassifyTransactionsByDeletedRule(
         userId,
         deletedRuleCategoryId,
-        this.transactionRepository,
-        this.categoryRuleRepository,
-        this.userCategoryRuleRepository,
+        {
+          categoryRuleRepository: this.categoryRuleRepository,
+          transactionRepository: this.transactionRepository,
+          userCategoryRuleRepository: this.userCategoryRuleRepository,
+        },
       )
     }
 

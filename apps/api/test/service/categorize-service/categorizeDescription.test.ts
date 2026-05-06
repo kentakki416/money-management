@@ -61,8 +61,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "スイカで支払い",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -82,8 +84,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "スタバ",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -102,8 +106,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "スタバで支払い",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -119,8 +125,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "スタバで購入",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -139,8 +147,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "コンビニ",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -156,8 +166,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "不明な説明",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -175,8 +187,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "ＡＭＡＺＯＮ購入",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -196,8 +210,10 @@ describe("categorizeDescription", () => {
     const result = await categorizeDescription(
       1,
       "スタバで支払い",
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -212,7 +228,10 @@ describe("categorizeDescription", () => {
 
     // Act & Assert
     await expect(
-      categorizeDescription(1, "テスト", mockCategoryRuleRepository, mockUserCategoryRuleRepository)
+      categorizeDescription(1, "テスト", {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      })
     ).rejects.toThrow("Database connection failed")
   })
 })

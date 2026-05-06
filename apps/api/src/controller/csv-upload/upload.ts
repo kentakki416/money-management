@@ -49,10 +49,12 @@ export class CsvUploadController {
         paymentSourceType: body.payment_source_type,
         userId,
       },
-      this.transactionRepository,
-      this.csvUploadRepository,
-      this.categoryRuleRepository,
-      this.userCategoryRuleRepository
+      {
+        categoryRuleRepository: this.categoryRuleRepository,
+        csvUploadRepository: this.csvUploadRepository,
+        transactionRepository: this.transactionRepository,
+        userCategoryRuleRepository: this.userCategoryRuleRepository,
+      }
     )
 
     if (!result.ok) {

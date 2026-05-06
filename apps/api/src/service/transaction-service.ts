@@ -17,10 +17,10 @@ import { categorizeDescription } from "./categorize-service"
  */
 export const getAllTransactions = async (
   filter: TransactionFilter,
-  transactionRepository: TransactionRepository
+  repo: { transactionRepository: TransactionRepository }
 ): Promise<Result<{ totalAmount: number; transactions: Transaction[] }>> => {
   logger.debug("TransactionService: Fetching transactions", { filter })
-  const transactions = await transactionRepository.findByFilter(filter)
+  const transactions = await repo.transactionRepository.findByFilter(filter)
   const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0)
   logger.debug("TransactionService: Transactions fetched", { count: transactions.length, totalAmount })
   return ok({ totalAmount, transactions })
@@ -39,9 +39,11 @@ export const createManualTransaction = async (
     transactionDate: Date
     userId: number
   },
-  transactionRepository: TransactionRepository,
-  categoryRuleRepository: CategoryRuleRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: {
+    categoryRuleRepository: CategoryRuleRepository
+    transactionRepository: TransactionRepository
+    userCategoryRuleRepository: UserCategoryRuleRepository
+  }
 ): Promise<Result<Transaction>> => {
   logger.debug("TransactionService: Creating manual transaction", { description: data.description })
 
@@ -50,8 +52,10 @@ export const createManualTransaction = async (
     categoryId = await categorizeDescription(
       data.userId,
       data.description,
-      categoryRuleRepository,
-      userCategoryRuleRepository
+      {
+        categoryRuleRepository: repo.categoryRuleRepository,
+        userCategoryRuleRepository: repo.userCategoryRuleRepository,
+      }
     )
     logger.debug("TransactionService: Auto-categorized", { categoryId, description: data.description })
   }
@@ -66,7 +70,7 @@ export const createManualTransaction = async (
     userId: data.userId,
   }
 
-  const transaction = await transactionRepository.create(input)
+  const transaction = await repo.transactionRepository.create(input)
   logger.debug("TransactionService: Transaction created", { id: transaction.id })
   return ok(transaction)
 }
@@ -82,12 +86,14 @@ export const updateTransaction = async (
   description: string,
   userId: number,
   addRuleFlag: boolean,
-  transactionRepository: TransactionRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: {
+    transactionRepository: TransactionRepository
+    userCategoryRuleRepository: UserCategoryRuleRepository
+  }
 ): Promise<Result<Transaction>> => {
   logger.debug("TransactionService: Updating transaction", { id })
 
-  const transaction = await transactionRepository.update(id, data)
+  const transaction = await repo.transactionRepository.update(id, data)
 
   if (
     addRuleFlag &&
@@ -99,7 +105,7 @@ export const updateTransaction = async (
       categoryId: data.categoryId,
       description,
     })
-    await userCategoryRuleRepository.upsertByKeyword(userId, description, data.categoryId)
+    await repo.userCategoryRuleRepository.upsertByKeyword(userId, description, data.categoryId)
   }
 
   logger.debug("TransactionService: Transaction updated", { id: transaction.id })
@@ -111,10 +117,10 @@ export const updateTransaction = async (
  */
 export const deleteTransaction = async (
   id: number,
-  transactionRepository: TransactionRepository
+  repo: { transactionRepository: TransactionRepository }
 ): Promise<Result<{ deleted: true }>> => {
   logger.debug("TransactionService: Deleting transaction", { id })
-  await transactionRepository.deleteById(id)
+  await repo.transactionRepository.deleteById(id)
   logger.debug("TransactionService: Transaction deleted", { id })
   return ok({ deleted: true })
 }

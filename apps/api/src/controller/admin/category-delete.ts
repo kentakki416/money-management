@@ -14,7 +14,7 @@ export class AdminCategoryDeleteController {
   async execute(req: Request, res: Response) {
     const { id } = deleteCategoryPathParamSchema.parse(req.params)
 
-    const result = await service.category.deleteCategory(id, this.categoryRepository)
+    const result = await service.category.deleteCategory(id, { categoryRepository: this.categoryRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

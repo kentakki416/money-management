@@ -36,7 +36,7 @@ describe("upsertUserCategoryRuleByKeyword", () => {
     mockUpsertByKeyword.mockResolvedValue(mockRule)
 
     // Act
-    const result = await upsertUserCategoryRuleByKeyword(100, "電車", 2, mockUserCategoryRuleRepository)
+    const result = await upsertUserCategoryRuleByKeyword(100, "電車", 2, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result).toEqual(mockRule)
@@ -61,7 +61,7 @@ describe("upsertUserCategoryRuleByKeyword", () => {
     mockUpsertByKeyword.mockResolvedValue(updatedRule)
 
     // Act
-    const result = await upsertUserCategoryRuleByKeyword(100, "電車", 3, mockUserCategoryRuleRepository)
+    const result = await upsertUserCategoryRuleByKeyword(100, "電車", 3, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result).toEqual(updatedRule)
@@ -76,7 +76,7 @@ describe("upsertUserCategoryRuleByKeyword", () => {
 
     // Act & Assert
     await expect(
-      upsertUserCategoryRuleByKeyword(100, "電車", 2, mockUserCategoryRuleRepository)
+      upsertUserCategoryRuleByKeyword(100, "電車", 2, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
     ).rejects.toThrow("Database connection failed")
     expect(mockUpsertByKeyword).toHaveBeenCalledWith(100, "電車", 2)
   })

@@ -32,7 +32,7 @@ describe("deleteMemo", () => {
     mockFindById.mockResolvedValue(existingMemo)
     mockDeleteById.mockResolvedValue(undefined)
 
-    const result = await deleteMemo(1, mockMemoRepository)
+    const result = await deleteMemo(1, { memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(true)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
@@ -41,7 +41,7 @@ describe("deleteMemo", () => {
   it("メモが存在しない場合、ok: false で 404 エラーを返す", async () => {
     mockFindById.mockResolvedValue(null)
 
-    const result = await deleteMemo(999, mockMemoRepository)
+    const result = await deleteMemo(999, { memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error.statusCode).toBe(404)
@@ -51,6 +51,6 @@ describe("deleteMemo", () => {
   it("データベースエラー時は例外として伝播する", async () => {
     mockFindById.mockRejectedValue(new Error("Database connection failed"))
 
-    await expect(deleteMemo(1, mockMemoRepository)).rejects.toThrow()
+    await expect(deleteMemo(1, { memoRepository: mockMemoRepository })).rejects.toThrow()
   })
 })

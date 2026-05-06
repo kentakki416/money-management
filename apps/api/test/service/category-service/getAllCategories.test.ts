@@ -42,7 +42,7 @@ describe("getAllCategories", () => {
     mockFindAll.mockResolvedValue(mockCategories)
 
     // Act
-    const result = await getAllCategories(mockCategoryRepository)
+    const result = await getAllCategories({ categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -58,7 +58,7 @@ describe("getAllCategories", () => {
     mockFindAll.mockResolvedValue([])
 
     // Act
-    const result = await getAllCategories(mockCategoryRepository)
+    const result = await getAllCategories({ categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -75,6 +75,6 @@ describe("getAllCategories", () => {
     mockFindAll.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(getAllCategories(mockCategoryRepository)).rejects.toThrow()
+    await expect(getAllCategories({ categoryRepository: mockCategoryRepository })).rejects.toThrow()
   })
 })

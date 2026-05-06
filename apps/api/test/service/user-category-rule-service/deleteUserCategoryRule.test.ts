@@ -23,7 +23,7 @@ describe("deleteUserCategoryRule", () => {
     mockDeleteById.mockResolvedValue(undefined)
 
     // Act
-    const result = await deleteUserCategoryRule(1, 100, mockUserCategoryRuleRepository)
+    const result = await deleteUserCategoryRule(1, 100, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -37,7 +37,7 @@ describe("deleteUserCategoryRule", () => {
     mockDeleteById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(deleteUserCategoryRule(1, 100, mockUserCategoryRuleRepository)).rejects.toThrow()
+    await expect(deleteUserCategoryRule(1, 100, { userCategoryRuleRepository: mockUserCategoryRuleRepository })).rejects.toThrow()
     expect(mockDeleteById).toHaveBeenCalledWith(1, 100)
   })
 })

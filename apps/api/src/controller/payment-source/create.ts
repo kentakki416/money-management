@@ -22,7 +22,7 @@ export class PaymentSourceCreateController {
         type: data.type,
         userId,
       },
-      this.paymentSourceRepository
+      { paymentSourceRepository: this.paymentSourceRepository }
     )
 
     if (!result.ok) {

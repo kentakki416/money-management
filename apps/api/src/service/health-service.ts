@@ -19,14 +19,14 @@ export type ReadinessResult = {
  * 個別サービスの失敗は "error" ステータスとして結果に含め、業務エラーにはしない
  */
 export const checkReadiness = async (
-  repository: {
+  repo: {
     databaseHealthRepository: DatabaseHealthRepository
     redisHealthRepository: RedisHealthRepository
   },
 ): Promise<Result<ReadinessResult>> => {
   const [database, redis] = await Promise.all([
-    checkService("Database", repository.databaseHealthRepository),
-    checkService("Redis", repository.redisHealthRepository),
+    checkService("Database", repo.databaseHealthRepository),
+    checkService("Redis", repo.redisHealthRepository),
   ])
 
   return ok({

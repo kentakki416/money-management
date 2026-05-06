@@ -21,8 +21,10 @@ const isUsingDummy = () => process.env.ADMIN_USE_DUMMY === "true"
  */
 export const getStats = async (
   period: RegistrationPeriod,
-  userRepository: UserRepository,
-  csvUploadRepository: CsvUploadRepository
+  repo: {
+    csvUploadRepository: CsvUploadRepository
+    userRepository: UserRepository
+  }
 ): Promise<Result<{
   registrations: unknown
   totalCsvUploads: number
@@ -38,9 +40,9 @@ export const getStats = async (
     })
   }
   const [totalUsers, totalCsvUploads, registrations] = await Promise.all([
-    userRepository.count(),
-    csvUploadRepository.count(),
-    userRepository.countRegistrationsByPeriod(period),
+    repo.userRepository.count(),
+    repo.csvUploadRepository.count(),
+    repo.userRepository.countRegistrationsByPeriod(period),
   ])
   logger.debug("admin.getStats: done")
   return ok({ registrations, totalCsvUploads, totalUsers })
@@ -49,13 +51,15 @@ export const getStats = async (
 /**
  * 全ユーザー一覧を取得する
  */
-export const getAllUsers = async (userSummaryRepository: UserSummaryRepository) => {
+export const getAllUsers = async (
+  repo: { userSummaryRepository: UserSummaryRepository }
+) => {
   logger.debug("admin.getAllUsers: start")
   if (isUsingDummy()) {
     logger.debug("admin.getAllUsers: returning dummy data")
     return ok(DUMMY_USERS)
   }
-  const users = await userSummaryRepository.findAllWithCounts()
+  const users = await repo.userSummaryRepository.findAllWithCounts()
   logger.debug("admin.getAllUsers: done")
   return ok(users)
 }
@@ -63,7 +67,10 @@ export const getAllUsers = async (userSummaryRepository: UserSummaryRepository) 
 /**
  * ユーザー詳細を取得する
  */
-export const getUserDetail = async (id: number, userSummaryRepository: UserSummaryRepository) => {
+export const getUserDetail = async (
+  id: number,
+  repo: { userSummaryRepository: UserSummaryRepository }
+) => {
   logger.debug("admin.getUserDetail: start", { id })
   if (isUsingDummy()) {
     logger.debug("admin.getUserDetail: returning dummy data", { id })
@@ -73,7 +80,7 @@ export const getUserDetail = async (id: number, userSummaryRepository: UserSumma
     }
     return ok(user)
   }
-  const user = await userSummaryRepository.findByIdWithDetail(id)
+  const user = await repo.userSummaryRepository.findByIdWithDetail(id)
   if (!user) {
     return err(notFoundError("User not found"))
   }

@@ -21,7 +21,7 @@ export class CategoryUpdateController {
         name: data.name,
         sortOrder: data.sort_order,
       },
-      this.categoryRepository
+      { categoryRepository: this.categoryRepository }
     )
 
     if (!result.ok) {

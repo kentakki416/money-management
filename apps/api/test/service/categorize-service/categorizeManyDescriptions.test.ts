@@ -65,8 +65,10 @@ describe("categorizeManyDescriptions", () => {
     const result = await categorizeManyDescriptions(
       1,
       ["スイカ利用", "スタバ購入", "不明な支出"],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -87,8 +89,10 @@ describe("categorizeManyDescriptions", () => {
     const result = await categorizeManyDescriptions(
       1,
       ["スタバで購入"],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -104,8 +108,10 @@ describe("categorizeManyDescriptions", () => {
     const result = await categorizeManyDescriptions(
       1,
       [],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -122,8 +128,10 @@ describe("categorizeManyDescriptions", () => {
     const result = await categorizeManyDescriptions(
       1,
       ["不明A", "不明B", "不明C"],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -139,8 +147,10 @@ describe("categorizeManyDescriptions", () => {
     await categorizeManyDescriptions(
       1,
       ["説明1", "説明2", "説明3"],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert（バルクのためリポジトリへのアクセスは1回のみ）
@@ -159,8 +169,10 @@ describe("categorizeManyDescriptions", () => {
     const result = await categorizeManyDescriptions(
       1,
       ["ＡＭＡＺＯＮで購入"],
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -177,8 +189,10 @@ describe("categorizeManyDescriptions", () => {
       categorizeManyDescriptions(
         1,
         ["テスト"],
-        mockCategoryRuleRepository,
-        mockUserCategoryRuleRepository
+        {
+          categoryRuleRepository: mockCategoryRuleRepository,
+          userCategoryRuleRepository: mockUserCategoryRuleRepository,
+        }
       )
     ).rejects.toThrow("Database connection failed")
   })

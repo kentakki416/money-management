@@ -20,7 +20,7 @@ export class SummaryMonthlyController {
       userId,
       query.year,
       query.month,
-      this.summaryRepository
+      { summaryRepository: this.summaryRepository }
     )
 
     if (!result.ok) {

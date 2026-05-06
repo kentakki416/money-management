@@ -22,7 +22,7 @@ export class CategoryRuleUpdateController {
         matchType: data.match_type,
         priority: data.priority,
       },
-      this.categoryRuleRepository
+      { categoryRuleRepository: this.categoryRuleRepository }
     )
 
     if (!result.ok) {

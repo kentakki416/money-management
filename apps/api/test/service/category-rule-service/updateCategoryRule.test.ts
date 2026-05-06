@@ -38,7 +38,7 @@ describe("updateCategoryRule", () => {
     mockUpdate.mockResolvedValue(updatedRule)
 
     // Act
-    const result = await updateCategoryRule(1, input, mockCategoryRuleRepository)
+    const result = await updateCategoryRule(1, input, { categoryRuleRepository: mockCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -59,7 +59,7 @@ describe("updateCategoryRule", () => {
     mockUpdate.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(updateCategoryRule(1, input, mockCategoryRuleRepository)).rejects.toThrow()
+    await expect(updateCategoryRule(1, input, { categoryRuleRepository: mockCategoryRuleRepository })).rejects.toThrow()
     expect(mockUpdate).toHaveBeenCalledWith(1, input)
   })
 })

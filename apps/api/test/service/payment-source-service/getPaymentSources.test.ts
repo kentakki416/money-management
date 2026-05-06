@@ -32,7 +32,7 @@ describe("getPaymentSources", () => {
     ]
     mockFindByUserId.mockResolvedValue(mockPaymentSources)
 
-    const result = await getPaymentSources(1, mockPaymentSourceRepository)
+    const result = await getPaymentSources(1, { paymentSourceRepository: mockPaymentSourceRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -44,7 +44,7 @@ describe("getPaymentSources", () => {
   it("支払い元が存在しない場合、空配列を返す", async () => {
     mockFindByUserId.mockResolvedValue([])
 
-    const result = await getPaymentSources(1, mockPaymentSourceRepository)
+    const result = await getPaymentSources(1, { paymentSourceRepository: mockPaymentSourceRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value).toEqual([])
@@ -52,12 +52,12 @@ describe("getPaymentSources", () => {
 
   it("指定したuserIdでリポジトリが呼ばれる", async () => {
     mockFindByUserId.mockResolvedValue([])
-    await getPaymentSources(99, mockPaymentSourceRepository)
+    await getPaymentSources(99, { paymentSourceRepository: mockPaymentSourceRepository })
     expect(mockFindByUserId).toHaveBeenCalledWith(99)
   })
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockFindByUserId.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getPaymentSources(1, mockPaymentSourceRepository)).rejects.toThrow()
+    await expect(getPaymentSources(1, { paymentSourceRepository: mockPaymentSourceRepository })).rejects.toThrow()
   })
 })

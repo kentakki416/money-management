@@ -17,7 +17,7 @@ export class PaymentSourceListController {
 
     const result = await service.paymentSource.getPaymentSources(
       userId,
-      this.paymentSourceRepository
+      { paymentSourceRepository: this.paymentSourceRepository }
     )
 
     if (!result.ok) {

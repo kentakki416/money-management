@@ -50,7 +50,7 @@ describe("getAllTransactions", () => {
     mockFindByFilter.mockResolvedValue(mockTransactions)
 
     const filter: TransactionFilter = { userId: 1 }
-    const result = await getAllTransactions(filter, mockTransactionRepository)
+    const result = await getAllTransactions(filter, { transactionRepository: mockTransactionRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -63,7 +63,7 @@ describe("getAllTransactions", () => {
     mockFindByFilter.mockResolvedValue([])
     const filter: TransactionFilter = { userId: 1, year: 2026, month: 4, categoryId: 1 }
 
-    await getAllTransactions(filter, mockTransactionRepository)
+    await getAllTransactions(filter, { transactionRepository: mockTransactionRepository })
 
     expect(mockFindByFilter).toHaveBeenCalledWith(filter)
   })
@@ -71,7 +71,7 @@ describe("getAllTransactions", () => {
   it("取引が存在しない場合、空配列と合計金額0を返す", async () => {
     mockFindByFilter.mockResolvedValue([])
 
-    const result = await getAllTransactions({ userId: 1 }, mockTransactionRepository)
+    const result = await getAllTransactions({ userId: 1 }, { transactionRepository: mockTransactionRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -83,6 +83,6 @@ describe("getAllTransactions", () => {
   it("データベースエラー時は例外として伝播する", async () => {
     mockFindByFilter.mockRejectedValue(new Error("Database connection failed"))
 
-    await expect(getAllTransactions({ userId: 1 }, mockTransactionRepository)).rejects.toThrow()
+    await expect(getAllTransactions({ userId: 1 }, { transactionRepository: mockTransactionRepository })).rejects.toThrow()
   })
 })

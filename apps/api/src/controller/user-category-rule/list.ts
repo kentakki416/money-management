@@ -16,7 +16,7 @@ export class UserCategoryRuleListController {
     const userId = req.userId!
     const result = await service.userCategoryRule.getUserCategoryRules(
       userId,
-      this.userCategoryRuleRepository
+      { userCategoryRuleRepository: this.userCategoryRuleRepository }
     )
 
     if (!result.ok) {

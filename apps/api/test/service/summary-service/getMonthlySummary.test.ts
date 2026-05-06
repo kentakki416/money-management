@@ -25,7 +25,7 @@ describe("getMonthlySummary", () => {
     ]
     mockGetMonthlyCategorySummary.mockResolvedValue(mockCategories)
 
-    const result = await getMonthlySummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -43,7 +43,7 @@ describe("getMonthlySummary", () => {
     ]
     mockGetMonthlyCategorySummary.mockResolvedValue(mockCategories)
 
-    const result = await getMonthlySummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -60,7 +60,7 @@ describe("getMonthlySummary", () => {
     ]
     mockGetMonthlyCategorySummary.mockResolvedValue(mockCategories)
 
-    const result = await getMonthlySummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value.totalAmount).toBe(4500)
@@ -69,7 +69,7 @@ describe("getMonthlySummary", () => {
   it("データが0件の場合、totalAmountが0で空配列を返す", async () => {
     mockGetMonthlyCategorySummary.mockResolvedValue([])
 
-    const result = await getMonthlySummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -80,7 +80,7 @@ describe("getMonthlySummary", () => {
 
   it("データが0件の場合、percentageの計算でゼロ除算が発生しない", async () => {
     mockGetMonthlyCategorySummary.mockResolvedValue([])
-    await expect(getMonthlySummary(1, 2026, 4, mockSummaryRepository)).resolves.not.toThrow()
+    await expect(getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })).resolves.not.toThrow()
   })
 
   it("割合が小数点1桁で四捨五入される", async () => {
@@ -90,7 +90,7 @@ describe("getMonthlySummary", () => {
     ]
     mockGetMonthlyCategorySummary.mockResolvedValue(mockCategories)
 
-    const result = await getMonthlySummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -101,6 +101,6 @@ describe("getMonthlySummary", () => {
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockGetMonthlyCategorySummary.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getMonthlySummary(1, 2026, 4, mockSummaryRepository)).rejects.toThrow()
+    await expect(getMonthlySummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })).rejects.toThrow()
   })
 })

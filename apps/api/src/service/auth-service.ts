@@ -18,15 +18,13 @@ export type AuthenticateWithGoogleResult = {
  */
 export const authenticateWithGoogle = async (
   code: string,
-  repository: {
+  repo: {
         authAccountRepository: AuthAccountRepository
         userRegistrationRepository: UserRegistrationRepository
     },
   googleAuthClient: IGoogleOAuthClient,
   tokenGenerator: (userId: number) => string
 ): Promise<Result<AuthenticateWithGoogleResult>> => {
-  const { authAccountRepository, userRegistrationRepository } = repository
-
   logger.info("AuthService: Starting Google authentication")
 
   // Googleからユーザー情報を取得
@@ -37,7 +35,7 @@ export const authenticateWithGoogle = async (
   })
 
   // 既存アカウントを取得
-  const existingAccount = await authAccountRepository.findByProvider("google", googleUser.id)
+  const existingAccount = await repo.authAccountRepository.findByProvider("google", googleUser.id)
 
   let user: User
   let isNewUser = false
@@ -52,7 +50,7 @@ export const authenticateWithGoogle = async (
     logger.info("AuthService: Creating new user")
 
     // 新規ユーザーとアカウントを作成
-    user = await userRegistrationRepository.createUserWithAuthAccountTx({
+    user = await repo.userRegistrationRepository.createUserWithAuthAccountTx({
       authAccount: {
         provider: "google",
         providerAccountId: googleUser.id,

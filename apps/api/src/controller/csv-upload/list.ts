@@ -14,7 +14,7 @@ export class CsvUploadListController {
 
   async execute(req: AuthRequest, res: Response) {
     const userId = req.userId!
-    const result = await service.csvUpload.getUploadHistory(userId, this.csvUploadRepository)
+    const result = await service.csvUpload.getUploadHistory(userId, { csvUploadRepository: this.csvUploadRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

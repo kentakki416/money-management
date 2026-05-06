@@ -80,9 +80,11 @@ describe("createManualTransaction", () => {
 
     const result = await createManualTransaction(
       data,
-      mockTransactionRepository,
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     expect(result.ok).toBe(true)
@@ -128,9 +130,11 @@ describe("createManualTransaction", () => {
     // Act
     const result = await createManualTransaction(
       data,
-      mockTransactionRepository,
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -164,9 +168,11 @@ describe("createManualTransaction", () => {
     // Act
     await createManualTransaction(
       data,
-      mockTransactionRepository,
-      mockCategoryRuleRepository,
-      mockUserCategoryRuleRepository
+      {
+        categoryRuleRepository: mockCategoryRuleRepository,
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -193,9 +199,11 @@ describe("createManualTransaction", () => {
     await expect(
       createManualTransaction(
         data,
-        mockTransactionRepository,
-        mockCategoryRuleRepository,
-        mockUserCategoryRuleRepository
+        {
+          categoryRuleRepository: mockCategoryRuleRepository,
+          transactionRepository: mockTransactionRepository,
+          userCategoryRuleRepository: mockUserCategoryRuleRepository,
+        }
       )
     ).rejects.toThrow()
   })

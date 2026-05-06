@@ -15,7 +15,7 @@ export class PaymentSourceDeleteController {
   async execute(req: AuthRequest, res: Response) {
     const { id } = deletePaymentSourcePathParamSchema.parse(req.params)
 
-    const result = await service.paymentSource.deletePaymentSource(id, this.paymentSourceRepository)
+    const result = await service.paymentSource.deletePaymentSource(id, { paymentSourceRepository: this.paymentSourceRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

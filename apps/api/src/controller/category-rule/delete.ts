@@ -14,7 +14,7 @@ export class CategoryRuleDeleteController {
   async execute(req: Request, res: Response) {
     const { id } = deleteCategoryRulePathParamSchema.parse(req.params)
 
-    const result = await service.categoryRule.deleteCategoryRule(id, this.categoryRuleRepository)
+    const result = await service.categoryRule.deleteCategoryRule(id, { categoryRuleRepository: this.categoryRuleRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

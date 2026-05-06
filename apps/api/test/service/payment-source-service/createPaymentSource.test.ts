@@ -32,7 +32,7 @@ describe("createPaymentSource", () => {
     mockCreate.mockResolvedValue(mockPaymentSource)
     const input: CreatePaymentSourceInput = { name: "テストカード", type: "SMBC", userId: 1 }
 
-    const result = await createPaymentSource(input, mockPaymentSourceRepository)
+    const result = await createPaymentSource(input, { paymentSourceRepository: mockPaymentSourceRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value).toEqual(mockPaymentSource)
@@ -43,7 +43,7 @@ describe("createPaymentSource", () => {
     const input: CreatePaymentSourceInput = { name: "MUFGカード", type: "MUFG", userId: 2 }
     mockCreate.mockResolvedValue({ ...mockPaymentSource, ...input, id: 2 })
 
-    await createPaymentSource(input, mockPaymentSourceRepository)
+    await createPaymentSource(input, { paymentSourceRepository: mockPaymentSourceRepository })
 
     expect(mockCreate).toHaveBeenCalledWith(input)
   })
@@ -52,6 +52,6 @@ describe("createPaymentSource", () => {
     mockCreate.mockRejectedValue(new Error("Database connection failed"))
     const input: CreatePaymentSourceInput = { name: "テストカード", type: "SMBC", userId: 1 }
 
-    await expect(createPaymentSource(input, mockPaymentSourceRepository)).rejects.toThrow()
+    await expect(createPaymentSource(input, { paymentSourceRepository: mockPaymentSourceRepository })).rejects.toThrow()
   })
 })

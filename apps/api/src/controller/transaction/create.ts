@@ -29,9 +29,11 @@ export class TransactionCreateController {
         transactionDate: new Date(data.transaction_date),
         userId,
       },
-      this.transactionRepository,
-      this.categoryRuleRepository,
-      this.userCategoryRuleRepository
+      {
+        categoryRuleRepository: this.categoryRuleRepository,
+        transactionRepository: this.transactionRepository,
+        userCategoryRuleRepository: this.userCategoryRuleRepository,
+      }
     )
 
     if (!result.ok) {

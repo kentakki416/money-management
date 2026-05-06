@@ -21,7 +21,7 @@ export class AdminCategoryRuleCreateController {
         matchType: data.match_type,
         priority: data.priority,
       },
-      this.categoryRuleRepository
+      { categoryRuleRepository: this.categoryRuleRepository }
     )
 
     if (!result.ok) {

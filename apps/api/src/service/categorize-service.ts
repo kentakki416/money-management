@@ -4,6 +4,17 @@ import { convertFullWidthToHalfWidth } from "../utils/normalize"
 
 const UNCATEGORIZED_ID = 99
 
+type CategorizeRulesRepo = {
+  categoryRuleRepository: CategoryRuleRepository
+  userCategoryRuleRepository: UserCategoryRuleRepository
+}
+
+type ReclassifyRepo = {
+  categoryRuleRepository: CategoryRuleRepository
+  transactionRepository: TransactionRepository
+  userCategoryRuleRepository: UserCategoryRuleRepository
+}
+
 /**
  * 説明文字列をカテゴリIDに分類する
  * ユーザールールを優先し、マッチしなければマスタールールを使用する
@@ -11,12 +22,11 @@ const UNCATEGORIZED_ID = 99
 export const categorizeDescription = async (
   userId: number,
   description: string,
-  categoryRuleRepository: CategoryRuleRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: CategorizeRulesRepo
 ): Promise<number> => {
   const normalized = convertFullWidthToHalfWidth(description).toLowerCase()
 
-  const userRules = await userCategoryRuleRepository.findByUserId(userId)
+  const userRules = await repo.userCategoryRuleRepository.findByUserId(userId)
   for (const rule of userRules) {
     const keyword = convertFullWidthToHalfWidth(rule.keyword).toLowerCase()
     if (rule.matchType === "EXACT" && normalized === keyword) {
@@ -27,7 +37,7 @@ export const categorizeDescription = async (
     }
   }
 
-  const masterRules = await categoryRuleRepository.findAll()
+  const masterRules = await repo.categoryRuleRepository.findAll()
   for (const rule of masterRules) {
     const keyword = convertFullWidthToHalfWidth(rule.keyword).toLowerCase()
     if (rule.matchType === "EXACT" && normalized === keyword) {
@@ -47,11 +57,10 @@ export const categorizeDescription = async (
 export const categorizeManyDescriptions = async (
   userId: number,
   descriptions: string[],
-  categoryRuleRepository: CategoryRuleRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: CategorizeRulesRepo
 ): Promise<number[]> => {
-  const userRules = await userCategoryRuleRepository.findByUserId(userId)
-  const masterRules = await categoryRuleRepository.findAll()
+  const userRules = await repo.userCategoryRuleRepository.findByUserId(userId)
+  const masterRules = await repo.categoryRuleRepository.findAll()
 
   return descriptions.map((description) => {
     const normalized = convertFullWidthToHalfWidth(description).toLowerCase()
@@ -85,11 +94,9 @@ export const categorizeManyDescriptions = async (
  */
 export const reclassifyUncategorizedTransactions = async (
   userId: number,
-  transactionRepository: TransactionRepository,
-  categoryRuleRepository: CategoryRuleRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: ReclassifyRepo
 ): Promise<number> => {
-  const uncategorized = await transactionRepository.findUncategorizedByUserId(userId)
+  const uncategorized = await repo.transactionRepository.findUncategorizedByUserId(userId)
   if (uncategorized.length === 0) return 0
 
   logger.debug("CategorizeService: Reclassifying uncategorized transactions", {
@@ -101,8 +108,10 @@ export const reclassifyUncategorizedTransactions = async (
   const categoryIds = await categorizeManyDescriptions(
     userId,
     descriptions,
-    categoryRuleRepository,
-    userCategoryRuleRepository
+    {
+      categoryRuleRepository: repo.categoryRuleRepository,
+      userCategoryRuleRepository: repo.userCategoryRuleRepository,
+    }
   )
 
   /** カテゴリIDごとに取引IDをグルーピングして一括更新する */
@@ -116,7 +125,7 @@ export const reclassifyUncategorizedTransactions = async (
 
   let totalReclassified = 0
   for (const [categoryId, ids] of categoryToTransactionIds) {
-    const count = await transactionRepository.updateCategoryByIds(ids, categoryId)
+    const count = await repo.transactionRepository.updateCategoryByIds(ids, categoryId)
     totalReclassified += count
   }
 
@@ -135,11 +144,9 @@ export const reclassifyUncategorizedTransactions = async (
 export const reclassifyTransactionsByDeletedRule = async (
   userId: number,
   deletedRuleCategoryId: number,
-  transactionRepository: TransactionRepository,
-  categoryRuleRepository: CategoryRuleRepository,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: ReclassifyRepo
 ): Promise<number> => {
-  const affected = await transactionRepository.findByUserIdAndCategoryId(userId, deletedRuleCategoryId)
+  const affected = await repo.transactionRepository.findByUserIdAndCategoryId(userId, deletedRuleCategoryId)
   if (affected.length === 0) return 0
 
   logger.debug("CategorizeService: Reclassifying transactions after rule deletion", {
@@ -152,8 +159,10 @@ export const reclassifyTransactionsByDeletedRule = async (
   const newCategoryIds = await categorizeManyDescriptions(
     userId,
     descriptions,
-    categoryRuleRepository,
-    userCategoryRuleRepository
+    {
+      categoryRuleRepository: repo.categoryRuleRepository,
+      userCategoryRuleRepository: repo.userCategoryRuleRepository,
+    }
   )
 
   /** 元のカテゴリと異なる取引だけを更新する */
@@ -167,7 +176,7 @@ export const reclassifyTransactionsByDeletedRule = async (
 
   let totalReclassified = 0
   for (const [categoryId, ids] of categoryToTransactionIds) {
-    const count = await transactionRepository.updateCategoryByIds(ids, categoryId)
+    const count = await repo.transactionRepository.updateCategoryByIds(ids, categoryId)
     totalReclassified += count
   }
 

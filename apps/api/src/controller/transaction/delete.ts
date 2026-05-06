@@ -15,7 +15,7 @@ export class TransactionDeleteController {
   async execute(req: AuthRequest, res: Response) {
     const { id } = deleteTransactionPathParamSchema.parse(req.params)
 
-    const result = await service.transaction.deleteTransaction(id, this.transactionRepository)
+    const result = await service.transaction.deleteTransaction(id, { transactionRepository: this.transactionRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

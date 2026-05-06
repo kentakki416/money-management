@@ -39,7 +39,7 @@ describe("getAllMemos", () => {
 
     mockFindAll.mockResolvedValue(mockMemos)
 
-    const result = await getAllMemos(mockMemoRepository)
+    const result = await getAllMemos({ memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -51,7 +51,7 @@ describe("getAllMemos", () => {
   it("メモが存在しない場合、空配列を返す", async () => {
     mockFindAll.mockResolvedValue([])
 
-    const result = await getAllMemos(mockMemoRepository)
+    const result = await getAllMemos({ memoRepository: mockMemoRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -62,6 +62,6 @@ describe("getAllMemos", () => {
   it("データベースエラー時にエラーをスローする", async () => {
     mockFindAll.mockRejectedValue(new Error("Database connection failed"))
 
-    await expect(getAllMemos(mockMemoRepository)).rejects.toThrow()
+    await expect(getAllMemos({ memoRepository: mockMemoRepository })).rejects.toThrow()
   })
 })

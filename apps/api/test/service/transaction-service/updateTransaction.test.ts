@@ -85,8 +85,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       true,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     expect(result.ok).toBe(true)
@@ -112,8 +114,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       true,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -138,8 +142,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       false,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -163,8 +169,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       true,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -187,8 +195,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       true,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -211,8 +221,10 @@ describe("updateTransaction", () => {
       "Suica利用",
       1,
       true,
-      mockTransactionRepository,
-      mockUserCategoryRuleRepository
+      {
+        transactionRepository: mockTransactionRepository,
+        userCategoryRuleRepository: mockUserCategoryRuleRepository,
+      }
     )
 
     // Assert
@@ -232,8 +244,10 @@ describe("updateTransaction", () => {
         "Suica利用",
         1,
         false,
-        mockTransactionRepository,
-        mockUserCategoryRuleRepository
+        {
+          transactionRepository: mockTransactionRepository,
+          userCategoryRuleRepository: mockUserCategoryRuleRepository,
+        }
       )
     ).rejects.toThrow()
   })

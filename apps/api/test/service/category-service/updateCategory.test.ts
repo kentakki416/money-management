@@ -47,7 +47,7 @@ describe("updateCategory", () => {
     mockUpdate.mockResolvedValue(updatedCategory)
 
     // Act
-    const result = await updateCategory(1, input, mockCategoryRepository)
+    const result = await updateCategory(1, input, { categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -67,7 +67,7 @@ describe("updateCategory", () => {
     mockFindById.mockResolvedValue(null)
 
     // Act
-    const result = await updateCategory(999, input, mockCategoryRepository)
+    const result = await updateCategory(999, input, { categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(false)
@@ -89,7 +89,7 @@ describe("updateCategory", () => {
     mockFindById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(updateCategory(1, input, mockCategoryRepository)).rejects.toThrow()
+    await expect(updateCategory(1, input, { categoryRepository: mockCategoryRepository })).rejects.toThrow()
     expect(mockFindById).toHaveBeenCalledWith(1)
   })
 })

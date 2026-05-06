@@ -25,7 +25,7 @@ export class TransactionListController {
         userId,
         year: query.year,
       },
-      this.transactionRepository
+      { transactionRepository: this.transactionRepository }
     )
 
     if (!result.ok) {

@@ -12,7 +12,7 @@ export class AdminUserListController {
   constructor(private userSummaryRepository: UserSummaryRepository) {}
 
   async execute(_req: Request, res: Response) {
-    const result = await service.admin.getAllUsers(this.userSummaryRepository)
+    const result = await service.admin.getAllUsers({ userSummaryRepository: this.userSummaryRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

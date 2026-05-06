@@ -21,7 +21,7 @@ describe("deleteCategoryRule", () => {
     mockDeleteById.mockResolvedValue(undefined)
 
     // Act
-    const result = await deleteCategoryRule(1, mockCategoryRuleRepository)
+    const result = await deleteCategoryRule(1, { categoryRuleRepository: mockCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -35,7 +35,7 @@ describe("deleteCategoryRule", () => {
     mockDeleteById.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(deleteCategoryRule(1, mockCategoryRuleRepository)).rejects.toThrow()
+    await expect(deleteCategoryRule(1, { categoryRuleRepository: mockCategoryRuleRepository })).rejects.toThrow()
     expect(mockDeleteById).toHaveBeenCalledWith(1)
   })
 })

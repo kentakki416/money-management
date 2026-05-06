@@ -22,7 +22,7 @@ describe("deleteTransaction", () => {
   it("取引を削除して ok: true を返す", async () => {
     mockDeleteById.mockResolvedValue(undefined)
 
-    const result = await deleteTransaction(1, mockTransactionRepository)
+    const result = await deleteTransaction(1, { transactionRepository: mockTransactionRepository })
 
     expect(result.ok).toBe(true)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
@@ -30,12 +30,12 @@ describe("deleteTransaction", () => {
 
   it("指定したIDで削除が呼ばれる", async () => {
     mockDeleteById.mockResolvedValue(undefined)
-    await deleteTransaction(42, mockTransactionRepository)
+    await deleteTransaction(42, { transactionRepository: mockTransactionRepository })
     expect(mockDeleteById).toHaveBeenCalledWith(42)
   })
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockDeleteById.mockRejectedValue(new Error("Database connection failed"))
-    await expect(deleteTransaction(1, mockTransactionRepository)).rejects.toThrow()
+    await expect(deleteTransaction(1, { transactionRepository: mockTransactionRepository })).rejects.toThrow()
   })
 })

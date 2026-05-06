@@ -49,7 +49,7 @@ describe("getUserCategoryRules", () => {
     mockFindByUserId.mockResolvedValue(mockRules)
 
     // Act
-    const result = await getUserCategoryRules(100, mockUserCategoryRuleRepository)
+    const result = await getUserCategoryRules(100, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -66,7 +66,7 @@ describe("getUserCategoryRules", () => {
     mockFindByUserId.mockResolvedValue([])
 
     // Act
-    const result = await getUserCategoryRules(100, mockUserCategoryRuleRepository)
+    const result = await getUserCategoryRules(100, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -84,6 +84,6 @@ describe("getUserCategoryRules", () => {
     mockFindByUserId.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(getUserCategoryRules(100, mockUserCategoryRuleRepository)).rejects.toThrow()
+    await expect(getUserCategoryRules(100, { userCategoryRuleRepository: mockUserCategoryRuleRepository })).rejects.toThrow()
   })
 })

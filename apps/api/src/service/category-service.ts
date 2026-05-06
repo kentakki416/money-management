@@ -3,14 +3,16 @@ import { CategoryRepository, CreateCateogryInput, UpdateCateogryInput } from "..
 import { Category } from "../types/domain"
 import { err, notFoundError, ok, Result } from "../types/result"
 
+type CategoryRepo = { categoryRepository: CategoryRepository }
+
 /**
  * カテゴリ一覧を取得
  */
 export const getAllCategories = async (
-  categoryRepository: CategoryRepository
+  repo: CategoryRepo
 ): Promise<Result<Category[]>> => {
   logger.debug("CategoryService: Fetching all categories")
-  const categories = await categoryRepository.findAll()
+  const categories = await repo.categoryRepository.findAll()
   logger.debug("CategoryService: Categories fetched", { count: categories.length })
   return ok(categories)
 }
@@ -20,10 +22,10 @@ export const getAllCategories = async (
  */
 export const getCategoryById = async (
   id: number,
-  categoryRepository: CategoryRepository
+  repo: CategoryRepo
 ): Promise<Result<Category>> => {
   logger.debug("CategoryService: Fetching category by ID", { id })
-  const category = await categoryRepository.findById(id)
+  const category = await repo.categoryRepository.findById(id)
   if (!category) {
     logger.debug("CategoryService: Category not found", { id })
     return err(notFoundError("Category not found"))
@@ -36,10 +38,10 @@ export const getCategoryById = async (
  */
 export const createCategory = async (
   data: CreateCateogryInput,
-  categoryRepository: CategoryRepository
+  repo: CategoryRepo
 ): Promise<Result<Category>> => {
   logger.debug("CategoryService: Creating category", { name: data.name })
-  const category = await categoryRepository.create(data)
+  const category = await repo.categoryRepository.create(data)
   logger.debug("CategoryService: Category created", { id: category.id })
   return ok(category)
 }
@@ -50,15 +52,15 @@ export const createCategory = async (
 export const updateCategory = async (
   id: number,
   data: UpdateCateogryInput,
-  categoryRepository: CategoryRepository
+  repo: CategoryRepo
 ): Promise<Result<Category>> => {
   logger.debug("CategoryService: Updating category", { id })
-  const existing = await categoryRepository.findById(id)
+  const existing = await repo.categoryRepository.findById(id)
   if (!existing) {
     logger.debug("CategoryService: Category not found for update", { id })
     return err(notFoundError("Category not found"))
   }
-  const category = await categoryRepository.update(id, data)
+  const category = await repo.categoryRepository.update(id, data)
   logger.debug("CategoryService: Category updated", { id: category.id })
   return ok(category)
 }
@@ -68,15 +70,15 @@ export const updateCategory = async (
  */
 export const deleteCategory = async (
   id: number,
-  categoryRepository: CategoryRepository
+  repo: CategoryRepo
 ): Promise<Result<{ deleted: true }>> => {
   logger.debug("CategoryService: Deleting category", { id })
-  const existing = await categoryRepository.findById(id)
+  const existing = await repo.categoryRepository.findById(id)
   if (!existing) {
     logger.debug("CategoryService: Category not found for deletion", { id })
     return err(notFoundError("Category not found"))
   }
-  await categoryRepository.deleteById(id)
+  await repo.categoryRepository.deleteById(id)
   logger.debug("CategoryService: Category deleted", { id })
   return ok({ deleted: true })
 }

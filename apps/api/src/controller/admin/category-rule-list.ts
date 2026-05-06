@@ -12,7 +12,7 @@ export class AdminCategoryRuleListController {
   constructor(private categoryRuleRepository: CategoryRuleRepository) {}
 
   async execute(_req: Request, res: Response) {
-    const result = await service.categoryRule.getAllCategoryRules(this.categoryRuleRepository)
+    const result = await service.categoryRule.getAllCategoryRules({ categoryRuleRepository: this.categoryRuleRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

@@ -14,7 +14,7 @@ export class AdminUserDetailController {
   async execute(req: Request, res: Response) {
     const { id } = getAdminUserDetailPathParamSchema.parse(req.params)
 
-    const result = await service.admin.getUserDetail(id, this.userSummaryRepository)
+    const result = await service.admin.getUserDetail(id, { userSummaryRepository: this.userSummaryRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

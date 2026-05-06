@@ -28,7 +28,7 @@ describe("getTrend", () => {
     ]
     mockGetMonthlyTrend.mockResolvedValue(mockTrendData)
 
-    const result = await getTrend(1, 3, mockSummaryRepository)
+    const result = await getTrend(1, 3, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -48,7 +48,7 @@ describe("getTrend", () => {
     ]
     mockGetMonthlyTrend.mockResolvedValue(mockTrendData)
 
-    const result = await getTrend(1, 3, mockSummaryRepository)
+    const result = await getTrend(1, 3, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -64,7 +64,7 @@ describe("getTrend", () => {
     mockGetMonthlyTrend.mockResolvedValue([])
     const months = 6
 
-    const result = await getTrend(1, months, mockSummaryRepository)
+    const result = await getTrend(1, months, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value.months).toHaveLength(months)
@@ -81,7 +81,7 @@ describe("getTrend", () => {
     ]
     mockGetMonthlyTrend.mockResolvedValue(mockTrendData)
 
-    const result = await getTrend(1, 2, mockSummaryRepository)
+    const result = await getTrend(1, 2, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -93,7 +93,7 @@ describe("getTrend", () => {
   it("データが0件の場合、空のcategoriesと0の合計を返す", async () => {
     mockGetMonthlyTrend.mockResolvedValue([])
 
-    const result = await getTrend(1, 3, mockSummaryRepository)
+    const result = await getTrend(1, 3, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -104,6 +104,6 @@ describe("getTrend", () => {
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockGetMonthlyTrend.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getTrend(1, 3, mockSummaryRepository)).rejects.toThrow()
+    await expect(getTrend(1, 3, { summaryRepository: mockSummaryRepository })).rejects.toThrow()
   })
 })

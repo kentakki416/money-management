@@ -17,7 +17,7 @@ describe("deletePaymentSource", () => {
   it("支払い元を削除して ok: true を返す", async () => {
     mockDeleteById.mockResolvedValue(undefined)
 
-    const result = await deletePaymentSource(1, mockPaymentSourceRepository)
+    const result = await deletePaymentSource(1, { paymentSourceRepository: mockPaymentSourceRepository })
 
     expect(result.ok).toBe(true)
     expect(mockDeleteById).toHaveBeenCalledWith(1)
@@ -25,12 +25,12 @@ describe("deletePaymentSource", () => {
 
   it("指定したIDで削除が呼ばれる", async () => {
     mockDeleteById.mockResolvedValue(undefined)
-    await deletePaymentSource(99, mockPaymentSourceRepository)
+    await deletePaymentSource(99, { paymentSourceRepository: mockPaymentSourceRepository })
     expect(mockDeleteById).toHaveBeenCalledWith(99)
   })
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockDeleteById.mockRejectedValue(new Error("Database connection failed"))
-    await expect(deletePaymentSource(1, mockPaymentSourceRepository)).rejects.toThrow()
+    await expect(deletePaymentSource(1, { paymentSourceRepository: mockPaymentSourceRepository })).rejects.toThrow()
   })
 })

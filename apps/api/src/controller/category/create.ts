@@ -19,7 +19,7 @@ export class CategoryCreateController {
         name: data.name,
         sortOrder: data.sort_order,
       },
-      this.categoryRepository
+      { categoryRepository: this.categoryRepository }
     )
 
     if (!result.ok) {

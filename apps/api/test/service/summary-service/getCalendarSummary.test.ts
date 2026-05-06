@@ -22,7 +22,7 @@ describe("getCalendarSummary", () => {
     ]
     mockGetDailySummary.mockResolvedValue(mockDays)
 
-    const result = await getCalendarSummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getCalendarSummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -40,7 +40,7 @@ describe("getCalendarSummary", () => {
     ]
     mockGetDailySummary.mockResolvedValue(mockDays)
 
-    const result = await getCalendarSummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getCalendarSummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value.totalAmount).toBe(3500)
@@ -49,7 +49,7 @@ describe("getCalendarSummary", () => {
   it("データが0件の場合、totalAmountが0で空配列を返す", async () => {
     mockGetDailySummary.mockResolvedValue([])
 
-    const result = await getCalendarSummary(1, 2026, 4, mockSummaryRepository)
+    const result = await getCalendarSummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -60,6 +60,6 @@ describe("getCalendarSummary", () => {
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockGetDailySummary.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getCalendarSummary(1, 2026, 4, mockSummaryRepository)).rejects.toThrow()
+    await expect(getCalendarSummary(1, 2026, 4, { summaryRepository: mockSummaryRepository })).rejects.toThrow()
   })
 })

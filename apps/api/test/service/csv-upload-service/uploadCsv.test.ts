@@ -107,10 +107,12 @@ const buildInput = (overrides?: Partial<Parameters<typeof uploadCsv>[0]>) => ({
 const callUploadCsv = async (data: Parameters<typeof uploadCsv>[0]) =>
   uploadCsv(
     data,
-    mockTransactionRepository,
-    mockCsvUploadRepository,
-    mockCategoryRuleRepository,
-    mockUserCategoryRuleRepository
+    {
+      categoryRuleRepository: mockCategoryRuleRepository,
+      csvUploadRepository: mockCsvUploadRepository,
+      transactionRepository: mockTransactionRepository,
+      userCategoryRuleRepository: mockUserCategoryRuleRepository,
+    }
   )
 
 describe("uploadCsv", () => {

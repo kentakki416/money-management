@@ -38,7 +38,7 @@ describe("createCategory", () => {
     mockCreate.mockResolvedValue(mockCategory)
 
     // Act
-    const result = await createCategory(input, mockCategoryRepository)
+    const result = await createCategory(input, { categoryRepository: mockCategoryRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -60,7 +60,7 @@ describe("createCategory", () => {
     mockCreate.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(createCategory(input, mockCategoryRepository)).rejects.toThrow()
+    await expect(createCategory(input, { categoryRepository: mockCategoryRepository })).rejects.toThrow()
     expect(mockCreate).toHaveBeenCalledWith(input)
   })
 })

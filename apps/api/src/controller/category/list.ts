@@ -12,7 +12,7 @@ export class CategoryListController {
   constructor(private categoryRepository: CategoryRepository) {}
 
   async execute(_req: Request, res: Response) {
-    const result = await service.category.getAllCategories(this.categoryRepository)
+    const result = await service.category.getAllCategories({ categoryRepository: this.categoryRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

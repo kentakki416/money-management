@@ -27,7 +27,7 @@ export class UserCategoryRuleUpdateController {
         matchType: data.match_type,
         priority: data.priority,
       },
-      this.userCategoryRuleRepository
+      { userCategoryRuleRepository: this.userCategoryRuleRepository }
     )
 
     if (!result.ok) {

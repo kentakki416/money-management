@@ -16,7 +16,7 @@ export class CsvUploadDeleteController {
     const userId = req.userId!
     const { id } = deleteCsvUploadPathParamSchema.parse(req.params)
 
-    const result = await service.csvUpload.deleteCsvUpload(id, userId, this.csvUploadRepository)
+    const result = await service.csvUpload.deleteCsvUpload(id, userId, { csvUploadRepository: this.csvUploadRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

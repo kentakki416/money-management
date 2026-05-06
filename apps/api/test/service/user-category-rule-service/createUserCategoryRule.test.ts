@@ -43,7 +43,7 @@ describe("createUserCategoryRule", () => {
     mockCreate.mockResolvedValue(mockRule)
 
     // Act
-    const result = await createUserCategoryRule(100, input, mockUserCategoryRuleRepository)
+    const result = await createUserCategoryRule(100, input, { userCategoryRuleRepository: mockUserCategoryRuleRepository })
 
     // Assert
     expect(result.ok).toBe(true)
@@ -65,7 +65,7 @@ describe("createUserCategoryRule", () => {
     mockCreate.mockRejectedValue(mockError)
 
     // Act & Assert
-    await expect(createUserCategoryRule(100, input, mockUserCategoryRuleRepository)).rejects.toThrow()
+    await expect(createUserCategoryRule(100, input, { userCategoryRuleRepository: mockUserCategoryRuleRepository })).rejects.toThrow()
     expect(mockCreate).toHaveBeenCalledWith(100, input)
   })
 })

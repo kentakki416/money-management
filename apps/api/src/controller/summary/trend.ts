@@ -17,7 +17,7 @@ export class SummaryTrendController {
     const query = trendRequestSchema.parse(req.query)
     const months = query.months ?? 12
 
-    const result = await service.summary.getTrend(userId, months, this.summaryRepository)
+    const result = await service.summary.getTrend(userId, months, { summaryRepository: this.summaryRepository })
 
     if (!result.ok) {
       const errorResponse: ErrorResponse = {

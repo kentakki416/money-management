@@ -38,7 +38,7 @@ describe("getUploadHistory", () => {
     ]
     mockFindByUserId.mockResolvedValue(mockHistory)
 
-    const result = await getUploadHistory(1, mockCsvUploadRepository)
+    const result = await getUploadHistory(1, { csvUploadRepository: mockCsvUploadRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -50,7 +50,7 @@ describe("getUploadHistory", () => {
   it("アップロード履歴が存在しない場合、空配列を返す", async () => {
     mockFindByUserId.mockResolvedValue([])
 
-    const result = await getUploadHistory(1, mockCsvUploadRepository)
+    const result = await getUploadHistory(1, { csvUploadRepository: mockCsvUploadRepository })
 
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.value).toEqual([])
@@ -58,12 +58,12 @@ describe("getUploadHistory", () => {
 
   it("指定したuserIdでリポジトリが呼ばれる", async () => {
     mockFindByUserId.mockResolvedValue([])
-    await getUploadHistory(42, mockCsvUploadRepository)
+    await getUploadHistory(42, { csvUploadRepository: mockCsvUploadRepository })
     expect(mockFindByUserId).toHaveBeenCalledWith(42)
   })
 
   it("データベースエラー時は例外として伝播する", async () => {
     mockFindByUserId.mockRejectedValue(new Error("Database connection failed"))
-    await expect(getUploadHistory(1, mockCsvUploadRepository)).rejects.toThrow()
+    await expect(getUploadHistory(1, { csvUploadRepository: mockCsvUploadRepository })).rejects.toThrow()
   })
 })

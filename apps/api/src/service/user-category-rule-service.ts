@@ -3,15 +3,17 @@ import { CreateUserCategoryRuleInput, UpdateUserCategoryRuleInput, UserCategoryR
 import { UserCategoryRule } from "../types/domain"
 import { ok, Result } from "../types/result"
 
+type UserCategoryRuleRepo = { userCategoryRuleRepository: UserCategoryRuleRepository }
+
 /**
  * ユーザールール一覧を取得
  */
 export const getUserCategoryRules = async (
   userId: number,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: UserCategoryRuleRepo
 ): Promise<Result<UserCategoryRule[]>> => {
   logger.debug("UserCategoryRuleService: Fetching user rules", { userId })
-  const rules = await userCategoryRuleRepository.findByUserId(userId)
+  const rules = await repo.userCategoryRuleRepository.findByUserId(userId)
   logger.debug("UserCategoryRuleService: Rules fetched", { count: rules.length, userId })
   return ok(rules)
 }
@@ -22,10 +24,10 @@ export const getUserCategoryRules = async (
 export const createUserCategoryRule = async (
   userId: number,
   data: CreateUserCategoryRuleInput,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: UserCategoryRuleRepo
 ): Promise<Result<UserCategoryRule>> => {
   logger.debug("UserCategoryRuleService: Creating user rule", { keyword: data.keyword, userId })
-  const rule = await userCategoryRuleRepository.create(userId, data)
+  const rule = await repo.userCategoryRuleRepository.create(userId, data)
   logger.debug("UserCategoryRuleService: User rule created", { id: rule.id })
   return ok(rule)
 }
@@ -37,10 +39,10 @@ export const updateUserCategoryRule = async (
   id: number,
   userId: number,
   data: UpdateUserCategoryRuleInput,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: UserCategoryRuleRepo
 ): Promise<Result<UserCategoryRule>> => {
   logger.debug("UserCategoryRuleService: Updating user rule", { id, userId })
-  const rule = await userCategoryRuleRepository.update(id, userId, data)
+  const rule = await repo.userCategoryRuleRepository.update(id, userId, data)
   logger.debug("UserCategoryRuleService: User rule updated", { id: rule.id })
   return ok(rule)
 }
@@ -51,10 +53,10 @@ export const updateUserCategoryRule = async (
 export const deleteUserCategoryRule = async (
   id: number,
   userId: number,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: UserCategoryRuleRepo
 ): Promise<Result<{ deleted: true }>> => {
   logger.debug("UserCategoryRuleService: Deleting user rule", { id, userId })
-  await userCategoryRuleRepository.deleteById(id, userId)
+  await repo.userCategoryRuleRepository.deleteById(id, userId)
   logger.debug("UserCategoryRuleService: User rule deleted", { id })
   return ok({ deleted: true })
 }
@@ -67,10 +69,10 @@ export const upsertUserCategoryRuleByKeyword = async (
   userId: number,
   keyword: string,
   categoryId: number,
-  userCategoryRuleRepository: UserCategoryRuleRepository
+  repo: UserCategoryRuleRepo
 ): Promise<UserCategoryRule> => {
   logger.debug("UserCategoryRuleService: Upserting user rule", { categoryId, keyword, userId })
-  const rule = await userCategoryRuleRepository.upsertByKeyword(userId, keyword, categoryId)
+  const rule = await repo.userCategoryRuleRepository.upsertByKeyword(userId, keyword, categoryId)
   logger.debug("UserCategoryRuleService: User rule upserted", { id: rule.id })
   return rule
 }
