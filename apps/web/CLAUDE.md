@@ -49,3 +49,18 @@ UI コード（`page.tsx` / Client Component / Server Action / 認証フロー�
 認証必須ページの検証は `pnpm --filter api issue-test-token <userId>` で発行した JWT を `auth_token` cookie に注入する。手順は `verify-web-page` skill にまとめてあるので、UI 実装直後に自発的に呼び出すこと。
 
 `pnpm build` だけで「動作確認済み」と報告するのは禁止。
+
+## PR 作成時の before/after スクショ（必須）
+
+**見た目に影響する Web の PR は、PR 本文に before/after スクリーンショットを必ず含める**。レビュアーが画面の変化を即座に把握できるようにするため。
+
+ルール:
+- 保存先: `docs/screenshots/{feature}/{before,after}.png`（`{feature}` は kebab-case の短い識別子）
+- **既存ページ修正**: ブランチを切る前に main で before を撮る → 実装後に after を撮る → 両方コミット
+- **新規ページ作成**: after のみで OK（PR 本文に「新規ページのため before なし」と明記）
+- **見た目に影響しないリファクタ / 裏側変更 / docs のみ**: 不要（PR 本文に「UI 変更なし」と明記）
+- 画像は **git に commit & push が必要**（`gh` の API では PR 本文用の画像 CDN へ直接アップロードできないため）
+
+before の撮り忘れ対策: `git stash` → `git checkout main` → 撮影 → `git checkout <branch>` → `git stash pop` で後からでも復元できる。
+
+詳細手順とテンプレ markdown は `verify-web-page` skill を参照。
