@@ -4,7 +4,7 @@ import { CategoryDeleteController } from "../../../src/controller/category/delet
 import { PrismaCategoryRepository } from "../../../src/repository/mysql/category-repository"
 import { categoryRouter } from "../../../src/routes/category-router"
 import { attachErrorHandler, createTestApp, createTestUser } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 const categoryRepository = new PrismaCategoryRepository(testPrisma)
 
@@ -20,6 +20,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("DELETE /api/categories/:id", () => {

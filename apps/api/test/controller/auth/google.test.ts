@@ -4,6 +4,7 @@ import { IGoogleOAuthClient } from "../../../src/client/google-oauth"
 import { AuthGoogleController } from "../../../src/controller/auth/google"
 import { authRouter } from "../../../src/routes/auth-router"
 import { attachErrorHandler, createTestApp } from "../helper"
+import { disconnectTestDb, disconnectTestRedis } from "../setup"
 
 // Google OAuth はモック
 const mockGenerateAuthUrl = jest.fn<string, []>()
@@ -19,6 +20,11 @@ const authGoogleController = new AuthGoogleController(mockGoogleOAuthClient)
 
 app.use("/api/auth", authRouter({ google: authGoogleController }))
 attachErrorHandler(app)
+
+afterAll(async () => {
+  await disconnectTestDb()
+  await disconnectTestRedis()
+})
 
 describe("GET /api/auth/google", () => {
   beforeEach(() => {

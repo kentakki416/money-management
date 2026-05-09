@@ -6,7 +6,7 @@ import { PrismaTransactionRepository } from "../../../src/repository/mysql/trans
 import { PrismaUserCategoryRuleRepository } from "../../../src/repository/mysql/user-category-rule-repository"
 import { transactionRouter } from "../../../src/routes/transaction-router"
 import { attachErrorHandler, createTestApp, createTestUser } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 const transactionRepository = new PrismaTransactionRepository(testPrisma)
 const categoryRuleRepository = new PrismaCategoryRuleRepository(testPrisma)
@@ -33,6 +33,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("POST /api/transactions", () => {

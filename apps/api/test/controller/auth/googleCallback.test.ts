@@ -6,7 +6,7 @@ import { PrismaUserRegistrationRepository } from "../../../src/repository/mysql/
 import { PrismaAuthAccountRepository } from "../../../src/repository/mysql/auth-account-repository"
 import { authRouter } from "../../../src/routes/auth-router"
 import { createTestApp } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 // Google OAuth はモック
 const mockGetUserInfo = jest.fn<Promise<GoogleUserInfo>, [string]>()
@@ -38,6 +38,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("GET /api/auth/google/callback", () => {

@@ -8,7 +8,7 @@ import { PrismaTransactionRepository } from "../../../src/repository/mysql/trans
 import { PrismaUserCategoryRuleRepository } from "../../../src/repository/mysql/user-category-rule-repository"
 import { csvUploadRouter } from "../../../src/routes/csv-upload-router"
 import { createTestApp, createTestUser } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 const transactionRepository = new PrismaTransactionRepository(testPrisma)
 const csvUploadRepository = new PrismaCsvUploadRepository(testPrisma)
@@ -47,6 +47,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("POST /api/csv-uploads", () => {

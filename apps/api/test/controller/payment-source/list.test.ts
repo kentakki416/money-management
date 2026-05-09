@@ -4,7 +4,7 @@ import { PaymentSourceListController } from "../../../src/controller/payment-sou
 import { PrismaPaymentSourceRepository } from "../../../src/repository/mysql/payment-source-repository"
 import { paymentSourceRouter } from "../../../src/routes/payment-source-router"
 import { createTestApp, createTestUser } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 const paymentSourceRepository = new PrismaPaymentSourceRepository(testPrisma)
 
@@ -19,6 +19,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("GET /api/payment-sources", () => {

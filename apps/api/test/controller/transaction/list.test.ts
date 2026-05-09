@@ -4,7 +4,7 @@ import { TransactionListController } from "../../../src/controller/transaction/l
 import { PrismaTransactionRepository } from "../../../src/repository/mysql/transaction-repository"
 import { transactionRouter } from "../../../src/routes/transaction-router"
 import { createTestApp, createTestUser } from "../helper"
-import { cleanupTestData, disconnectTestDb, testPrisma } from "../setup"
+import { cleanupTestData, disconnectTestDb, disconnectTestRedis, testPrisma } from "../setup"
 
 const transactionRepository = new PrismaTransactionRepository(testPrisma)
 
@@ -19,6 +19,7 @@ beforeEach(async () => {
 afterAll(async () => {
   await cleanupTestData()
   await disconnectTestDb()
+  await disconnectTestRedis()
 })
 
 describe("GET /api/transactions", () => {
